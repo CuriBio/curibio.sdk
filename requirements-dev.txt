@@ -6,3 +6,4 @@ sphinx==2.2.1
 pylint==2.5.2
 pytest-pylint==0.17.0
 setuptools==46.4.0
+zest.releaser[recommended]==6.20.1

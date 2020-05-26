@@ -31,4 +31,7 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",
     ],
+    entry_points={
+        "distutils.commands": ["upload_sphinx = sphinx_pypi_upload:UploadDoc"]
+    },
 )

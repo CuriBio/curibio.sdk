@@ -1,4 +1,4 @@
-pre-commit==2.4.0 # run 'pre-commit install' initially to install the git hooks
+pre-commit==2.4.0
 pytest==5.4.2
 pytest-cov==2.8.1
 pytest-randomly==3.3.1
@@ -7,3 +7,4 @@ pylint==2.5.2
 pytest-pylint==0.17.0
 setuptools==46.4.0
 zest.releaser[recommended]==6.20.1
+Sphinx-PyPI-upload==0.2.1

@@ -82,6 +82,8 @@ jobs:
         run: SPHINXOPTS="-W" make --directory=docs html # the -W flag treats warnings as errors to cause build failures
 
       - name: Upload coverage to Codecov
+        # only upload coverage from fastest job
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7
         uses: codecov/codecov-action@v1
         with:
           file: ./coverage-report-pytest/coverage.xml

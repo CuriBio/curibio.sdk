@@ -53,8 +53,8 @@ jobs:
         run: venv\Scripts\Activate.ps1
 
 
-      - name: Install Pip
-        run: pip install pip==20.1.1 --upgrade
+      - name: Display Pip Version
+        run: pip -V
       - name: Install Dev Dependencies
         run: pip install -r requirements-dev.txt
       - name: Install Main Package

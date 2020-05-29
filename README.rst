@@ -9,3 +9,6 @@ Software development kit for utilizing Curi Bio data files and online databases
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
+
+.. image:: https://codecov.io/gh/CuriBio/curibio.sdk/branch/development/graph/badge.svg
+  :target: https://codecov.io/gh/CuriBio/curibio.sdk

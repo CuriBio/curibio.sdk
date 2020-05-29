@@ -74,9 +74,18 @@ jobs:
         run: pre-commit run -a
 
       - name: Run Tests
-        run: pytest -xsvv
+        run: pytest -xsvv --cov-report=xml
 
       - name: Confirm Sphinx Docs build correctly
         # only check Sphinx docs build on the fastest job
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7
         run: SPHINXOPTS="-W" make --directory=docs html # the -W flag treats warnings as errors to cause build failures
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage-report-pytest/coverage.xml
+          flags: unittests
+          env_vars: OS,PYTHON
+          name: codecov-umbrella
+          fail_ci_if_error: true

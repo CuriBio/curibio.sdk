@@ -2,8 +2,8 @@
 name: Dev
 
 on:
-  schedule:
-  - cron: "0 0 7 1/1 * ? *"
+#   schedule:
+#   - cron: "0 0 7 1/1 * ? *"
   push:
     branches:
       - master

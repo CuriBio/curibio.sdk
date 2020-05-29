@@ -38,9 +38,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          node-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+
+      - name: Create virtual python environment
+        run: python -m venv venv
+
+      - name: Activate virtual environment (Linux/MacOS)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        run: . venv/bin/activate
+      - name: Activate virtual environment (Windows)
+        if: matrix.os == 'windows-latest'
+        run: venv\Scripts\Activate.ps1
+
 
       - name: Install Pip
         run: pip install pip==20.1.1 --upgrade
@@ -51,9 +62,13 @@ jobs:
       - name: Log full installed packages
         run: pip freeze
       - name: Install pre-commit hooks
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7
+        # only enable pre-commit on the fastest job
         run: pre-commit install
 
       - name: Run pre-commit hooks
+        # only enable pre-commit on the fastest job
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7
         run: pre-commit run -a
 
       - name: Run Tests

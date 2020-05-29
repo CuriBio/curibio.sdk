@@ -1,8 +1,5 @@
 Software development kit for utilizing Curi Bio data files and online databases
 
-.. only:: comment
-    Badges section
-
 .. image:: https://github.com/CuriBio/curibio.sdk/workflows/Dev/badge.svg?branch=development
    :alt: Development Branch Build
 

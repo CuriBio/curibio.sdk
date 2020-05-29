@@ -2,6 +2,8 @@
 name: Dev
 
 on:
+  schedule:
+  - cron: "0 0 7 1/1 * ? *"
   push:
     branches:
       - master
@@ -75,4 +77,6 @@ jobs:
         run: pytest -xsvv
 
       - name: Confirm Sphinx Docs build correctly
+        # only check Sphinx docs build on the fastest job
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7
         run: SPHINXOPTS="-W" make --directory=docs html # the -W flag treats warnings as errors to cause build failures

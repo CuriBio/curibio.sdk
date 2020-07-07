@@ -2,8 +2,14 @@
 name: Dev
 
 on:
-#   schedule:
-#   - cron: "0 0 7 1/1 * ? *"
+  workflow_dispatch:
+    inputs:
+      randomlyseed:
+        description: 'Pytest Randomly Seed'
+        required: false
+        default: ''
+  schedule:
+    - cron: "0 0 7 1/1 * ? *"
   push:
     branches:
       - master

@@ -1,6 +1,6 @@
 Software development kit for utilizing Curi Bio data files and online databases
 
-.. image:: https://github.com/CuriBio/curibio.sdk/workflows/Dev/badge.svg?branch=development
+.. image:: https://github.com/CuriBio/curibio.sdk/workflows/Dev/badge.svg?branch=development&event=schedule
    :alt: Development Branch Build
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -12,3 +12,7 @@ Software development kit for utilizing Curi Bio data files and online databases
 
 .. image:: https://codecov.io/gh/CuriBio/curibio.sdk/branch/development/graph/badge.svg
   :target: https://codecov.io/gh/CuriBio/curibio.sdk
+
+.. image:: https://readthedocs.org/projects/curibiosdk/badge/?version=latest
+   :target: https://curibiosdk.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status

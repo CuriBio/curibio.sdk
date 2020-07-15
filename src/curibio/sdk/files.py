@@ -40,3 +40,25 @@ class WellFile:
             data[1, i] = tissue_data[i]
 
         return data
+
+    def get_voltage_array(self) -> NDArray[2, int]:
+        """Return the voltage vs time data."""
+        time_step = 8 * 1.2e-3  # tissue sample rate is just over 100Hz
+        vref = 3.3  # ADC reference voltage
+        least_significant_bit = vref / 2 ** 23  # ADC quantization step
+        gain = 1  # ADC gain
+        tissue_data = self._h5_file["tissue_sensor_readings"]
+
+        times = np.arange(len(tissue_data)) * time_step
+        len_time = len(times)
+
+        voltages = []
+        for this_tissue_data in tissue_data:
+            voltages.append(1e3 * (least_significant_bit * this_tissue_data) / gain)
+
+        voltage_data = np.zeros((2, len_time))
+        for i in range(len_time):
+            voltage_data[0, i] = times[i]
+            voltage_data[1, i] = voltages[i]
+
+        return voltage_data

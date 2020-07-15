@@ -16,7 +16,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     namespace_packages=["curibio"],
-    install_requires=["h5py>=2.10.0"],
+    install_requires=["h5py>=2.10.0", "nptyping>=1.2.0", "numpy>=1.19.0"],
     zip_safe=False,
     include_package_data=True,
     classifiers=[

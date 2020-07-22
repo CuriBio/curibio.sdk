@@ -10,7 +10,7 @@ setup(
     version="0.2",
     description="CREATE A DESCRIPTION",
     url="https://github.com/CuriBio/curibio.sdk",
-    project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/",},
+    project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/"},
     author="Curi Bio",
     author_email="eli@nanosurfacebio.com",
     license="MIT",

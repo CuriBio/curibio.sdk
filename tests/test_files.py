@@ -2,6 +2,7 @@
 import inspect
 import os
 
+from curibio.sdk import files
 from curibio.sdk import PlateRecording
 from curibio.sdk import WellFile
 import numpy as np
@@ -23,11 +24,17 @@ def test_WellFile__opens_and_get_well_index():
     assert wf.get_well_index() == 23
 
 
+# def test_WellFile__opens_and_get_plate_barcode():
+#     wf = WellFile(
+#         os.path.join(PATH_OF_CURRENT_FILE, "M120171010__2020_07_22_201922", "M120171010__2020_07_22_201922__A1.h5")
+#     )
+#     assert wf.get_plate_barcode() == "M120171010"
+
+
 def test_WellFile__opens_and_get_numpy_array():
     wf = WellFile(
         os.path.join(PATH_OF_CURRENT_FILE, "h5", "my_barcode__2020_03_17_163600__D6.h5")
     )
-
     assert np.size(wf.get_numpy_array()) == 25986
 
 
@@ -35,11 +42,10 @@ def test_WellFile__opens_and_get_voltage_array():
     wf = WellFile(
         os.path.join(PATH_OF_CURRENT_FILE, "h5", "my_barcode__2020_03_17_163600__D6.h5")
     )
-
     assert np.size(wf.get_voltage_array()) == 25986
 
 
-def test_PlateRecording__opens_and_get_wellfiles():
+def test_PlateRecording__opens_and_get_wellfile_names():
     wf1 = os.path.join(
         PATH_OF_CURRENT_FILE, "h5_New", "my_barcode__2020_05_24_203716__B1.h5"
     )
@@ -59,9 +65,25 @@ def test_PlateRecording__opens_and_get_wellfiles():
         PATH_OF_CURRENT_FILE, "h5_New", "my_barcode__2020_05_24_203716__B6.h5"
     )
 
-    files = PlateRecording([wf1, wf2, wf3, wf4, wf5, wf6])
+    file_list = PlateRecording([wf1, wf2, wf3, wf4, wf5, wf6])
 
     # test csv writer
-    files.get_combined_csv()
+    file_list.get_combined_csv()
 
-    assert np.size(files.get_wellfile_names()) == 6
+    assert np.size(file_list.get_wellfile_names()) == 6
+
+
+def test_get_unique_files():
+    unique_files = files.get_unique_files_from_directory(PATH_OF_CURRENT_FILE)
+
+    assert len(unique_files) == 75
+
+
+def test_get_specific_files():
+    unique_files = files.get_unique_files_from_directory(
+        os.path.join(PATH_OF_CURRENT_FILE, "h5")
+    )
+
+    dictionary = files.get_specified_files("Well Name", "D6", unique_files)
+
+    assert len(dictionary["Well Name"]["D6"]) == 1

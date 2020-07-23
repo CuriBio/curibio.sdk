@@ -2,6 +2,7 @@
 """Classes and functinos for finding and managing files."""
 import inspect
 import os
+from typing import Dict
 from typing import List
 
 import h5py
@@ -9,6 +10,54 @@ from nptyping import NDArray
 import numpy as np
 
 PATH_OF_CURRENT_FILE = os.path.dirname((inspect.stack()[0][1]))
+
+
+def get_unique_files_from_directory(directory: str) -> List[str]:
+    """Obtain a list of all unique h5 files in the current directory.
+
+    Args:
+        directory: the master folder for which all h5 files reside
+
+    Returns:
+        A list of the file paths for all the h5 files in the directory.
+    """
+    unique_files: List[str] = []
+
+    for path, _, files in os.walk(directory):
+        for name in files:
+            unique_files.append(os.path.join(path, name))
+
+    return unique_files
+
+
+def get_specified_files(
+    search_criteria: str, criteria_value: str, unique_files: List[str]
+) -> Dict[str, Dict[str, List[str]]]:
+    """Obtain a subset of all the h5 files based on search criteria from user.
+
+    Args:
+        search_criteria: A str representing a UUID to a piece a metadata to filter results
+
+    Returns:
+        a dictionary of the Plate Recordings that fall under the specified search criteria.
+    """
+    # unique_files: List[str] = get_unique_files_from_directory(PATH_OF_CURRENT_FILE)
+
+    value_dict: Dict[str, List[str]] = {}
+    full_dict: Dict[str, Dict[str, List[str]]] = {}
+    plate_recording_list: List[str] = []
+
+    # currently only for Well Name
+    if search_criteria == "Well Name":
+        for file in unique_files:
+            name = WellFile(file).get_well_name()
+            if name == criteria_value:
+                plate_recording_list.append(file)
+
+    value_dict = {criteria_value: plate_recording_list}
+    full_dict = {search_criteria: value_dict}
+
+    return full_dict
 
 
 class WellFile:
@@ -31,6 +80,9 @@ class WellFile:
 
     def get_well_index(self) -> int:
         return int(self._h5_file.attrs["Well Index (zero-based)"])
+
+    # def get_plate_barcode(self) -> str:
+    #     return str(self._h5_file.attrs["Plate Barcode"])
 
     def get_numpy_array(self) -> NDArray[2, float]:
         """Return the data (tissue sensor vs time)."""

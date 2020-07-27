@@ -76,7 +76,7 @@ def test_PlateRecording__opens_and_get_wellfile_names():
 def test_get_unique_files():
     unique_files = files.get_unique_files_from_directory(PATH_OF_CURRENT_FILE)
 
-    assert len(unique_files) == 75
+    assert len(unique_files) == 76
 
 
 def test_get_specific_files():

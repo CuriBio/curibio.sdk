@@ -21,6 +21,19 @@ Resources:
               - logs:PutLogEvents
             Effect: Allow
             Resource: "*"
+          - Action:
+              - ssm:GetParameters
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - "/"
+                  - - "arn:aws:ssm:*:*:parameter/CodeBuild"
+                    - "general"
+                    - "*"
+          - Action:
+              - kms:Decrypt
+            Effect: Allow
+            Resource: "arn:aws:kms:*:*:alias/aws/ssm"
 
       PolicyName:
         Fn::Join:

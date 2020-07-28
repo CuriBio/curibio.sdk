@@ -1,4 +1,4 @@
-version: 0.2 # this is the version for the buildspec parser, not the file version
+  version: 0.2 # this is the version for the buildspec parser, not the file version
 
 env:
   git-credential-helper: yes

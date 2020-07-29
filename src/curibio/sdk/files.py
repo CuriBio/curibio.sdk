@@ -47,12 +47,32 @@ def get_specified_files(
     full_dict: Dict[str, Dict[str, List[str]]] = {}
     plate_recording_list: List[str] = []
 
-    # currently only for Well Name
-    if search_criteria == "Well Name":
-        for file in unique_files:
-            name = WellFile(file).get_well_name()
-            if name == criteria_value:
-                plate_recording_list.append(file)
+    for file in unique_files:
+        if (
+            search_criteria == "Well Name"
+            and WellFile(file).get_well_name() == criteria_value
+        ):
+            plate_recording_list.append(file)
+        if (
+            search_criteria == "Plate Barcode"
+            and WellFile(file).get_plate_barcode() == criteria_value
+        ):
+            plate_recording_list.append(file)
+        if (
+            search_criteria == "User ID"
+            and WellFile(file).get_user_account() == criteria_value
+        ):
+            plate_recording_list.append(file)
+        if (
+            search_criteria == "Account ID"
+            and WellFile(file).get_customer_account() == criteria_value
+        ):
+            plate_recording_list.append(file)
+        if (
+            search_criteria == "Mantarray Serial Number"
+            and WellFile(file).get_mantarray_serial_number() == criteria_value
+        ):
+            plate_recording_list.append(file)
 
     value_dict = {criteria_value: plate_recording_list}
     full_dict = {search_criteria: value_dict}
@@ -81,8 +101,20 @@ class WellFile:
     def get_well_index(self) -> int:
         return int(self._h5_file.attrs["Well Index (zero-based)"])
 
-    # def get_plate_barcode(self) -> str:
-    #     return str(self._h5_file.attrs["Plate Barcode"])
+    def get_plate_barcode(self) -> str:
+        return str(self._h5_file.attrs["cf60afef-a9f0-4bc3-89e9-c665c6bb6941"])
+
+    def get_user_account(self) -> str:
+        return str(self._h5_file.attrs["7282cf00-2b6e-4202-9d9e-db0c73c3a71f"])
+
+    def get_customer_account(self) -> str:
+        return str(self._h5_file.attrs["4927c810-fbf4-406f-a848-eba5308576e6"])
+
+    def get_mantarray_serial_number(self) -> str:
+        return str(self._h5_file.attrs["83720d36-b941-4d85-9b39-1d817799edd6"])
+
+    # def get_UTC_begin_recording(self) -> str:
+    #     return str(self._h5_file.attrs["d2449271-0e84-4b45-a28b-8deab390b7c2"])
 
     def get_numpy_array(self) -> NDArray[2, float]:
         """Return the data (tissue sensor vs time)."""

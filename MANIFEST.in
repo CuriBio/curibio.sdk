@@ -1,5 +1,4 @@
 recursive-include curibio *
-recursive-include docs *
 include LICENSE
 include mypy.ini
 include *rst
@@ -8,6 +7,7 @@ include *.txt
 include .codenotary
 include .flake8
 include src/pylintrc
+global-exclude docs *
 global-exclude pytest.ini
 global-exclude tests *.h5
 global-exclude tests *.py

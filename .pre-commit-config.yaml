@@ -124,11 +124,11 @@ repos:
         - src
         - --rcfile=src/pylintrc
         - --ignore-patterns=.*~.*
-        files: 'src/.*\.py$'
+        files: ('src/.*\.py$')|(prerelease.py)
         exclude: '.*\~.*'
         verbose: true
     -   id: pylint-pass-with-displayed-warnings
-        name: pylint-tests|(prerelease.py)
+        name: pylint-tests
         args:
         - --codes-to-allow=W0511
         - tests

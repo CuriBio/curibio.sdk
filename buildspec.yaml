@@ -19,7 +19,7 @@ phases:
       # In CodeBuild, sometimes a direct SHA is grabbed rather than a branch, so the 'name' of the branch is listed as: (no branch)
       #   So can't use traditional grep to just check that the name of the current branch is 'master', have to explicitly check the SHAs
       - SHA_OF_LOCAL_COMMIT=$(git branch -av | grep "*" | grep -oP " \s+\K\w+")
-      - git checkout zest-test # TODO Tanner (7/29/20): This should be master once we're done testing
+      - git checkout master
       - echo "Creating virtual environment for Python"
       - python -m venv venv
       - echo "Entering virtual environment"
@@ -27,9 +27,9 @@ phases:
       - echo "Upgrading pip"
       - pip install pip==20.0.2 --upgrade
       - echo "Installing developent/testing packages"
-      - pip install -r requirements-dev.txt --find-links python_pip_package_links/package_links.html --upgrade
+      - pip install -r requirements-dev.txt --upgrade
       - echo "Installing main package"
-      - pip install -e . --find-links python_pip_package_links/package_links.html --upgrade
+      - pip install -e . --upgrade
       - echo "Listing all installed packages"
       - pip freeze
       - pre-commit install
@@ -47,7 +47,7 @@ phases:
       - echo "Build started on $(date)"
       - echo "Running test suite"
       - pytest -xsvv
-      # Only run the following command if the APPLY_TAG environmental variable is set (i.e. =1) https://stackoverflow.com/questions/39619956/short-way-to-run-command-if-variable-is-set  (extra outer parentheses needed to make YAML parser happy)
+      # Only run the following command if the PUBLISH_TO_PYPI environmental variable is set (i.e. =1) https://stackoverflow.com/questions/39619956/short-way-to-run-command-if-variable-is-set  (extra outer parentheses needed to make YAML parser happy)
       # Grab the version from the setup.py file using a grep "look-behind" https://stackoverflow.com/questions/30776265/how-to-grep-for-value-in-a-key-value-store-from-plain-text
       # If this is attempted on any branch other than master, it should fail because the role only has permission to push to the master branch
       # Colon (or maybe semi-colon) is causing issue with CodeBuild YAML parser, so needed to wrap whole command in single quote

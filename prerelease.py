@@ -109,3 +109,7 @@ def main():
     utils.configure_logging()
     prereleaser = Prereleaser()
     prereleaser.run()
+
+
+if __name__ == "__main__":
+    main()

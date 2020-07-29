@@ -55,7 +55,6 @@ phases:
       - echo "Printing git status"
       - git status
       - echo "Publishing to PyPI"
-      - prerelease --no-input
       - python3 setup.py sdist
       - twine upload dist/*
       - echo "Build completed on $(date)"

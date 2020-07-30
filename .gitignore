@@ -32,6 +32,7 @@ coverage-report-pytest
 .mypy_cache/
 .coverage
 .coverage.*
+coverage.xml
 
 # test profiling
 prof/

@@ -9,6 +9,11 @@ import h5py
 from nptyping import NDArray
 import numpy as np
 
+from .constants import CUSTOMER_ACCOUNT_ID_UUID
+from .constants import MANTARRAY_SERIAL_NUMBER_UUID
+from .constants import PLATE_BARCODE_UUID
+from .constants import USER_ACCOUNT_ID_UUID
+
 PATH_OF_CURRENT_FILE = os.path.dirname((inspect.stack()[0][1]))
 
 
@@ -97,19 +102,19 @@ class WellFile:
         return int(self._h5_file.attrs["Well Index (zero-based)"])
 
     def get_plate_barcode(self) -> str:
-        return str(self._h5_file.attrs["cf60afef-a9f0-4bc3-89e9-c665c6bb6941"])
+        return str(self._h5_file.attrs[str(PLATE_BARCODE_UUID)])
 
     def get_user_account(self) -> str:
-        return str(self._h5_file.attrs["7282cf00-2b6e-4202-9d9e-db0c73c3a71f"])
+        return str(self._h5_file.attrs[str(USER_ACCOUNT_ID_UUID)])
 
     def get_customer_account(self) -> str:
-        return str(self._h5_file.attrs["4927c810-fbf4-406f-a848-eba5308576e6"])
+        return str(self._h5_file.attrs[str(CUSTOMER_ACCOUNT_ID_UUID)])
 
     def get_mantarray_serial_number(self) -> str:
-        return str(self._h5_file.attrs["83720d36-b941-4d85-9b39-1d817799edd6"])
+        return str(self._h5_file.attrs[str(MANTARRAY_SERIAL_NUMBER_UUID)])
 
     # def get_UTC_begin_recording(self) -> str:
-    #     return str(self._h5_file.attrs["d2449271-0e84-4b45-a28b-8deab390b7c2"])
+    #     return str(self._h5_file.attrs[str(UTC_BEGINNING_RECORDING_UUID)])
 
     def get_numpy_array(self) -> NDArray[2, float]:
         """Return the data (tissue sensor vs time)."""

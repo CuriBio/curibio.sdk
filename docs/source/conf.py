@@ -35,7 +35,11 @@ release = "0.1"
 # ones.
 
 
-extensions: List[str] = ["sphinx.ext.napoleon"]
+extensions: List[str] = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
+    "sphinx.ext.napoleon",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path: List[str] = []

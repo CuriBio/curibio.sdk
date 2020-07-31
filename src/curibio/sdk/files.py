@@ -48,29 +48,24 @@ def get_specified_files(
     plate_recording_list: List[str] = []
 
     for file in unique_files:
-        if (
-            search_criteria == "Well Name"
-            and WellFile(file).get_well_name() == criteria_value
-        ):
+        well = WellFile(file)
+        if search_criteria == "Well Name" and well.get_well_name() == criteria_value:
             plate_recording_list.append(file)
         if (
             search_criteria == "Plate Barcode"
-            and WellFile(file).get_plate_barcode() == criteria_value
+            and well.get_plate_barcode() == criteria_value
         ):
             plate_recording_list.append(file)
-        if (
-            search_criteria == "User ID"
-            and WellFile(file).get_user_account() == criteria_value
-        ):
+        if search_criteria == "User ID" and well.get_user_account() == criteria_value:
             plate_recording_list.append(file)
         if (
             search_criteria == "Account ID"
-            and WellFile(file).get_customer_account() == criteria_value
+            and well.get_customer_account() == criteria_value
         ):
             plate_recording_list.append(file)
         if (
             search_criteria == "Mantarray Serial Number"
-            and WellFile(file).get_mantarray_serial_number() == criteria_value
+            and well.get_mantarray_serial_number() == criteria_value
         ):
             plate_recording_list.append(file)
 

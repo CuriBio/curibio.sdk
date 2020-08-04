@@ -13,9 +13,6 @@ and analyze the results.
 
 If you haven't already, :ref'install curibio.sdk first <gettingstarted>' and then explore these pages:
 
-.. automodule:: curibio.sdk.files
-    :members:
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

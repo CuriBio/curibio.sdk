@@ -79,11 +79,11 @@ jobs:
 
       - name: Run Tests with randomly generated seed
         if: github.event.inputs.randomlyseed == ''
-        run: pytest -xsvv --cov-report=xml
+        run: pytest -xsvv --cov-report=xml --full-ci --include-slow-tests
 
       - name: Run Tests with supplied pytest-randomly seed
         if: github.event.inputs.randomlyseed != ''
-        run: pytest -xsvv --cov-report=xml --randomly-seed=${{ github.event.inputs.randomlyseed }}
+        run: pytest -xsvv --cov-report=xml --randomly-seed=${{ github.event.inputs.randomlyseed }} --full-ci --include-slow-tests
 
       - name: Confirm Sphinx Docs build correctly
         # only check Sphinx docs build on the fastest job

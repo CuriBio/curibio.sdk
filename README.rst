@@ -16,7 +16,7 @@ Software development kit for utilizing Curi Bio data files and online databases
   :target: https://codecov.io/gh/CuriBio/curibio.sdk
 
 .. image:: https://readthedocs.org/projects/curibio.sdk/badge/?version=latest
- :target: https://curibio.sdk.readthedocs.io/en/latest/?badge=latest
+ :target: https://curibiosdk.readthedocs.io/en/latest/
  :alt: Documentation Status
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg

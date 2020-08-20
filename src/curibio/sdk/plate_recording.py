@@ -3,6 +3,8 @@
 import os
 from typing import Optional
 
+from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
+from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from xlsxwriter import Workbook
 
@@ -30,4 +32,14 @@ class PlateRecording(FileManagerPlateRecording):
         workbook = Workbook(file_path)
         metadata_sheet = workbook.add_worksheet(METADATA_EXCEL_SHEET_NAME)
         metadata_sheet.write(METADATA_RECORDING_ROW_START, 0, "Recording Information:")
-        workbook.close()  # This is actually when the file gets written to disk. If someone has the existing file open, then an EnvironmentError will probably be raised
+        for iter_row, (iter_metadata_uuid, iter_value) in enumerate(
+            ((PLATE_BARCODE_UUID, first_well_file.get_plate_barcode()),)
+        ):
+            row_in_sheet = METADATA_RECORDING_ROW_START + 1 + iter_row
+            metadata_sheet.write(
+                row_in_sheet, 0, METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
+            )
+            metadata_sheet.write(
+                row_in_sheet, 1, iter_value,
+            )
+        workbook.close()  # This is actually when the file gets written to d

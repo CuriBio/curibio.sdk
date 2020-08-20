@@ -3,6 +3,8 @@ import os
 
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
+from mantarray_file_manager import PLATE_BARCODE_UUID
 from openpyxl import load_workbook
 
 from .fixtures import fixture_generic_well_file_0_3_1
@@ -52,3 +54,15 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
         metadata_sheet.cell(row=METADATA_RECORDING_ROW_START + 1, column=0 + 1).value
         == "Recording Information:"
     )
+    for iter_row, expected_label, expected_value in [
+        (0, METADATA_UUID_DESCRIPTIONS[PLATE_BARCODE_UUID], "MA20123456")
+    ]:
+        actual_label = metadata_sheet.cell(
+            row=METADATA_RECORDING_ROW_START + 1 + iter_row + 1, column=0 + 1
+        ).value
+        actual_value = metadata_sheet.cell(
+            row=METADATA_RECORDING_ROW_START + 1 + iter_row + 1, column=1 + 1
+        ).value
+
+        assert (iter_row, actual_label) == (iter_row, expected_label)
+        assert (iter_row, actual_value) == (iter_row, expected_value)

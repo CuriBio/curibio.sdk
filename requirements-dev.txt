@@ -6,4 +6,4 @@ sphinx==3.2.1
 pylint==2.5.3
 pytest-pylint==0.17.0
 zest.releaser[recommended]==6.21.1
-openpyxl==3.0.4
+openpyxl==3.0.5

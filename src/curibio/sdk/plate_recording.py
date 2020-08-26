@@ -2,6 +2,8 @@
 """Docstring."""
 import datetime
 import os
+from typing import Any
+from typing import Dict
 from typing import Optional
 
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -75,7 +77,7 @@ def _write_xlsx_metadata(
 class PlateRecording(FileManagerPlateRecording):
     """Manages aspects of analyzing a plate recording session."""
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def] # noqa: F723 # Eli (8/20/20): mypy is upset about passing args and kwargs directly apparently
+    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
 

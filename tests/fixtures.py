@@ -4,6 +4,8 @@ import tempfile
 
 from curibio.sdk import PlateRecording
 from curibio.sdk import WellFile
+from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import PipelineTemplate
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 
@@ -35,7 +37,11 @@ def fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1():
             "MA20123456__2020_08_17_145752__B3.h5",
         )
     )
-    pr = PlateRecording([wf])
+    pt = PipelineTemplate(
+        noise_filter_uuid=BESSEL_LOWPASS_10_UUID,
+        tissue_sampling_period=960,  # Tanner (8/27/20): This well data uses the Beta1.0 960cms tissue sampling period
+    )
+    pr = PlateRecording([wf], pt=pt)
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield pr, tmp_dir
 

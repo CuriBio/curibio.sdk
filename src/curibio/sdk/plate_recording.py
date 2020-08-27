@@ -12,6 +12,8 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
+from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import PipelineTemplate
 import numpy as np
 from scipy import interpolate
 import xlsxwriter
@@ -23,6 +25,12 @@ from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import TWENTY_FOUR_WELL_PLATE
+
+
+DEFAULT_PIPELINE_TEMPLATE = PipelineTemplate(
+    noise_filter_uuid=BESSEL_LOWPASS_10_UUID,
+    tissue_sampling_period=160,  # TODO Tanner (8/27/20): find a better way to either import or define the tissue sampling period here
+)
 
 
 def _write_xlsx_device_metadata(
@@ -80,9 +88,15 @@ def _write_xlsx_metadata(
 class PlateRecording(FileManagerPlateRecording):
     """Manages aspects of analyzing a plate recording session."""
 
-    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        pt: PipelineTemplate = DEFAULT_PIPELINE_TEMPLATE,
+        **kwargs: Dict[str, Any],
+    ) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
+        self._pipeline = pt.create_pipeline()
 
     def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
         """Create an XLSX file.
@@ -129,11 +143,18 @@ class PlateRecording(FileManagerPlateRecording):
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(i + 1, 0, data_index)
 
-        # add interpolated data (to 100 Hz) for valid wells
+        # add data for valid wells
         for well_index in self.get_well_indices():
             well = self.get_well_by_index(well_index)
             data = well.get_numpy_array()
-            interpolated_data_function = interpolate.interp1d(data[0], data[1])
+            # apply Bessel filter
+            self._pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
+            filtered_data = self._pipeline.get_noise_filtered_gmr()
+            # interpolate data (to 100 Hz)
+            interpolated_data_function = interpolate.interp1d(
+                filtered_data[0], filtered_data[1]
+            )
             interpolated_data = interpolated_data_function(interpolated_data_indices)
+            # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)

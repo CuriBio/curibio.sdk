@@ -117,7 +117,7 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
         assert (iter_row, actual_value) == (iter_row, expected_value)
 
 
-def test_write_xlsx__creates_continuous_recording_sheet__with_single_well(
+def test_write_xlsx__creates_continuous_recording_sheet__with_single_well_data(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
@@ -140,5 +140,5 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_single_well(
     )
 
     assert actual_sheet.cell(row=0 + 1, column=10 + 1).value == "B3"
-    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230373
-    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1590952.5
+    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230360
+    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1535254.625

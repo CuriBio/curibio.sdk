@@ -91,12 +91,12 @@ class PlateRecording(FileManagerPlateRecording):
     def __init__(
         self,
         *args: Any,
-        pt: PipelineTemplate = DEFAULT_PIPELINE_TEMPLATE,
+        pipeline_template: PipelineTemplate = DEFAULT_PIPELINE_TEMPLATE,
         **kwargs: Dict[str, Any],
     ) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
-        self._pipeline = pt.create_pipeline()
+        self._pipeline = pipeline_template.create_pipeline()
 
     def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
         """Create an XLSX file.

@@ -41,7 +41,7 @@ def fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1():
         noise_filter_uuid=BESSEL_LOWPASS_10_UUID,
         tissue_sampling_period=960,  # Tanner (8/27/20): This well data uses the Beta1.0 960cms tissue sampling period
     )
-    pr = PlateRecording([wf], pt=pt)
+    pr = PlateRecording([wf], pipeline_template=pt)
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield pr, tmp_dir
 

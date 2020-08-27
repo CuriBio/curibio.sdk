@@ -3,6 +3,7 @@ import datetime
 import os
 
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import INTERPOLATED_DATA_PERIOD
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
@@ -127,6 +128,17 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_single_well(
     expected_sheet_name = CONTINUOUS_WAVEFORM_SHEET_NAME
     assert actual_workbook.sheetnames[1] == expected_sheet_name
     actual_sheet = actual_workbook[expected_sheet_name]
-    assert actual_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
+
     assert actual_sheet.cell(row=0 + 1, column=1 + 1).value == "A1"
     assert actual_sheet.cell(row=0 + 1, column=24 + 1).value == "D6"
+
+    assert actual_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
+    assert actual_sheet.cell(row=1 + 1, column=0 + 1).value == 0
+    assert (
+        actual_sheet.cell(row=10 + 1, column=0 + 1).value
+        == 9 * INTERPOLATED_DATA_PERIOD
+    )
+
+    assert actual_sheet.cell(row=0 + 1, column=10 + 1).value == "B3"
+    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230373
+    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1590952.5

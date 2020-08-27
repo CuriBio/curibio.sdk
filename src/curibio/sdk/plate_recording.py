@@ -12,10 +12,13 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
+import numpy as np
+from scipy import interpolate
 import xlsxwriter
 from xlsxwriter import Workbook
 
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
+from .constants import INTERPOLATED_DATA_PERIOD
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
@@ -107,6 +110,8 @@ class PlateRecording(FileManagerPlateRecording):
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
         curr_sheet = continuous_waveform_sheet
+
+        # create headings
         curr_sheet.write(0, 0, "Time (seconds)")
         for i in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
@@ -114,3 +119,21 @@ class PlateRecording(FileManagerPlateRecording):
             curr_sheet.write(
                 0, 1 + i, TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(i)
             )
+
+        # initialize time values
+        first_well = self.get_well_by_index(self.get_well_indices()[0])
+        final_data_index = first_well.get_numpy_array()[0][-1]
+        interpolated_data_indices = np.arange(
+            0, final_data_index, INTERPOLATED_DATA_PERIOD
+        )
+        for i, data_index in enumerate(interpolated_data_indices):
+            curr_sheet.write(i + 1, 0, data_index)
+
+        # add interpolated data (to 100 Hz) for valid wells
+        for well_index in self.get_well_indices():
+            well = self.get_well_by_index(well_index)
+            data = well.get_numpy_array()
+            interpolated_data_function = interpolate.interp1d(data[0], data[1])
+            interpolated_data = interpolated_data_function(interpolated_data_indices)
+            for i, data_point in enumerate(interpolated_data):
+                curr_sheet.write(i + 1, well_index + 1, data_point)

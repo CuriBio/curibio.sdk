@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import INTERPOLATED_DATA_PERIOD
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
@@ -13,3 +14,7 @@ def test_excel_sheet_names():
 def test_excel_sheet_rows():
     assert METADATA_RECORDING_ROW_START == 0
     assert METADATA_INSTRUMENT_ROW_START == METADATA_RECORDING_ROW_START + 4
+
+
+def test_interpolated_data_period():
+    assert INTERPOLATED_DATA_PERIOD == 1 / 100

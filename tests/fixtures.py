@@ -28,20 +28,14 @@ def fixture_generic_well_file_0_3_1():
 @pytest.fixture(
     scope="function", name="plate_recording_in_tmp_dir_for_generic_well_file_0_3_1"
 )
-def fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1():
-    wf = WellFile(
-        os.path.join(
-            PATH_OF_CURRENT_FILE,
-            "h5",
-            "v0.3.1",
-            "MA20123456__2020_08_17_145752__B3.h5",
-        )
-    )
+def fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1(
+    generic_well_file_0_3_1,
+):
     pt = PipelineTemplate(
         noise_filter_uuid=BESSEL_LOWPASS_10_UUID,
         tissue_sampling_period=960,  # Tanner (8/27/20): This well data uses the Beta1.0 960cms tissue sampling period
     )
-    pr = PlateRecording([wf], pipeline_template=pt)
+    pr = PlateRecording([generic_well_file_0_3_1], pipeline_template=pt)
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield pr, tmp_dir
 

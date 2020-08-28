@@ -3,10 +3,12 @@ import datetime
 import os
 
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import DEFAULT_PIPELINE_TEMPLATE
 from curibio.sdk import INTERPOLATED_DATA_PERIOD
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import PlateRecording
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -22,6 +24,19 @@ __fixtures__ = (
 )
 
 # to create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
+
+
+def test_init__uses_copy_of_default_pipeline_template_if_none_is_given(
+    generic_well_file_0_3_1,
+):
+    pr = PlateRecording([generic_well_file_0_3_1])
+    actual = pr.get_template()
+    assert actual.noise_filter_uuid == DEFAULT_PIPELINE_TEMPLATE.noise_filter_uuid
+    assert (
+        actual.tissue_sampling_period
+        == DEFAULT_PIPELINE_TEMPLATE.tissue_sampling_period
+    )
+    assert actual is not DEFAULT_PIPELINE_TEMPLATE
 
 
 def test_write_xlsx__creates_file_at_supplied_path_and_name(

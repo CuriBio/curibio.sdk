@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
+import copy
 import datetime
 import os
 from typing import Any
@@ -28,8 +29,7 @@ from .constants import TWENTY_FOUR_WELL_PLATE
 
 
 DEFAULT_PIPELINE_TEMPLATE = PipelineTemplate(
-    noise_filter_uuid=BESSEL_LOWPASS_10_UUID,
-    tissue_sampling_period=160,  # TODO Tanner (8/27/20): find a better way to either import or define the tissue sampling period here
+    noise_filter_uuid=BESSEL_LOWPASS_10_UUID, tissue_sampling_period=160,
 )
 
 
@@ -91,12 +91,17 @@ class PlateRecording(FileManagerPlateRecording):
     def __init__(
         self,
         *args: Any,
-        pipeline_template: PipelineTemplate = DEFAULT_PIPELINE_TEMPLATE,
+        pipeline_template: Optional[PipelineTemplate] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
+        if pipeline_template is None:
+            pipeline_template = copy.deepcopy(DEFAULT_PIPELINE_TEMPLATE)
         self._pipeline = pipeline_template.create_pipeline()
+
+    def get_template(self) -> PipelineTemplate:
+        return self._pipeline.get_template()
 
     def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
         """Create an XLSX file.

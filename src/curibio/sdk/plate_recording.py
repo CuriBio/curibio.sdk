@@ -21,10 +21,10 @@ import xlsxwriter
 from xlsxwriter import Workbook
 
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
-from .constants import INTERPOLATED_DATA_PERIOD
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
+from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
 
 
@@ -141,9 +141,10 @@ class PlateRecording(FileManagerPlateRecording):
 
         # initialize time values
         first_well = self.get_well_by_index(self.get_well_indices()[0])
+        tissue_sampling_period = first_well.get_tissue_sampling_period_microseconds()
         final_data_index = first_well.get_numpy_array()[0][-1]
         interpolated_data_indices = np.arange(
-            0, final_data_index, INTERPOLATED_DATA_PERIOD
+            0, final_data_index, TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(i + 1, 0, data_index)

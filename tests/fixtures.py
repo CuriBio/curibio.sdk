@@ -56,3 +56,24 @@ def fixture_generic_well_file_0_3_1__2():
         )
     )
     yield wf
+
+
+@pytest.fixture(
+    scope="function", name="plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1"
+)
+def fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1(
+    generic_well_file_0_3_1, generic_well_file_0_3_1__2
+):
+    period = (
+        generic_well_file_0_3_1.get_tissue_sampling_period_microseconds()
+        / 1000000
+        * CENTIMILLISECONDS_PER_SECOND
+    )
+    pt = PipelineTemplate(
+        noise_filter_uuid=BESSEL_LOWPASS_10_UUID, tissue_sampling_period=period,
+    )
+    pr = PlateRecording(
+        [generic_well_file_0_3_1, generic_well_file_0_3_1__2], pipeline_template=pt
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        yield pr, tmp_dir

@@ -98,10 +98,10 @@ class PlateRecording(FileManagerPlateRecording):
         self._workbook: xlsxwriter.workbook.Workbook
         if pipeline_template is None:
             pipeline_template = copy.deepcopy(DEFAULT_PIPELINE_TEMPLATE)
-        self._pipeline = pipeline_template.create_pipeline()
+        self._pipeline_template = pipeline_template
 
-    def get_template(self) -> PipelineTemplate:
-        return self._pipeline.get_template()
+    def get_pipeline_template(self) -> PipelineTemplate:
+        return self._pipeline_template
 
     def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
         """Create an XLSX file.
@@ -139,12 +139,17 @@ class PlateRecording(FileManagerPlateRecording):
                 0, 1 + i, TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(i)
             )
 
-        # initialize time values
+        # initialize time values (use longest data)
         first_well = self.get_well_by_index(self.get_well_indices()[0])
         tissue_sampling_period = first_well.get_tissue_sampling_period_microseconds()
-        final_data_index = first_well.get_numpy_array()[0][-1]
+        max_time_index = 0
+        for well_index in self.get_well_indices():
+            well = self.get_well_by_index(well_index)
+            last_time_index = well.get_numpy_array()[0][-1]
+            if last_time_index > max_time_index:
+                max_time_index = last_time_index
         interpolated_data_indices = np.arange(
-            0, final_data_index, TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
+            0, max_time_index, TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(i + 1, 0, data_index)
@@ -154,13 +159,24 @@ class PlateRecording(FileManagerPlateRecording):
             well = self.get_well_by_index(well_index)
             data = well.get_numpy_array()
             # apply Bessel filter
-            self._pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
-            filtered_data = self._pipeline.get_noise_filtered_gmr()
-            # interpolate data (to 100 Hz)
+            pipeline = self._pipeline_template.create_pipeline()
+            pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
+            filtered_data = pipeline.get_noise_filtered_gmr()
+            # interpolate data (at 100 Hz) to max valid interpolated data point
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
-            interpolated_data = interpolated_data_function(interpolated_data_indices)
+            for i, time_index in enumerate(np.flip(interpolated_data_indices)):
+                if filtered_data[0][-1] >= time_index:
+                    break
+            else:
+                raise NotImplementedError(
+                    "There should be at least one valid data point when interpolating"
+                )
+            last_index = len(interpolated_data_indices) - i
+            interpolated_data = interpolated_data_function(
+                interpolated_data_indices[:last_index]
+            )
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)

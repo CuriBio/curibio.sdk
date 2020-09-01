@@ -34,7 +34,7 @@ def test_init__uses_copy_of_default_pipeline_template_if_none_is_given(
     generic_well_file_0_3_1,
 ):
     pr = PlateRecording([generic_well_file_0_3_1])
-    actual = pr.get_template()
+    actual = pr.get_pipeline_template()
     assert actual.noise_filter_uuid == DEFAULT_PIPELINE_TEMPLATE.noise_filter_uuid
     assert (
         actual.tissue_sampling_period
@@ -158,7 +158,7 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
         == 9 * TSP_TO_INTERPOLATED_DATA_PERIOD[9600]
     )
 
-    assert actual_sheet.cell(row=0 + 1, column=2 + 1).value == "A2"
+    assert actual_sheet.cell(row=0 + 1, column=5 + 1).value == "A2"
     assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230360
     assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1535254.625
 

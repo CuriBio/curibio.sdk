@@ -2,6 +2,7 @@
 """Docstring."""
 from labware_domain_models import LabwareDefinition
 
+
 TWENTY_FOUR_WELL_PLATE = LabwareDefinition(row_count=4, column_count=6)
 
 

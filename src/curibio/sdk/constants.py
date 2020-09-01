@@ -11,6 +11,7 @@ CONTINUOUS_WAVEFORM_SHEET_NAME = "continuous-waveforms"
 METADATA_RECORDING_ROW_START = 0
 METADATA_INSTRUMENT_ROW_START = METADATA_RECORDING_ROW_START + 4
 
+AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
 TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (microseconds) to Interpolated Data Period (seconds)
     9600: 1 / 100,
     1600: 1 / 625,

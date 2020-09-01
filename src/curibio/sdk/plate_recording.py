@@ -20,6 +20,7 @@ from scipy import interpolate
 import xlsxwriter
 from xlsxwriter import Workbook
 
+from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -122,6 +123,7 @@ class PlateRecording(FileManagerPlateRecording):
         )
         _write_xlsx_metadata(self._workbook, first_well_file)
         self._write_xlsx_continuous_waveforms()
+        self._write_xlsx_aggregate_metrics()
         self._workbook.close()  # This is actually when the file gets written to d
 
     def _write_xlsx_continuous_waveforms(self) -> None:
@@ -180,3 +182,17 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
+    def _write_xlsx_aggregate_metrics(self) -> None:
+        aggregate_metrics_sheet = self._workbook.add_worksheet(
+            AGGREGATE_METRICS_SHEET_NAME
+        )
+        curr_sheet = aggregate_metrics_sheet
+        for iter_well_idx in range(
+            TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
+        ):
+            curr_sheet.write(
+                0,
+                2 + iter_well_idx,
+                TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
+            )
+        curr_sheet.write(1, 1, "n")

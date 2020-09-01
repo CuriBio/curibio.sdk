@@ -3,6 +3,7 @@
 
 from mantarray_file_manager import WellFile
 
+from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -27,5 +28,6 @@ __all__ = [
     "CONTINUOUS_WAVEFORM_SHEET_NAME",
     "TSP_TO_INTERPOLATED_DATA_PERIOD",
     "DEFAULT_PIPELINE_TEMPLATE",
+    "AGGREGATE_METRICS_SHEET_NAME",
     "__version__",
 ]

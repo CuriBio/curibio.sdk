@@ -2,6 +2,7 @@
 import datetime
 import os
 
+from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_PIPELINE_TEMPLATE
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
@@ -19,6 +20,7 @@ from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
+from .utils import get_cell_value
 
 __fixtures__ = (
     fixture_generic_well_file_0_3_1,
@@ -65,6 +67,21 @@ def test_write_xlsx__creates_file_at_supplied_path_with_auto_generated_name(
     assert os.path.exists(os.path.join(file_dir, expected_file_name)) is True
 
 
+def test_write_xlsx__creates_aggregate_metrics_sheet(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    file_dir = tmp_dir
+
+    pr.write_xlsx(file_dir)
+    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
+    assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
+    aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
+    assert get_cell_value(aggregate_metrics_sheet, 0, 2) == "A1"
+    assert get_cell_value(aggregate_metrics_sheet, 1, 1) == "n"
+
+
 def test_write_xlsx__creates_metadata_sheet_with_recording_info(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
 ):
@@ -78,7 +95,7 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
 
     metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]
     assert (
-        metadata_sheet.cell(row=METADATA_RECORDING_ROW_START + 1, column=0 + 1).value
+        get_cell_value(metadata_sheet, METADATA_RECORDING_ROW_START, 0)
         == "Recording Information:"
     )
     for iter_row, metadata_uuid, expected_value in [
@@ -89,12 +106,12 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
             datetime.datetime(2020, 8, 17, 14, 58, 10, 728253),
         ),
     ]:
-        actual_label = metadata_sheet.cell(
-            row=METADATA_RECORDING_ROW_START + 1 + iter_row + 1, column=1 + 1
-        ).value
-        actual_value = metadata_sheet.cell(
-            row=METADATA_RECORDING_ROW_START + 1 + iter_row + 1, column=2 + 1
-        ).value
+        actual_label = get_cell_value(
+            metadata_sheet, METADATA_RECORDING_ROW_START + 1 + iter_row, 1
+        )
+        actual_value = get_cell_value(
+            metadata_sheet, METADATA_RECORDING_ROW_START + 1 + iter_row, 2
+        )
 
         assert (iter_row, actual_label) == (
             iter_row,
@@ -115,19 +132,12 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
 
     metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]
     row_start = METADATA_INSTRUMENT_ROW_START
-    assert (
-        metadata_sheet.cell(row=row_start + 1, column=0 + 1).value
-        == "Device Information:"
-    )
+    assert get_cell_value(metadata_sheet, row_start, 0) == "Device Information:"
     for iter_row, metadata_uuid, expected_value in [
         (0, MANTARRAY_SERIAL_NUMBER_UUID, "M02001900"),
     ]:
-        actual_label = metadata_sheet.cell(
-            row=row_start + 1 + iter_row + 1, column=1 + 1
-        ).value
-        actual_value = metadata_sheet.cell(
-            row=row_start + 1 + iter_row + 1, column=2 + 1
-        ).value
+        actual_label = get_cell_value(metadata_sheet, row_start + 1 + iter_row, 1)
+        actual_value = get_cell_value(metadata_sheet, row_start + 1 + iter_row, 2)
 
         assert (iter_row, actual_label) == (
             iter_row,

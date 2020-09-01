@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
@@ -9,6 +10,7 @@ from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 def test_excel_sheet_names():
     assert METADATA_EXCEL_SHEET_NAME == "recording-information"
     assert CONTINUOUS_WAVEFORM_SHEET_NAME == "continuous-waveforms"
+    assert AGGREGATE_METRICS_SHEET_NAME == "aggregate-metrics"
 
 
 def test_excel_sheet_rows():

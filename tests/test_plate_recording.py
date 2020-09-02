@@ -2,14 +2,17 @@
 import datetime
 import os
 
+from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_PIPELINE_TEMPLATE
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
+from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
 from curibio.sdk import PlateRecording
 from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
+from freezegun import freeze_time
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -144,6 +147,32 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
             METADATA_UUID_DESCRIPTIONS[metadata_uuid],
         )
         assert (iter_row, actual_value) == (iter_row, expected_value)
+
+
+@freeze_time("2020-09-02 12:20:12.223344")
+def test_write_xlsx__creates_metadata_sheet_with_output_format_info(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+
+    pr.write_xlsx(tmp_dir)
+    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
+
+    metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]
+    curr_row = METADATA_OUTPUT_FILE_ROW_START
+    assert get_cell_value(metadata_sheet, curr_row, 0) == "Output Format:"
+
+    curr_row += 1
+    assert get_cell_value(metadata_sheet, curr_row, 1) == "SDK Version"
+    assert get_cell_value(metadata_sheet, curr_row, 2) == __version__
+
+    curr_row += 1
+    assert get_cell_value(metadata_sheet, curr_row, 1) == "File Creation Timestamp"
+    assert get_cell_value(metadata_sheet, curr_row, 2) == datetime.datetime(
+        2020, 9, 2, 12, 20, 12
+    )
 
 
 def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data(

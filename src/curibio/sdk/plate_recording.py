@@ -24,7 +24,9 @@ from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
+from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
+from .constants import PACKAGE_VERSION
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
 
@@ -49,6 +51,19 @@ def _write_xlsx_device_metadata(
         curr_sheet.write(
             row_in_sheet, 2, iter_value,
         )
+
+
+def _write_xlsx_output_format_metadata(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+) -> None:
+    curr_row = METADATA_OUTPUT_FILE_ROW_START
+    curr_sheet.write(curr_row, 0, "Output Format:")
+    curr_row += 1
+    curr_sheet.write(curr_row, 1, "SDK Version")
+    curr_sheet.write(curr_row, 2, PACKAGE_VERSION)
+    curr_row += 1
+    curr_sheet.write(curr_row, 1, "File Creation Timestamp")
+    curr_sheet.write(curr_row, 2, datetime.datetime.utcnow().replace(microsecond=0))
 
 
 def _write_xlsx_recording_metadata(
@@ -80,6 +95,7 @@ def _write_xlsx_metadata(
     curr_sheet = metadata_sheet
     _write_xlsx_recording_metadata(curr_sheet, first_well_file)
     _write_xlsx_device_metadata(curr_sheet, first_well_file)
+    _write_xlsx_output_format_metadata(curr_sheet)
     # Adjust the column widths to be able to see the data
     curr_sheet.set_column(0, 0, 25)
     curr_sheet.set_column(1, 1, 40)
@@ -182,6 +198,7 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
+
     def _write_xlsx_aggregate_metrics(self) -> None:
         aggregate_metrics_sheet = self._workbook.add_worksheet(
             AGGREGATE_METRICS_SHEET_NAME

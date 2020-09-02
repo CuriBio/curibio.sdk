@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
+import copy
 import datetime
 import os
+from typing import Any
+from typing import Dict
 from typing import Optional
 
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -10,6 +13,10 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
+from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import PipelineTemplate
+import numpy as np
+from scipy import interpolate
 import xlsxwriter
 from xlsxwriter import Workbook
 
@@ -17,7 +24,13 @@ from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
+from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
+
+
+DEFAULT_PIPELINE_TEMPLATE = PipelineTemplate(
+    noise_filter_uuid=BESSEL_LOWPASS_10_UUID, tissue_sampling_period=160,
+)
 
 
 def _write_xlsx_device_metadata(
@@ -75,9 +88,20 @@ def _write_xlsx_metadata(
 class PlateRecording(FileManagerPlateRecording):
     """Manages aspects of analyzing a plate recording session."""
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def] # noqa: F723 # Eli (8/20/20): mypy is upset about passing args and kwargs directly apparently
+    def __init__(
+        self,
+        *args: Any,
+        pipeline_template: Optional[PipelineTemplate] = None,
+        **kwargs: Dict[str, Any],
+    ) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
+        if pipeline_template is None:
+            pipeline_template = copy.deepcopy(DEFAULT_PIPELINE_TEMPLATE)
+        self._pipeline_template = pipeline_template
+
+    def get_pipeline_template(self) -> PipelineTemplate:
+        return self._pipeline_template
 
     def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
         """Create an XLSX file.
@@ -105,6 +129,8 @@ class PlateRecording(FileManagerPlateRecording):
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
         curr_sheet = continuous_waveform_sheet
+
+        # create headings
         curr_sheet.write(0, 0, "Time (seconds)")
         for i in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
@@ -112,3 +138,45 @@ class PlateRecording(FileManagerPlateRecording):
             curr_sheet.write(
                 0, 1 + i, TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(i)
             )
+
+        # initialize time values (use longest data)
+        first_well = self.get_well_by_index(self.get_well_indices()[0])
+        tissue_sampling_period = first_well.get_tissue_sampling_period_microseconds()
+        max_time_index = 0
+        for well_index in self.get_well_indices():
+            well = self.get_well_by_index(well_index)
+            last_time_index = well.get_numpy_array()[0][-1]
+            if last_time_index > max_time_index:
+                max_time_index = last_time_index
+        interpolated_data_indices = np.arange(
+            0, max_time_index, TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
+        )
+        for i, data_index in enumerate(interpolated_data_indices):
+            curr_sheet.write(i + 1, 0, data_index)
+
+        # add data for valid wells
+        for well_index in self.get_well_indices():
+            well = self.get_well_by_index(well_index)
+            data = well.get_numpy_array()
+            # apply Bessel filter
+            pipeline = self._pipeline_template.create_pipeline()
+            pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
+            filtered_data = pipeline.get_noise_filtered_gmr()
+            # interpolate data (at 100 Hz) to max valid interpolated data point
+            interpolated_data_function = interpolate.interp1d(
+                filtered_data[0], filtered_data[1]
+            )
+            for i, time_index in enumerate(np.flip(interpolated_data_indices)):
+                if filtered_data[0][-1] >= time_index:
+                    break
+            else:
+                raise NotImplementedError(
+                    "There should be at least one valid data point when interpolating"
+                )
+            last_index = len(interpolated_data_indices) - i
+            interpolated_data = interpolated_data_function(
+                interpolated_data_indices[:last_index]
+            )
+            # write to sheet
+            for i, data_point in enumerate(interpolated_data):
+                curr_sheet.write(i + 1, well_index + 1, data_point)

@@ -12,6 +12,7 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
+from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 import numpy as np
@@ -25,6 +26,7 @@ from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
+from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
@@ -118,15 +120,25 @@ class PlateRecording(FileManagerPlateRecording):
             first_well_index = self.get_well_indices()[0]
             # this file is used to get general information applicable across the recording
             first_well_file = self.get_well_by_index(first_well_index)
-            tissue_sampling_period_us = (
+            tissue_sampling_period = (
                 first_well_file.get_tissue_sampling_period_microseconds()
+                / MICROSECONDS_PER_CENTIMILLISECOND
             )
             pipeline_template = PipelineTemplate(
-                tissue_sampling_period=tissue_sampling_period_us / 10,
-                noise_filter_uuid=TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period_us],
+                tissue_sampling_period=tissue_sampling_period,
+                noise_filter_uuid=TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period],
             )
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]
+
+    def _init_pipelines(self) -> None:
+        self._pipelines = dict()
+        for iter_well_idx in self.get_well_indices():
+            iter_pipeline = self.get_pipeline_template().create_pipeline()
+            well = self.get_well_by_index(iter_well_idx)
+            data = well.get_numpy_array()
+            iter_pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
+            self._pipelines[iter_well_idx] = iter_pipeline
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template
@@ -141,7 +153,7 @@ class PlateRecording(FileManagerPlateRecording):
         first_well_index = self.get_well_indices()[0]
         # this file is used to get general information applicable across the recording
         first_well_file = self.get_well_by_index(first_well_index)
-
+        self._init_pipelines()
         if file_name is None:
             file_name = f"{first_well_file.get_plate_barcode()}-{first_well_file.get_begin_recording().strftime('%Y-%m-%d-%H-%M-%S')}.xlsx"
         file_path = os.path.join(file_dir, file_name)
@@ -170,7 +182,10 @@ class PlateRecording(FileManagerPlateRecording):
 
         # initialize time values (use longest data)
         first_well = self.get_well_by_index(self.get_well_indices()[0])
-        tissue_sampling_period = first_well.get_tissue_sampling_period_microseconds()
+        tissue_sampling_period = (
+            first_well.get_tissue_sampling_period_microseconds()
+            / MICROSECONDS_PER_CENTIMILLISECOND
+        )
         max_time_index = 0
         for well_index in self.get_well_indices():
             well = self.get_well_by_index(well_index)
@@ -178,19 +193,17 @@ class PlateRecording(FileManagerPlateRecording):
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
         interpolated_data_indices = np.arange(
-            0, max_time_index, TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
+            0,
+            max_time_index,
+            TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
+            / CENTIMILLISECONDS_PER_SECOND,
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(i + 1, 0, data_index)
 
         # add data for valid wells
         for well_index in self.get_well_indices():
-            well = self.get_well_by_index(well_index)
-            data = well.get_numpy_array()
-            # apply Bessel filter
-            pipeline = self._pipeline_template.create_pipeline()
-            pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
-            filtered_data = pipeline.get_noise_filtered_gmr()
+            filtered_data = self._pipelines[well_index].get_noise_filtered_gmr()
             # interpolate data (at 100 Hz) to max valid interpolated data point
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]

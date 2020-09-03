@@ -3,6 +3,7 @@
 from labware_domain_models import LabwareDefinition
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 
 try:  # adapted from https://packaging.python.org/guides/single-sourcing-package-version/
     from importlib import metadata
@@ -13,7 +14,7 @@ PACKAGE_VERSION = metadata.version("curibio.sdk")  # type: ignore # Eli (9/1/20)
 
 TWENTY_FOUR_WELL_PLATE = LabwareDefinition(row_count=4, column_count=6)
 
-
+MICROSECONDS_PER_CENTIMILLISECOND = 10
 METADATA_EXCEL_SHEET_NAME = "metadata"
 METADATA_RECORDING_ROW_START = 0
 METADATA_INSTRUMENT_ROW_START = METADATA_RECORDING_ROW_START + 4
@@ -21,12 +22,12 @@ METADATA_OUTPUT_FILE_ROW_START = METADATA_INSTRUMENT_ROW_START + 3
 
 CONTINUOUS_WAVEFORM_SHEET_NAME = "continuous-waveforms"
 AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
-TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (microseconds) to Interpolated Data Period (seconds)
-    9600: 1 / 100,
-    1600: 1 / 625,
+TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (centi-milliseconds) to Interpolated Data Period (centi-milliseconds)
+    960: 1 / 100 * CENTIMILLISECONDS_PER_SECOND,
+    160: 1 / 625 * CENTIMILLISECONDS_PER_SECOND,
 }
 
-TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (microseconds) to default Pipeline Filter UUID
-    9600: BESSEL_LOWPASS_10_UUID,
-    1600: BESSEL_LOWPASS_30_UUID,
+TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
+    960: BESSEL_LOWPASS_10_UUID,
+    160: BESSEL_LOWPASS_30_UUID,
 }

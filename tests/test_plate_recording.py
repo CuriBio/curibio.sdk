@@ -22,6 +22,7 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from openpyxl import load_workbook
 
 from .fixtures import fixture_generic_well_file_0_3_1
@@ -208,7 +209,7 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert actual_sheet.cell(row=1 + 1, column=0 + 1).value == 0
     assert (
         actual_sheet.cell(row=10 + 1, column=0 + 1).value
-        == 9 * TSP_TO_INTERPOLATED_DATA_PERIOD[9600]
+        == 9 * TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
     )
 
     assert actual_sheet.cell(row=0 + 1, column=5 + 1).value == "A2"

@@ -9,6 +9,7 @@ import os
 
 from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
+from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
@@ -84,7 +85,7 @@ def test_write_xlsx__creates_file_at_supplied_path_with_auto_generated_name(
     assert os.path.exists(os.path.join(file_dir, expected_file_name)) is True
 
 
-def test_write_xlsx__creates_aggregate_metrics_sheet(
+def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
@@ -95,8 +96,34 @@ def test_write_xlsx__creates_aggregate_metrics_sheet(
     actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
     assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
-    assert get_cell_value(aggregate_metrics_sheet, 0, 2) == "A1"
-    assert get_cell_value(aggregate_metrics_sheet, 1, 1) == "n"
+    curr_row = 0
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, 2) == "A1"
+    curr_row += 1
+    assert (
+        get_cell_value(aggregate_metrics_sheet, curr_row, 1) == "Treatment Description"
+    )
+    curr_row += 1
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, 1) == "n (twitches)"
+
+    curr_row += 1
+    # check the labels in columns A & B
+    for iter_idx, (_, iter_metric_name) in enumerate(
+        CALCULATED_METRIC_DISPLAY_NAMES.items()
+    ):
+        actual_metric_name = get_cell_value(aggregate_metrics_sheet, curr_row, 0)
+        assert (iter_idx, actual_metric_name) == (iter_idx, iter_metric_name)
+        for iter_sub_metric_idx, iter_sub_metric_name in enumerate(
+            ("Mean", "StDev", "CoV", "SEM")
+        ):
+            actual_sub_metric_name = get_cell_value(
+                aggregate_metrics_sheet, curr_row, 1
+            )
+            curr_row += 1
+            assert (iter_idx, iter_sub_metric_idx, actual_sub_metric_name) == (
+                iter_idx,
+                iter_sub_metric_idx,
+                iter_sub_metric_name,
+            )
 
 
 def test_write_xlsx__creates_metadata_sheet_with_recording_info(

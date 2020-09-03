@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
+from collections import OrderedDict
+
 from labware_domain_models import LabwareDefinition
+from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
+from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 
 try:  # adapted from https://packaging.python.org/guides/single-sourcing-package-version/
     from importlib import metadata
@@ -31,3 +35,6 @@ TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (centi-milliseconds) to
     960: BESSEL_LOWPASS_10_UUID,
     160: BESSEL_LOWPASS_30_UUID,
 }
+CALCULATED_METRIC_DISPLAY_NAMES = OrderedDict(
+    [(TWITCH_PERIOD_UUID, "Twitch Period"), (AMPLITUDE_UUID, "Twitch Amplitude")]
+)

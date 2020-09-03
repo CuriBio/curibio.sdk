@@ -23,6 +23,7 @@ import xlsxwriter
 from xlsxwriter import Workbook
 
 from .constants import AGGREGATE_METRICS_SHEET_NAME
+from .constants import CALCULATED_METRIC_DISPLAY_NAMES
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -242,13 +243,28 @@ class PlateRecording(FileManagerPlateRecording):
         aggregate_metrics_sheet = self._workbook.add_worksheet(
             AGGREGATE_METRICS_SHEET_NAME
         )
+        curr_row = 0
         curr_sheet = aggregate_metrics_sheet
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):
             curr_sheet.write(
-                0,
+                curr_row,
                 2 + iter_well_idx,
                 TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
             )
-        curr_sheet.write(1, 1, "n")
+        curr_row += 1
+        curr_sheet.write(curr_row, 1, "Treatment Description")
+        curr_row += 1
+        curr_sheet.write(curr_row, 1, "n (twitches)")
+        curr_row += 1
+        # row_where_data_starts=curr_row
+        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
+        for (
+            iter_metric_uuid,
+            iter_metric_name,
+        ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+            curr_sheet.write(curr_row, 0, iter_metric_name)
+            for iter_sub_metric_name in sub_metrics:
+                curr_sheet.write(curr_row, 1, iter_sub_metric_name)
+                curr_row += 1

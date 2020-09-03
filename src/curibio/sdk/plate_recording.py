@@ -10,6 +10,8 @@ from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
+from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
+from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
@@ -45,7 +47,20 @@ def _write_xlsx_device_metadata(
     )
     curr_row += 1
     for iter_row, (iter_metadata_uuid, iter_value) in enumerate(
-        ((MANTARRAY_SERIAL_NUMBER_UUID, first_well_file.get_mantarray_serial_number()),)
+        (
+            (
+                MANTARRAY_SERIAL_NUMBER_UUID,
+                first_well_file.get_mantarray_serial_number(),
+            ),
+            (
+                SOFTWARE_RELEASE_VERSION_UUID,
+                first_well_file.get_h5_attribute(str(SOFTWARE_RELEASE_VERSION_UUID)),
+            ),
+            (
+                SOFTWARE_BUILD_NUMBER_UUID,
+                first_well_file.get_h5_attribute(str(SOFTWARE_BUILD_NUMBER_UUID)),
+            ),
+        )
     ):
         row_in_sheet = curr_row + iter_row
         curr_sheet.write(

@@ -25,7 +25,7 @@ def test_excel_sheet_names():
 def test_excel_sheet_rows():
     assert METADATA_RECORDING_ROW_START == 0
     assert METADATA_INSTRUMENT_ROW_START == METADATA_RECORDING_ROW_START + 4
-    assert METADATA_OUTPUT_FILE_ROW_START == METADATA_INSTRUMENT_ROW_START + 3
+    assert METADATA_OUTPUT_FILE_ROW_START == METADATA_INSTRUMENT_ROW_START + 6
 
 
 def test_interpolated_data_period_dict():

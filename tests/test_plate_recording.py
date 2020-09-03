@@ -2,6 +2,7 @@
 """Tests for PlateRecording subclass.
 
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
+To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 """
 import datetime
 import os
@@ -19,6 +20,8 @@ from freezegun import freeze_time
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
+from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
+from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
@@ -153,6 +156,8 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
     curr_row += 1
     for iter_row, metadata_uuid, expected_value in [
         (0, MANTARRAY_SERIAL_NUMBER_UUID, "M02001900"),
+        (1, SOFTWARE_RELEASE_VERSION_UUID, "0.2.2"),
+        (2, SOFTWARE_BUILD_NUMBER_UUID, "200817143923--820"),
     ]:
         actual_label = get_cell_value(metadata_sheet, curr_row + iter_row, 1)
         actual_value = get_cell_value(metadata_sheet, curr_row + iter_row, 2)

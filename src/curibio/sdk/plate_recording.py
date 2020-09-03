@@ -116,9 +116,8 @@ def _write_xlsx_metadata(
     _write_xlsx_device_metadata(curr_sheet, first_well_file)
     _write_xlsx_output_format_metadata(curr_sheet)
     # Adjust the column widths to be able to see the data
-    curr_sheet.set_column(0, 0, 25)
-    curr_sheet.set_column(1, 1, 40)
-    curr_sheet.set_column(2, 2, 25)
+    for iter_column_idx, iter_column_width in ((0, 25), (1, 40), (2, 25)):
+        curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
 
 
 class PlateRecording(FileManagerPlateRecording):
@@ -260,11 +259,14 @@ class PlateRecording(FileManagerPlateRecording):
         curr_row += 1
         # row_where_data_starts=curr_row
         sub_metrics = ("Mean", "StDev", "CoV", "SEM")
-        for (
-            iter_metric_uuid,
-            iter_metric_name,
-        ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        for (_, iter_metric_name,) in CALCULATED_METRIC_DISPLAY_NAMES.items():
             curr_sheet.write(curr_row, 0, iter_metric_name)
             for iter_sub_metric_name in sub_metrics:
                 curr_sheet.write(curr_row, 1, iter_sub_metric_name)
                 curr_row += 1
+        # Adjust the column widths to be able to see the data
+        for iter_column_idx, iter_column_width in ((0, 50), (1, 55)):
+            curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
+        # adjust widths of well columns
+        for iter_column_idx in range(3, 3 + 24):
+            curr_sheet.set_column(iter_column_idx, iter_column_idx, 40)

@@ -36,5 +36,8 @@ TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (centi-milliseconds) to
     160: BESSEL_LOWPASS_30_UUID,
 }
 CALCULATED_METRIC_DISPLAY_NAMES = OrderedDict(
-    [(TWITCH_PERIOD_UUID, "Twitch Period"), (AMPLITUDE_UUID, "Twitch Amplitude")]
+    [
+        (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
+        (AMPLITUDE_UUID, "Twitch Amplitude"),
+    ]
 )

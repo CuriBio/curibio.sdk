@@ -20,7 +20,10 @@ from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 def test_misc():
     assert MICROSECONDS_PER_CENTIMILLISECOND == 10
     assert CALCULATED_METRIC_DISPLAY_NAMES == OrderedDict(
-        [(TWITCH_PERIOD_UUID, "Twitch Period"), (AMPLITUDE_UUID, "Twitch Amplitude")]
+        [
+            (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
+            (AMPLITUDE_UUID, "Twitch Amplitude"),
+        ]
     )
 
 

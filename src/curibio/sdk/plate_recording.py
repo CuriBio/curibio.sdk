@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
-import copy
 import datetime
 import os
 from typing import Any
@@ -13,7 +12,7 @@ from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import PlateRecording as FileManagerPlateRecording
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
-from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 import numpy as np
 from scipy import interpolate
@@ -27,24 +26,26 @@ from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import PACKAGE_VERSION
+from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
-
-
-DEFAULT_PIPELINE_TEMPLATE = PipelineTemplate(
-    noise_filter_uuid=BESSEL_LOWPASS_10_UUID, tissue_sampling_period=160,
-)
 
 
 def _write_xlsx_device_metadata(
     curr_sheet: xlsxwriter.worksheet.Worksheet, first_well_file: WellFile
 ) -> None:
-    row_start = METADATA_INSTRUMENT_ROW_START
-    curr_sheet.write(row_start, 0, "Device Information:")
+    curr_row = METADATA_INSTRUMENT_ROW_START
+    curr_sheet.write(curr_row, 0, "Device Information:")
+    curr_row += 1
+    curr_sheet.write(curr_row, 1, "H5 File Layout Version")
+    curr_sheet.write(
+        curr_row, 2, first_well_file.get_h5_attribute("File Format Version")
+    )
+    curr_row += 1
     for iter_row, (iter_metadata_uuid, iter_value) in enumerate(
         ((MANTARRAY_SERIAL_NUMBER_UUID, first_well_file.get_mantarray_serial_number()),)
     ):
-        row_in_sheet = row_start + 1 + iter_row
+        row_in_sheet = curr_row + iter_row
         curr_sheet.write(
             row_in_sheet, 1, METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
         )
@@ -114,8 +115,18 @@ class PlateRecording(FileManagerPlateRecording):
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
         if pipeline_template is None:
-            pipeline_template = copy.deepcopy(DEFAULT_PIPELINE_TEMPLATE)
+            first_well_index = self.get_well_indices()[0]
+            # this file is used to get general information applicable across the recording
+            first_well_file = self.get_well_by_index(first_well_index)
+            tissue_sampling_period_us = (
+                first_well_file.get_tissue_sampling_period_microseconds()
+            )
+            pipeline_template = PipelineTemplate(
+                tissue_sampling_period=tissue_sampling_period_us / 10,
+                noise_filter_uuid=TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period_us],
+            )
         self._pipeline_template = pipeline_template
+        self._pipelines: Dict[int, Pipeline]
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template

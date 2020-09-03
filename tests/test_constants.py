@@ -5,7 +5,10 @@ from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
 from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
+from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 
 
 def test_excel_sheet_names():
@@ -24,4 +27,11 @@ def test_interpolated_data_period_dict():
     assert TSP_TO_INTERPOLATED_DATA_PERIOD == {
         9600: 1 / 100,
         1600: 1 / 625,
+    }
+
+
+def test_default_filter_dict():
+    assert TSP_TO_DEFAULT_FILTER_UUID == {
+        9600: BESSEL_LOWPASS_10_UUID,
+        1600: BESSEL_LOWPASS_30_UUID,
     }

@@ -26,6 +26,19 @@ def fixture_generic_well_file_0_3_1():
     yield wf
 
 
+@pytest.fixture(scope="function", name="generic_well_file_0_3_2")
+def fixture_generic_well_file_0_3_2():
+    wf = WellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.3.2",
+            "MA20223322__2020_09_02_173919__A2.h5",
+        )
+    )
+    yield wf
+
+
 @pytest.fixture(
     scope="function", name="plate_recording_in_tmp_dir_for_generic_well_file_0_3_1"
 )

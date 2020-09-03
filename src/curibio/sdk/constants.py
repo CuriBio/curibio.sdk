@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
 from labware_domain_models import LabwareDefinition
+from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
+from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 
 try:  # adapted from https://packaging.python.org/guides/single-sourcing-package-version/
     from importlib import metadata
@@ -22,4 +24,9 @@ AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
 TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (microseconds) to Interpolated Data Period (seconds)
     9600: 1 / 100,
     1600: 1 / 625,
+}
+
+TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (microseconds) to default Pipeline Filter UUID
+    9600: BESSEL_LOWPASS_10_UUID,
+    1600: BESSEL_LOWPASS_30_UUID,
 }

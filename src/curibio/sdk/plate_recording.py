@@ -14,7 +14,10 @@ from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
 from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
+from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
+from mantarray_waveform_analysis import peak_detection
+from mantarray_waveform_analysis import peak_detector
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 import numpy as np
@@ -151,7 +154,8 @@ class PlateRecording(FileManagerPlateRecording):
         for iter_well_idx in self.get_well_indices():
             iter_pipeline = self.get_pipeline_template().create_pipeline()
             well = self.get_well_by_index(iter_well_idx)
-            data = well.get_numpy_array()
+            # data = well.get_numpy_array()
+            data = well.get_raw_tissue_reading()
             iter_pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
             self._pipelines[iter_well_idx] = iter_pipeline
 
@@ -204,17 +208,23 @@ class PlateRecording(FileManagerPlateRecording):
         max_time_index = 0
         for well_index in self.get_well_indices():
             well = self.get_well_by_index(well_index)
-            last_time_index = well.get_numpy_array()[0][-1]
+            last_time_index = well.get_raw_tissue_reading()[0][-1]
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
         interpolated_data_indices = np.arange(
-            0,
+            TSP_TO_INTERPOLATED_DATA_PERIOD[
+                tissue_sampling_period
+            ],  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
             max_time_index,
-            TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period]
-            / CENTIMILLISECONDS_PER_SECOND,
+            TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period],
         )
         for i, data_index in enumerate(interpolated_data_indices):
-            curr_sheet.write(i + 1, 0, data_index)
+            curr_sheet.write(
+                i + 1,
+                0,
+                data_index
+                / CENTIMILLISECONDS_PER_SECOND,  # display in seconds in the Excel sheet
+            )
 
         # add data for valid wells
         for well_index in self.get_well_indices():
@@ -256,17 +266,48 @@ class PlateRecording(FileManagerPlateRecording):
         curr_sheet.write(curr_row, 1, "Treatment Description")
         curr_row += 1
         curr_sheet.write(curr_row, 1, "n (twitches)")
+        for iter_well_idx in self.get_well_indices():
+            iter_pipeline = self._pipelines[iter_well_idx]
+            magnetic_sensor_data = iter_pipeline.get_noise_filtered_gmr()
+
+            peak_and_valley_timepoints = peak_detector(
+                magnetic_sensor_data, twitches_point_up=False
+            )
+            _, aggregate_metrics_dict = peak_detection.data_metrics(
+                peak_and_valley_timepoints, magnetic_sensor_data
+            )
+            curr_sheet.write(
+                curr_row, 2 + iter_well_idx, aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
+            )
+
         curr_row += 1
         # row_where_data_starts=curr_row
         sub_metrics = ("Mean", "StDev", "CoV", "SEM")
         for (_, iter_metric_name,) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+            if isinstance(iter_metric_name, tuple):
+                _, iter_metric_name = iter_metric_name
             curr_sheet.write(curr_row, 0, iter_metric_name)
             for iter_sub_metric_name in sub_metrics:
                 curr_sheet.write(curr_row, 1, iter_sub_metric_name)
+                for iter_well_idx in self.get_well_indices():
+                    iter_pipeline = self._pipelines[iter_well_idx]
+                    magnetic_sensor_data = iter_pipeline.get_noise_filtered_gmr()
+
+                    peak_and_valley_timepoints = peak_detector(
+                        magnetic_sensor_data, twitches_point_up=False
+                    )
+
+                    _, aggregate_metrics_dict = peak_detection.data_metrics(
+                        peak_and_valley_timepoints, magnetic_sensor_data
+                    )
+
                 curr_row += 1
+
+        # The formatting items below are not explicitly unit-tested...not sure the best way to do this
         # Adjust the column widths to be able to see the data
-        for iter_column_idx, iter_column_width in ((0, 50), (1, 55)):
+        for iter_column_idx, iter_column_width in ((0, 40), (1, 25)):
             curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
         # adjust widths of well columns
-        for iter_column_idx in range(3, 3 + 24):
-            curr_sheet.set_column(iter_column_idx, iter_column_idx, 40)
+        for iter_column_idx in range(2, 2 + 24):
+            curr_sheet.set_column(iter_column_idx, iter_column_idx, 19)
+        curr_sheet.freeze_panes(2, 2)

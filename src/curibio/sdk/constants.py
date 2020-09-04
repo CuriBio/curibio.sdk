@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
 from collections import OrderedDict
+from typing import Dict
+from typing import Tuple
+from typing import Union
+import uuid
 
 from labware_domain_models import LabwareDefinition
 from mantarray_waveform_analysis import AMPLITUDE_UUID
@@ -8,6 +12,7 @@ from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
+from mantarray_waveform_analysis import WIDTH_UUID
 
 try:  # adapted from https://packaging.python.org/guides/single-sourcing-package-version/
     from importlib import metadata
@@ -35,9 +40,12 @@ TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (centi-milliseconds) to
     960: BESSEL_LOWPASS_10_UUID,
     160: BESSEL_LOWPASS_30_UUID,
 }
-CALCULATED_METRIC_DISPLAY_NAMES = OrderedDict(
+CALCULATED_METRIC_DISPLAY_NAMES: Dict[
+    uuid.UUID, Union[str, Tuple[int, str]]
+] = OrderedDict(
     [
         (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
         (AMPLITUDE_UUID, "Twitch Amplitude"),
+        (WIDTH_UUID, (50, "Twitch Width 50 (FWHM) (seconds)")),
     ]
 )

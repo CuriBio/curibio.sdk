@@ -15,6 +15,7 @@ from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
+from mantarray_waveform_analysis import WIDTH_UUID
 
 
 def test_misc():
@@ -23,6 +24,7 @@ def test_misc():
         [
             (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
             (AMPLITUDE_UUID, "Twitch Amplitude"),
+            (WIDTH_UUID, (50, "Twitch Width 50 (FWHM) (seconds)")),
         ]
     )
 

@@ -111,6 +111,9 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
         CALCULATED_METRIC_DISPLAY_NAMES.items()
     ):
         actual_metric_name = get_cell_value(aggregate_metrics_sheet, curr_row, 0)
+        if isinstance(iter_metric_name, tuple):
+            _, iter_metric_name = iter_metric_name
+
         assert (iter_idx, actual_metric_name) == (iter_idx, iter_metric_name)
         for iter_sub_metric_idx, iter_sub_metric_name in enumerate(
             ("Mean", "StDev", "CoV", "SEM")
@@ -124,6 +127,23 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
                 iter_sub_metric_idx,
                 iter_sub_metric_name,
             )
+
+
+def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1, generic_well_file_0_3_1
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    file_dir = tmp_dir
+
+    pr.write_xlsx(file_dir)
+    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
+    assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
+    actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
+    well_idx = generic_well_file_0_3_1.get_well_index()
+    curr_row = 2
+    actual_num_twitches = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_num_twitches == 2
 
 
 def test_write_xlsx__creates_metadata_sheet_with_recording_info(
@@ -238,16 +258,19 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert actual_sheet.cell(row=0 + 1, column=24 + 1).value == "D6"
 
     assert actual_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
-    assert actual_sheet.cell(row=1 + 1, column=0 + 1).value == 0
+    assert (
+        actual_sheet.cell(row=1 + 1, column=0 + 1).value
+        == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+    )
     assert (
         actual_sheet.cell(row=10 + 1, column=0 + 1).value
-        == 9 * TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        == 10 * TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
     )
 
-    assert actual_sheet.cell(row=0 + 1, column=5 + 1).value == "A2"
-    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230360
-    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1535254.625
+    assert get_cell_value(actual_sheet, 0, 5) == "A2"
+    assert get_cell_value(actual_sheet, 1, 10) == -1238675
+    assert get_cell_value(actual_sheet, 10, 10) == -1531018.5
 
-    assert actual_sheet.cell(row=0 + 1, column=10 + 1).value == "B3"
-    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1230360
-    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1535254.625
+    assert get_cell_value(actual_sheet, 0, 10) == "B3"
+    assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1238675
+    assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1531018.5

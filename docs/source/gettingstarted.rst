@@ -28,7 +28,16 @@ This should display "REPLACEWITHCURRENTSDKVERSION" underneath the cell.
 Working With the SDK
 ====================
 
-Writing Plate Recording data to an excel file::
+Uploading H5 files
+------------------
+
+Files should be placed in this directory:
+
+
+Exporting data to an excel file
+-------------------------------
+
+Export data from a Plate Recording::
 
     import os
     from curibio.sdk import PlateRecording

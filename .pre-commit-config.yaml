@@ -31,7 +31,7 @@ repos:
     -   id: fix-encoding-pragma
 
 -   repo: https://github.com/psf/black
-    rev: 19.10b0  # pick a git hash / tag to point to
+    rev: 20.8b1  # pick a git hash / tag to point to
     hooks:
     -   id: black
 
@@ -70,7 +70,7 @@ repos:
         exclude: 'tests/h5'
     -   id: check-added-large-files
         name: forbid very large files inside tests/h5
-        args: ['--maxkb=500']
+        args: ['--maxkb=600']
         files: 'tests/h5'
     -   id: check-json
     -   id: check-yaml

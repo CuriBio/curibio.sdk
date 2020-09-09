@@ -4,6 +4,7 @@
 from mantarray_file_manager import WellFile
 
 from .constants import AGGREGATE_METRICS_SHEET_NAME
+from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
@@ -30,5 +31,6 @@ __all__ = [
     "MICROSECONDS_PER_CENTIMILLISECOND",
     "CALCULATED_METRIC_DISPLAY_NAMES",
     "AGGREGATE_METRICS_SHEET_NAME",
+    "ALL_FORMATS",
     "__version__",
 ]

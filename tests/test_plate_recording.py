@@ -2,6 +2,7 @@
 """Tests for PlateRecording subclass.
 
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
+To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 """
 import datetime
@@ -28,20 +29,30 @@ from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from openpyxl import load_workbook
+import pytest
+from pytest import approx
 
 from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
 from .fixtures import fixture_generic_well_file_0_3_2
+from .fixtures import fixture_plate_recording_in_tmp_dir_for_24_wells_0_3_2
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+from .fixtures import fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
+from .fixtures import fixture_plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
+from .fixtures import fixture_real_3min_well_file_0_3_1
 from .utils import get_cell_value
 
 __fixtures__ = (
     fixture_generic_well_file_0_3_1,
     fixture_generic_well_file_0_3_2,
+    fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
     fixture_plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
     fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1,
     fixture_generic_well_file_0_3_1__2,
+    fixture_real_3min_well_file_0_3_1,
+    fixture_plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1,
+    fixture_plate_recording_in_tmp_dir_for_24_wells_0_3_2,
 )
 
 
@@ -73,27 +84,34 @@ def test_write_xlsx__creates_file_at_supplied_path_and_name(
     assert os.path.exists(os.path.join(file_dir, file_name)) is True
 
 
+@pytest.mark.slow
+def test_write_xlsx__creates_file_for_all_24_wells(
+    plate_recording_in_tmp_dir_for_24_wells_0_3_2,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_24_wells_0_3_2
+    file_name = "my_file2.xlsx"
+    pr.write_xlsx(tmp_dir, file_name=file_name)
+    assert os.path.exists(os.path.join(tmp_dir, file_name)) is True
+
+
 def test_write_xlsx__creates_file_at_supplied_path_with_auto_generated_name(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
-    file_dir = tmp_dir
-
-    pr.write_xlsx(file_dir)
+    pr.write_xlsx(tmp_dir)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
-    assert os.path.exists(os.path.join(file_dir, expected_file_name)) is True
+    assert os.path.exists(os.path.join(tmp_dir, expected_file_name)) is True
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
-    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
 ):
-    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
-    file_dir = tmp_dir
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
 
-    pr.write_xlsx(file_dir)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
-    actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
+    pr.write_xlsx(tmp_dir)
+    expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     curr_row = 0
@@ -110,6 +128,7 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
     for iter_idx, (_, iter_metric_name) in enumerate(
         CALCULATED_METRIC_DISPLAY_NAMES.items()
     ):
+        curr_row += 1
         actual_metric_name = get_cell_value(aggregate_metrics_sheet, curr_row, 0)
         if isinstance(iter_metric_name, tuple):
             _, iter_metric_name = iter_metric_name
@@ -130,20 +149,49 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
 
 
 def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
-    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1, generic_well_file_0_3_1
+    plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1, real_3min_well_file_0_3_1
 ):
-    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
-    file_dir = tmp_dir
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 
-    pr.write_xlsx(file_dir)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
-    actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
+    pr.write_xlsx(tmp_dir, skip_continuous_waveforms=True)
+    expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
     actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
-    well_idx = generic_well_file_0_3_1.get_well_index()
+    well_idx = real_3min_well_file_0_3_1.get_well_index()
     curr_row = 2
     actual_num_twitches = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
-    assert actual_num_twitches == 2
+    assert actual_num_twitches == 429
+
+    # Period
+    curr_row += 2
+    actual_mean = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_mean == 0.51272
+    curr_row += 1
+    actual_stdev = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_stdev == 0.00472
+    curr_row += 1
+    actual_cov = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_cov == approx(0.00472 / 0.51272)
+    curr_row += 1
+    actual_sem = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_sem == approx(0.00472 / 429 ** 0.5)
+
+    # Twitch Width 50
+    curr_row += 2 + 5 + 5
+    expected_stdev = 0.00254
+    expected_mean = 0.25524
+    actual_mean = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_mean == approx(expected_mean)
+    curr_row += 1
+    actual_stdev = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_stdev == approx(expected_stdev)
+    curr_row += 1
+    actual_cov = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_cov == approx(expected_stdev / expected_mean)
+    curr_row += 1
+    actual_sem = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_sem == approx(expected_stdev / 429 ** 0.5)
 
 
 def test_write_xlsx__creates_metadata_sheet_with_recording_info(

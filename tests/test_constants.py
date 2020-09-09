@@ -2,6 +2,7 @@
 from collections import OrderedDict
 
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
+from curibio.sdk import ALL_FORMATS
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
@@ -14,8 +15,13 @@ from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import WIDTH_UUID
+
+
+def test_formats():
+    assert ALL_FORMATS == {"CoV": {"num_format": "0.00%"}}
 
 
 def test_misc():
@@ -23,6 +29,7 @@ def test_misc():
     assert CALCULATED_METRIC_DISPLAY_NAMES == OrderedDict(
         [
             (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
+            (TWITCH_FREQUENCY_UUID, "Twitch Frequency (Hz)"),
             (AMPLITUDE_UUID, "Twitch Amplitude"),
             (WIDTH_UUID, (50, "Twitch Width 50 (FWHM) (seconds)")),
         ]

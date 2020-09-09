@@ -6,11 +6,13 @@ from typing import Tuple
 from typing import Union
 import uuid
 
+from immutabledict import immutabledict
 from labware_domain_models import LabwareDefinition
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import WIDTH_UUID
 
@@ -36,16 +38,20 @@ TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (centi-millisecond
     160: 1 / 625 * CENTIMILLISECONDS_PER_SECOND,
 }
 
-TSP_TO_DEFAULT_FILTER_UUID = {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
-    960: BESSEL_LOWPASS_10_UUID,
-    160: BESSEL_LOWPASS_30_UUID,
-}
+TSP_TO_DEFAULT_FILTER_UUID = (
+    {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
+        960: BESSEL_LOWPASS_10_UUID,
+        160: BESSEL_LOWPASS_30_UUID,
+    }
+)
 CALCULATED_METRIC_DISPLAY_NAMES: Dict[
     uuid.UUID, Union[str, Tuple[int, str]]
 ] = OrderedDict(
     [
         (TWITCH_PERIOD_UUID, "Twitch Period (seconds)"),
+        (TWITCH_FREQUENCY_UUID, "Twitch Frequency (Hz)"),
         (AMPLITUDE_UUID, "Twitch Amplitude"),
         (WIDTH_UUID, (50, "Twitch Width 50 (FWHM) (seconds)")),
     ]
 )
+ALL_FORMATS = immutabledict({"CoV": {"num_format": "0.00%"}})

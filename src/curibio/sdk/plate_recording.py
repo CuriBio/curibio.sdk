@@ -5,6 +5,7 @@ import os
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Union
 
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
@@ -16,16 +17,18 @@ from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WellFile
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
-from mantarray_waveform_analysis import peak_detection
-from mantarray_waveform_analysis import peak_detector
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
+from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
+from mantarray_waveform_analysis import WIDTH_UUID
 import numpy as np
 from scipy import interpolate
 import xlsxwriter
 from xlsxwriter import Workbook
+from xlsxwriter.format import Format
 
 from .constants import AGGREGATE_METRICS_SHEET_NAME
+from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
@@ -68,10 +71,14 @@ def _write_xlsx_device_metadata(
     ):
         row_in_sheet = curr_row + iter_row
         curr_sheet.write(
-            row_in_sheet, 1, METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
+            row_in_sheet,
+            1,
+            METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
         )
         curr_sheet.write(
-            row_in_sheet, 2, iter_value,
+            row_in_sheet,
+            2,
+            iter_value,
         )
 
 
@@ -100,13 +107,17 @@ def _write_xlsx_recording_metadata(
     ):
         row_in_sheet = METADATA_RECORDING_ROW_START + 1 + iter_row
         curr_sheet.write(
-            row_in_sheet, 1, METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
+            row_in_sheet,
+            1,
+            METADATA_UUID_DESCRIPTIONS[iter_metadata_uuid],
         )
         if isinstance(iter_value, datetime.datetime):
             # Excel doesn't support timezones in datetimes
             iter_value = iter_value.replace(tzinfo=None)
         curr_sheet.write(
-            row_in_sheet, 2, iter_value,
+            row_in_sheet,
+            2,
+            iter_value,
         )
 
 
@@ -134,6 +145,7 @@ class PlateRecording(FileManagerPlateRecording):
     ) -> None:
         super().__init__(*args, **kwargs)
         self._workbook: xlsxwriter.workbook.Workbook
+        self._workbook_formats: Dict[str, Format] = dict()
         if pipeline_template is None:
             first_well_index = self.get_well_indices()[0]
             # this file is used to get general information applicable across the recording
@@ -156,18 +168,24 @@ class PlateRecording(FileManagerPlateRecording):
             well = self.get_well_by_index(iter_well_idx)
             # data = well.get_numpy_array()
             data = well.get_raw_tissue_reading()
-            iter_pipeline.load_raw_gmr_data(data, np.zeros(data.shape))
+            iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))
             self._pipelines[iter_well_idx] = iter_pipeline
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template
 
-    def write_xlsx(self, file_dir: str, file_name: Optional[str] = None) -> None:
+    def write_xlsx(
+        self,
+        file_dir: str,
+        file_name: Optional[str] = None,
+        skip_continuous_waveforms: bool = False,
+    ) -> None:
         """Create an XLSX file.
 
         Args:
             file_dir: the directory in which to create the file.
             file_name: By default an automatic name is generated based on barcode and recording date. Extension will always be xlsx---if user provides something else then it is stripped
+            skip_continuous_waveforms: typically used in unit testing, if set to True, the sheet will be created with no content
         """
         first_well_index = self.get_well_indices()[0]
         # this file is used to get general information applicable across the recording
@@ -179,15 +197,21 @@ class PlateRecording(FileManagerPlateRecording):
         self._workbook = Workbook(
             file_path, {"default_date_format": "YYYY-MM-DD hh:mm:ss UTC"}
         )
+        for iter_format_name, iter_format in ALL_FORMATS.items():
+            self._workbook_formats[iter_format_name] = self._workbook.add_format(
+                iter_format
+            )
         _write_xlsx_metadata(self._workbook, first_well_file)
-        self._write_xlsx_continuous_waveforms()
+        self._write_xlsx_continuous_waveforms(skip_content=skip_continuous_waveforms)
         self._write_xlsx_aggregate_metrics()
         self._workbook.close()  # This is actually when the file gets written to d
 
-    def _write_xlsx_continuous_waveforms(self) -> None:
+    def _write_xlsx_continuous_waveforms(self, skip_content: bool = False) -> None:
         continuous_waveform_sheet = self._workbook.add_worksheet(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
+        if skip_content:
+            return
         curr_sheet = continuous_waveform_sheet
 
         # create headings
@@ -228,18 +252,22 @@ class PlateRecording(FileManagerPlateRecording):
 
         # add data for valid wells
         for well_index in self.get_well_indices():
-            filtered_data = self._pipelines[well_index].get_noise_filtered_gmr()
+            filtered_data = self._pipelines[
+                well_index
+            ].get_noise_filtered_magnetic_data()
             # interpolate data (at 100 Hz) to max valid interpolated data point
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
-            for i, time_index in enumerate(np.flip(interpolated_data_indices)):
-                if filtered_data[0][-1] >= time_index:
-                    break
-            else:
-                raise NotImplementedError(
-                    "There should be at least one valid data point when interpolating"
-                )
+            i = 0
+            # for i, time_index in enumerate(np.flip(interpolated_data_indices)):
+            #     if filtered_data[0][-1] >= time_index:
+            #     break
+            # else:
+            #     raise NotImplementedError(
+            #         "There should be at least one valid data point when interpolating"
+            #     )
+
             last_index = len(interpolated_data_indices) - i
             interpolated_data = interpolated_data_function(
                 interpolated_data_indices[:last_index]
@@ -247,6 +275,19 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
+
+        # The formatting items below are not explicitly unit-tested...not sure the best way to do this
+        # Adjust the column widths to be able to see the data
+        curr_sheet.set_column(0, 0, 18)
+        well_indices = self.get_well_indices()
+        for iter_well_idx in range(24):
+            curr_sheet.set_column(
+                iter_well_idx + 1,
+                iter_well_idx + 1,
+                13,
+                options={"hidden": iter_well_idx not in well_indices},
+            )
+        curr_sheet.freeze_panes(1, 1)
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         aggregate_metrics_sheet = self._workbook.add_worksheet(
@@ -266,16 +307,11 @@ class PlateRecording(FileManagerPlateRecording):
         curr_sheet.write(curr_row, 1, "Treatment Description")
         curr_row += 1
         curr_sheet.write(curr_row, 1, "n (twitches)")
-        for iter_well_idx in self.get_well_indices():
+        well_indices = self.get_well_indices()
+        for iter_well_idx in well_indices:
             iter_pipeline = self._pipelines[iter_well_idx]
-            magnetic_sensor_data = iter_pipeline.get_noise_filtered_gmr()
 
-            peak_and_valley_timepoints = peak_detector(
-                magnetic_sensor_data, twitches_point_up=False
-            )
-            _, aggregate_metrics_dict = peak_detection.data_metrics(
-                peak_and_valley_timepoints, magnetic_sensor_data
-            )
+            _, aggregate_metrics_dict = iter_pipeline.get_magnetic_data_metrics()
             curr_sheet.write(
                 curr_row, 2 + iter_well_idx, aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
             )
@@ -283,22 +319,56 @@ class PlateRecording(FileManagerPlateRecording):
         curr_row += 1
         # row_where_data_starts=curr_row
         sub_metrics = ("Mean", "StDev", "CoV", "SEM")
-        for (_, iter_metric_name,) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        for (
+            iter_metric_uuid,
+            iter_metric_name,
+        ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+            curr_row += 1
             if isinstance(iter_metric_name, tuple):
-                _, iter_metric_name = iter_metric_name
+                iter_width_percent, iter_metric_name = iter_metric_name
             curr_sheet.write(curr_row, 0, iter_metric_name)
             for iter_sub_metric_name in sub_metrics:
                 curr_sheet.write(curr_row, 1, iter_sub_metric_name)
                 for iter_well_idx in self.get_well_indices():
                     iter_pipeline = self._pipelines[iter_well_idx]
-                    magnetic_sensor_data = iter_pipeline.get_noise_filtered_gmr()
+                    (
+                        _,
+                        aggregate_metrics_dict,
+                    ) = iter_pipeline.get_magnetic_data_metrics()
 
-                    peak_and_valley_timepoints = peak_detector(
-                        magnetic_sensor_data, twitches_point_up=False
-                    )
+                    value_to_write: Optional[Union[float, int]] = None
+                    cell_format: Optional[Format] = None
+                    metrics_dict = dict()
+                    if iter_metric_uuid == WIDTH_UUID:
+                        metrics_dict = aggregate_metrics_dict[iter_metric_uuid][
+                            iter_width_percent
+                        ]
 
-                    _, aggregate_metrics_dict = peak_detection.data_metrics(
-                        peak_and_valley_timepoints, magnetic_sensor_data
+                    else:
+                        metrics_dict = aggregate_metrics_dict[iter_metric_uuid]
+                    if iter_sub_metric_name == "Mean":
+                        value_to_write = metrics_dict["mean"]
+                    elif iter_sub_metric_name == "StDev":
+                        value_to_write = metrics_dict["std"]
+                    elif iter_sub_metric_name == "CoV":
+                        value_to_write = metrics_dict["std"] / metrics_dict["mean"]
+                        cell_format = self._workbook_formats["CoV"]
+                    elif iter_sub_metric_name == "SEM":
+                        value_to_write = metrics_dict["std"] / metrics_dict["n"] ** 0.5
+                    else:
+                        raise NotImplementedError(
+                            f"Unrecognized submetric name: {iter_sub_metric_name}"
+                        )
+                    if iter_metric_uuid in (
+                        TWITCH_PERIOD_UUID,
+                        WIDTH_UUID,
+                    ):  # for time-based metrics, convert from centi-milliseconds to seconds before writing to Excel
+                        if (
+                            iter_sub_metric_name != "CoV"
+                        ):  # coefficients of variation are %, not a raw time unit
+                            value_to_write /= CENTIMILLISECONDS_PER_SECOND
+                    curr_sheet.write(
+                        curr_row, 2 + iter_well_idx, value_to_write, cell_format
                     )
 
                 curr_row += 1
@@ -308,6 +378,11 @@ class PlateRecording(FileManagerPlateRecording):
         for iter_column_idx, iter_column_width in ((0, 40), (1, 25)):
             curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
         # adjust widths of well columns
-        for iter_column_idx in range(2, 2 + 24):
-            curr_sheet.set_column(iter_column_idx, iter_column_idx, 19)
+        for iter_column_idx in range(24):
+            curr_sheet.set_column(
+                iter_column_idx + 2,
+                iter_column_idx + 2,
+                19,
+                options={"hidden": iter_column_idx not in well_indices},
+            )
         curr_sheet.freeze_panes(2, 2)

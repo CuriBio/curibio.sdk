@@ -27,9 +27,10 @@ phases:
       - echo "Upgrading pip"
       - pip install pip==20.0.2 --upgrade
       - echo "Installing developent/testing packages"
-      - pip install -r requirements-dev.txt --upgrade
+      - pip install -r requirements-dev.txt
+      - pip install -r docs/requirements.txt
       - echo "Installing main package"
-      - pip install -e . --upgrade
+      - pip install -e .
       - echo "Listing all installed packages"
       - pip freeze
       - pre-commit install
@@ -46,7 +47,7 @@ phases:
     commands:
       - echo "Build started on $(date)"
       - echo "Running test suite"
-      - pytest -xsvv
+      - pytest -xsvv --full-ci --include-slow-tests
       # Only run the following command if the PUBLISH_TO_PYPI environmental variable is set (i.e. =1) https://stackoverflow.com/questions/39619956/short-way-to-run-command-if-variable-is-set  (extra outer parentheses needed to make YAML parser happy)
       # Grab the version from the setup.py file using a grep "look-behind" https://stackoverflow.com/questions/30776265/how-to-grep-for-value-in-a-key-value-store-from-plain-text
       # If this is attempted on any branch other than master, it should fail because the role only has permission to push to the master branch

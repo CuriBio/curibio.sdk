@@ -17,7 +17,12 @@ Add the following lines to a cell and run before running any code from the packa
 Test that the SDK downloaded correctly and is working
 -----------------------------------------------------
 
-Add something here
+In another cell run the following code::
+
+    import curibio.sdk
+    print(curibio.sdk.__version__)
+
+This should display "REPLACEWITHCURRENTSDKVERSION" underneath the cell.
 
 
 Working With the SDK
@@ -27,5 +32,5 @@ Writing Plate Recording data to an excel file::
 
     import os
     from curibio.sdk import PlateRecording
-    pr = PlateRecording.from_directory(os.path.join('path','to','folder','containing','h5','files','from a recording')
+    pr = PlateRecording.from_directory(os.path.join('path','to','folder','containing','h5','files','from a recording'))
     pr.write_xlsx('.')

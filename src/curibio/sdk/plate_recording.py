@@ -162,6 +162,11 @@ class PlateRecording(FileManagerPlateRecording):
         self._pipelines: Dict[int, Pipeline]
 
     def _init_pipelines(self) -> None:
+        try:
+            self._pipelines
+            return
+        except AttributeError:
+            pass
         self._pipelines = dict()
         for iter_well_idx in self.get_well_indices():
             iter_pipeline = self.get_pipeline_template().create_pipeline()

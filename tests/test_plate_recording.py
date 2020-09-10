@@ -322,3 +322,18 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert get_cell_value(actual_sheet, 0, 10) == "B3"
     assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1238675
     assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1531018.5
+
+
+def test_PlateRecording__init_pipelines__does_not_init_twice(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+):
+    pr, _ = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    pr._init_pipelines()  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    initial_pipelines = (
+        pr._pipelines  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    )
+    pr._init_pipelines()  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    second_call_pipelines = (
+        pr._pipelines  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    )
+    assert second_call_pipelines is initial_pipelines

@@ -4,7 +4,7 @@ FROM python:3.7.9-slim-buster
 RUN pip install --no-cache --upgrade pip==20.2.3 && \
     pip install --no-cache notebook==6.1.4
 
-RUN pip install -e . --no-cache
+RUN pip install curibio.sdk --no-cache
 
 # create user with a home directory
 ARG NB_USER

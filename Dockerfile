@@ -1,5 +1,6 @@
 # For use in mybinder.org Jupyter notebooks
-FROM python:3.7.9-slim
+# Eli (9/10/20): "slim" python docker images do not have gcc necessary to compile mantarray-waveform-analysis
+FROM python:3.7.9-buster
 # install the notebook package # Eli (9/10/20): no known reason for those specific versions of pip/notebook. Just pinning it for good practice
 RUN pip install --no-cache --upgrade pip==20.2.3 && \
     pip install --no-cache notebook==6.1.4

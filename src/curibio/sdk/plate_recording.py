@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """Docstring."""
 import datetime
+import logging
 import os
 from typing import Any
 from typing import Dict
 from typing import Optional
 from typing import Union
 
+from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -21,6 +23,8 @@ from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import WIDTH_UUID
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
 import xlsxwriter
@@ -40,6 +44,8 @@ from .constants import PACKAGE_VERSION
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
+
+logger = logging.getLogger(__name__)
 
 
 def _write_xlsx_device_metadata(
@@ -163,7 +169,7 @@ class PlateRecording(FileManagerPlateRecording):
 
     def _init_pipelines(self) -> None:
         try:
-            self._pipelines
+            self._pipelines  # pylint:disable=pointless-statement # Eli (9/11/20): this will cause the attribute error to be raised if the pipelines haven't yet been initialized
             return
         except AttributeError:
             pass
@@ -171,13 +177,52 @@ class PlateRecording(FileManagerPlateRecording):
         for iter_well_idx in self.get_well_indices():
             iter_pipeline = self.get_pipeline_template().create_pipeline()
             well = self.get_well_by_index(iter_well_idx)
-            # data = well.get_numpy_array()
+            msg = f"before getting tissue reading for {iter_well_idx}"
+            logger.info(msg)
             data = well.get_raw_tissue_reading()
+            # print(f"after getting tissue reading for {iter_well_idx}")
+            # print (data.shape)
+            # print (data[0,:int(30*100000/960)].shape)
+            # assert False
             iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))
             self._pipelines[iter_well_idx] = iter_pipeline
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template
+
+    def create_stacked_plot(self) -> Figure:
+        """Create a stacked plot of all wells in the recording."""
+        # Note Eli (9/11/20): this is hardcoded for a very specific use case at the moment and just visually tested using the newly evolving visual regression tool
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+
+        self._init_pipelines()
+        factor = 0.25
+        plt.figure(figsize=(15 * factor, 35 * 1), dpi=300)
+        ax1 = plt.subplot(24, 1, 1)
+        ax1.set(ylabel="A1")
+        plt.setp(ax1.get_xticklabels(), visible=False)
+        count = 0
+        for _, iter_pipeline in self._pipelines.items():
+            if count == 0:
+                pass
+            else:
+                iter_ax = plt.subplot(24, 1, count + 1, sharex=ax1)
+                iter_ax.set(
+                    ylabel=twenty_four_well.get_well_name_from_well_index(count)
+                )
+                if count != 23:
+                    plt.setp(iter_ax.get_xticklabels(), visible=False)
+                else:
+                    iter_ax.set(xlabel="Time (seconds)")
+            filtered_data = iter_pipeline.get_noise_filtered_magnetic_data()
+            plt.plot(
+                filtered_data[0] / CENTIMILLISECONDS_PER_SECOND,
+                filtered_data[1],
+                linewidth=0.5,
+            )
+            # plt.plot(filtered_data[0,:int(30*CENTIMILLISECONDS_PER_SECOND/960)]/CENTIMILLISECONDS_PER_SECOND,filtered_data[1,:int(30*CENTIMILLISECONDS_PER_SECOND/960)])
+            count += 1
+        return plt.gcf()
 
     def write_xlsx(
         self,

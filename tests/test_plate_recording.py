@@ -39,6 +39,7 @@ from PIL.PngImagePlugin import PngImageFile
 import pytest
 from pytest import approx
 from stdlib_utils import get_current_file_abs_directory
+from stdlib_utils import is_system_windows
 
 from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
@@ -425,7 +426,10 @@ def test_PlateRecording__create_stacked_plot_for_24_wells():
         )
     )
     fig = pr.create_stacked_plot()
-    matplotlib_visual_regression(
-        os.path.join(PATH_OF_CURRENT_FILE, "visual-regression-testing", "stacked-24"),
-        fig,
-    )
+    if not is_system_windows():
+        matplotlib_visual_regression(
+            os.path.join(
+                PATH_OF_CURRENT_FILE, "visual-regression-testing", "stacked-24"
+            ),
+            fig,
+        )

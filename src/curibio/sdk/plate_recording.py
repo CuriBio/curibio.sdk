@@ -6,7 +6,9 @@ import os
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Tuple
 from typing import Union
+import uuid
 
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -21,8 +23,12 @@ from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
+from mantarray_waveform_analysis import TooFewPeaksDetectedError
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
+from mantarray_waveform_analysis import TwoPeaksInARowError
+from mantarray_waveform_analysis import TwoValleysInARowError
 from mantarray_waveform_analysis import WIDTH_UUID
+from mantarray_waveform_analysis.exceptions import PeakDetectionError
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
@@ -360,40 +366,88 @@ class PlateRecording(FileManagerPlateRecording):
         well_indices = self.get_well_indices()
         for iter_well_idx in well_indices:
             iter_pipeline = self._pipelines[iter_well_idx]
-
-            _, aggregate_metrics_dict = iter_pipeline.get_magnetic_data_metrics()
-            curr_sheet.write(
-                curr_row, 2 + iter_well_idx, aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
-            )
+            error_msg = ""
+            try:
+                _, aggregate_metrics_dict = iter_pipeline.get_magnetic_data_metrics()
+            except PeakDetectionError as e:
+                error_msg = "Error: "
+                if isinstance(e, TwoPeaksInARowError):
+                    error_msg += "Two Peaks in a Row Detected"
+                elif isinstance(e, TwoValleysInARowError):
+                    error_msg += "Two Valleys in a Row Detected"
+                elif isinstance(e, TooFewPeaksDetectedError):
+                    error_msg += "Not Enough Peaks Detected"
+                else:
+                    raise NotImplementedError("Unknown PeakDetectionError") from e
+                curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")
+                curr_sheet.write(curr_row + 1, 2 + iter_well_idx, error_msg)
+            else:
+                curr_sheet.write(
+                    curr_row,
+                    2 + iter_well_idx,
+                    aggregate_metrics_dict[AMPLITUDE_UUID]["n"],
+                )
 
         curr_row += 1
         # row_where_data_starts=curr_row
-        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
         for (
             iter_metric_uuid,
             iter_metric_name,
         ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
             curr_row += 1
-            if isinstance(iter_metric_name, tuple):
-                iter_width_percent, iter_metric_name = iter_metric_name
-            curr_sheet.write(curr_row, 0, iter_metric_name)
-            for iter_sub_metric_name in sub_metrics:
-                curr_sheet.write(curr_row, 1, iter_sub_metric_name)
-                for iter_well_idx in self.get_well_indices():
-                    iter_pipeline = self._pipelines[iter_well_idx]
+            new_row = self._write_submetrics(
+                curr_sheet,
+                curr_row,
+                iter_metric_uuid,
+                iter_metric_name,
+            )
+            curr_row = new_row
+
+        # The formatting items below are not explicitly unit-tested...not sure the best way to do this
+        # Adjust the column widths to be able to see the data
+        for iter_column_idx, iter_column_width in ((0, 40), (1, 25)):
+            curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
+        # adjust widths of well columns
+        for iter_column_idx in range(24):
+            curr_sheet.set_column(
+                iter_column_idx + 2,
+                iter_column_idx + 2,
+                19,
+                options={"hidden": iter_column_idx not in well_indices},
+            )
+        curr_sheet.freeze_panes(2, 2)
+
+    def _write_submetrics(
+        self,
+        curr_sheet: xlsxwriter.worksheet.Worksheet,
+        curr_row: int,
+        iter_metric_uuid: uuid.UUID,
+        iter_metric_name: Union[str, Tuple[int, str]],
+    ) -> int:
+        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
+        if isinstance(iter_metric_name, tuple):
+            iter_width_percent, iter_metric_name = iter_metric_name
+        curr_sheet.write(curr_row, 0, iter_metric_name)
+        for iter_sub_metric_name in sub_metrics:
+            curr_sheet.write(curr_row, 1, iter_sub_metric_name)
+            for iter_well_idx in self.get_well_indices():
+                value_to_write: Optional[Union[float, int, str]] = None
+                cell_format: Optional[Format] = None
+                iter_pipeline = self._pipelines[iter_well_idx]
+
+                try:
                     (
                         _,
                         aggregate_metrics_dict,
                     ) = iter_pipeline.get_magnetic_data_metrics()
-
-                    value_to_write: Optional[Union[float, int]] = None
-                    cell_format: Optional[Format] = None
+                except PeakDetectionError:
+                    value_to_write = "N/A"
+                else:
                     metrics_dict = dict()
                     if iter_metric_uuid == WIDTH_UUID:
                         metrics_dict = aggregate_metrics_dict[iter_metric_uuid][
                             iter_width_percent
                         ]
-
                     else:
                         metrics_dict = aggregate_metrics_dict[iter_metric_uuid]
                     if iter_sub_metric_name == "Mean":
@@ -409,6 +463,7 @@ class PlateRecording(FileManagerPlateRecording):
                         raise NotImplementedError(
                             f"Unrecognized submetric name: {iter_sub_metric_name}"
                         )
+
                     if iter_metric_uuid in (
                         TWITCH_PERIOD_UUID,
                         WIDTH_UUID,
@@ -417,22 +472,9 @@ class PlateRecording(FileManagerPlateRecording):
                             iter_sub_metric_name != "CoV"
                         ):  # coefficients of variation are %, not a raw time unit
                             value_to_write /= CENTIMILLISECONDS_PER_SECOND
-                    curr_sheet.write(
-                        curr_row, 2 + iter_well_idx, value_to_write, cell_format
-                    )
+                curr_sheet.write(
+                    curr_row, 2 + iter_well_idx, value_to_write, cell_format
+                )
 
-                curr_row += 1
-
-        # The formatting items below are not explicitly unit-tested...not sure the best way to do this
-        # Adjust the column widths to be able to see the data
-        for iter_column_idx, iter_column_width in ((0, 40), (1, 25)):
-            curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
-        # adjust widths of well columns
-        for iter_column_idx in range(24):
-            curr_sheet.set_column(
-                iter_column_idx + 2,
-                iter_column_idx + 2,
-                19,
-                options={"hidden": iter_column_idx not in well_indices},
-            )
-        curr_sheet.freeze_panes(2, 2)
+            curr_row += 1
+        return curr_row

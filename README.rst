@@ -25,3 +25,9 @@ Software development kit for utilizing Curi Bio data files and online databases
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
+
+
+Launch an online Jupyter notebook
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/curibio/curibio.sdk/master

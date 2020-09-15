@@ -23,6 +23,7 @@ setup(
         "numpy>=1.19.0",
         "immutabledict>=1.0",
         "XlsxWriter>=1.3.3",
+        "matplotlib>=3.3.1",
         "mantarray-file-manager>=0.2.1",
         "mantarray-waveform-analysis>=0.5.0",
         "labware-domain-models>=0.2",

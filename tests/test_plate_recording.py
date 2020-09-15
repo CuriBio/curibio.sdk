@@ -7,6 +7,8 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 """
 import datetime
 import os
+from typing import Optional
+from typing import Union
 
 from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
@@ -19,6 +21,7 @@ from curibio.sdk import METADATA_RECORDING_ROW_START
 from curibio.sdk import PlateRecording
 from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 from freezegun import freeze_time
+from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -28,9 +31,19 @@ from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
+from mantarray_waveform_analysis import Pipeline
+from mantarray_waveform_analysis import TooFewPeaksDetectedError
+from mantarray_waveform_analysis import TwoPeaksInARowError
+from mantarray_waveform_analysis import TwoValleysInARowError
+from matplotlib.figure import Figure
 from openpyxl import load_workbook
+from PIL import Image
+from PIL import ImageDraw
+from PIL.PngImagePlugin import PngImageFile
 import pytest
 from pytest import approx
+from stdlib_utils import get_current_file_abs_directory
+from stdlib_utils import is_system_windows
 
 from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
@@ -54,6 +67,8 @@ __fixtures__ = (
     fixture_plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1,
     fixture_plate_recording_in_tmp_dir_for_24_wells_0_3_2,
 )
+
+PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
 
 
 def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_bessel_for_960cms_if_none_is_given(
@@ -322,3 +337,187 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert get_cell_value(actual_sheet, 0, 10) == "B3"
     assert actual_sheet.cell(row=1 + 1, column=10 + 1).value == -1238675
     assert actual_sheet.cell(row=10 + 1, column=10 + 1).value == -1531018.5
+
+
+def test_PlateRecording__init_pipelines__does_not_init_twice(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+):
+    pr, _ = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    pr._init_pipelines()  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    initial_pipelines = (
+        pr._pipelines  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    )
+    pr._init_pipelines()  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    second_call_pipelines = (
+        pr._pipelines  # pylint:disable=protected-access # Eli (9/10/20): this is a performance optimization, so this is just an internal implementation detail
+    )
+    assert second_call_pipelines is initial_pipelines
+
+
+twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+
+
+def process_region(
+    image: PngImageFile, x: int, y: int, width: int, height: int
+) -> Optional[Union[int, float]]:
+    # pylint:disable=inconsistent-return-statements,bare-except
+    # Eli (9/11/20): this ability to do visual regression testing is evolving. If it works then we will recreate it properly from the template code in the Medium article
+    region_total: Union[float, int] = 0
+    # This can be used as the sensitivity factor, the larger it is the less sensitive the comparison
+    factor = 100
+
+    for coordinateY in range(y, y + height):
+        for coordinateX in range(x, x + width):
+            try:
+                pixel = image.getpixel((coordinateX, coordinateY))
+                region_total += sum(pixel) / 4
+            except:  # noqa: E722 # Eli (9/11/20): this ability to do visual regression testing is evolving. If it works then we will recreate it properly from the template code in the Medium article
+                return None
+
+    return region_total / factor
+
+
+def matplotlib_visual_regression(
+    png_file_path_and_prefix: str, the_figure: Figure
+) -> None:
+    # based on https://blog.rinatussenov.com/automating-manual-visual-regression-tests-with-python-and-selenium-be66be950196
+    base_file_path = png_file_path_and_prefix + "-base.png"
+    if not os.path.exists(base_file_path):
+        print(  # allow-print
+            f"No base image detected for {base_file_path} so saving a new one."
+        )
+        the_figure.savefig(base_file_path)
+        return
+    actual_file_path = png_file_path_and_prefix + "-actual.png"
+    the_figure.savefig(actual_file_path)
+
+    screenshot_staging = Image.open(actual_file_path)
+    screenshot_production = Image.open(base_file_path)
+    columns = 60
+    rows = 80
+    screen_width, screen_height = screenshot_staging.size
+
+    block_width = ((screen_width - 1) // columns) + 1  # this is just a division ceiling
+    block_height = ((screen_height - 1) // rows) + 1
+    problem_found = False
+    for y in range(0, screen_height, block_height + 1):
+        for x in range(0, screen_width, block_width + 1):
+            region_staging = process_region(
+                screenshot_staging, x, y, block_width, block_height
+            )
+            region_production = process_region(
+                screenshot_production, x, y, block_width, block_height
+            )
+
+            if (
+                region_staging is not None
+                and region_production is not None
+                and region_production != region_staging
+            ):
+                problem_found = True
+                draw = ImageDraw.Draw(screenshot_staging)
+                draw.rectangle((x, y, x + block_width, y + block_height), outline="red")
+    if problem_found:
+        screenshot_staging.save(png_file_path_and_prefix + "-diff.png")
+        raise Exception(f"Visual Mismatch for {png_file_path_and_prefix}")
+
+
+@pytest.mark.slow
+def test_PlateRecording__create_stacked_plot_for_24_wells():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE, "h5", "v0.3.1", "MA201110001__2020_09_03_213024"
+        )
+    )
+    fig = pr.create_stacked_plot()
+    if not is_system_windows():
+        matplotlib_visual_regression(
+            os.path.join(
+                PATH_OF_CURRENT_FILE, "visual-regression-testing", "stacked-24"
+            ),
+            fig,
+        )
+
+
+@pytest.mark.parametrize(
+    "expected_error,error_message,test_description",
+    [
+        (
+            TwoPeaksInARowError(([], []), [], (0, 1)),
+            "Error: Two Peaks in a Row Detected",
+            "handles TwoPeaksInARowError",
+        ),
+        (
+            TwoValleysInARowError(([], []), [], (0, 1)),
+            "Error: Two Valleys in a Row Detected",
+            "handles TwoValleysInARowError",
+        ),
+        (
+            TooFewPeaksDetectedError(),
+            "Error: Not Enough Peaks Detected",
+            "handles TooFewPeaksDetectedError",
+        ),
+    ],
+)
+def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
+    mocker,
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+    expected_error,
+    error_message,
+    test_description,
+):
+    error_val = "N/A"
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    expected_file_name = "temp.xlsx"
+    mocker.patch.object(
+        Pipeline, "get_magnetic_data_metrics", autospec=True, side_effect=expected_error
+    )
+    pr.write_xlsx(tmp_dir, file_name=expected_file_name)
+
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
+
+    expected_well_idx = 11
+    curr_row = 0
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx) == "B3"
+    curr_row += 2
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, 1) == "n (twitches)"
+    assert (
+        get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+        == error_val
+    )
+    curr_row += 1
+    assert (
+        get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+        == error_message
+    )
+
+    curr_row += 1
+    for (
+        _,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        for iter_sub_metric_name in ("Mean", "StDev", "CoV", "SEM"):
+            actual_sub_metric_name = get_cell_value(
+                aggregate_metrics_sheet, curr_row, 1
+            )
+            assert (iter_metric_name, iter_sub_metric_name, actual_sub_metric_name) == (
+                iter_metric_name,
+                iter_sub_metric_name,
+                iter_sub_metric_name,
+            )
+            actual_sub_metric_val = get_cell_value(
+                aggregate_metrics_sheet, curr_row, expected_well_idx
+            )
+            assert (iter_metric_name, iter_sub_metric_name, actual_sub_metric_val) == (
+                iter_metric_name,
+                iter_sub_metric_name,
+                error_val,
+            )
+            curr_row += 1
+        assert (
+            iter_metric_name is not None
+            and get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+            is None
+        )
+        curr_row += 1

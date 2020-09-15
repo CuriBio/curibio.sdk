@@ -1,5 +1,19 @@
 .. _gettingstarted:
 
+Jupyter Notebooks
+=================
+
+Jupyter is the environment that CuriBio SDK is designed to be used in. It allows creation
+of Python Notebooks which consist of Code Cells (also referred to as just 'cells') that contain Python code,
+each of which can be executed independently of others.
+
+Getting Started with Jupyter
+----------------------------
+
+Click `here <https://hub-binder.mybinder.ovh/user/curibio-curibio.sdk-mag3pmek/tre>`_ to go to Jupyter Online.
+
+
+
 Installing the SDK
 ==================
 
@@ -8,7 +22,9 @@ This section will demonstrate how to install the SDK and get started with it.
 Download curibio.sdk to Online Jupyter notebook
 -----------------------------------------------
 
-Add the following lines to a cell and run before running any code from the package::
+First, create a new code cell
+
+Add the following lines to a code cell and run before running any code from the package::
 
     !pip install Cython
     !pip install curibio.sdk --no-binary "mantarray-waveform-analysis"
@@ -17,7 +33,7 @@ Add the following lines to a cell and run before running any code from the packa
 Test that the SDK downloaded correctly and is working
 -----------------------------------------------------
 
-In another cell run the following code::
+In another code cell run the following code::
 
     import curibio.sdk
     print(curibio.sdk.__version__)

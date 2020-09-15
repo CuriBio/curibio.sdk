@@ -3,6 +3,7 @@ FROM python:3.7.9-slim-buster
 # install the notebook package # Eli (9/10/20): no known reason for those specific versions of pip/notebook. Just pinning it for good practice
 RUN pip install --no-cache --upgrade pip==20.2.3 && \
     pip install --no-cache notebook==6.1.4
+    pip install --no-cache jupyerlab==someversion
 
 RUN pip install curibio.sdk --no-cache
 

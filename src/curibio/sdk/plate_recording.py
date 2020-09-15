@@ -6,7 +6,9 @@ import os
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Tuple
 from typing import Union
+import uuid
 
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -388,66 +390,18 @@ class PlateRecording(FileManagerPlateRecording):
 
         curr_row += 1
         # row_where_data_starts=curr_row
-        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
         for (
             iter_metric_uuid,
             iter_metric_name,
         ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
             curr_row += 1
-            if isinstance(iter_metric_name, tuple):
-                iter_width_percent, iter_metric_name = iter_metric_name
-            curr_sheet.write(curr_row, 0, iter_metric_name)
-            for iter_sub_metric_name in sub_metrics:
-                curr_sheet.write(curr_row, 1, iter_sub_metric_name)
-                for iter_well_idx in self.get_well_indices():
-                    value_to_write: Optional[Union[float, int, str]] = None
-                    cell_format: Optional[Format] = None
-                    iter_pipeline = self._pipelines[iter_well_idx]
-
-                    try:
-                        (
-                            _,
-                            aggregate_metrics_dict,
-                        ) = iter_pipeline.get_magnetic_data_metrics()
-                    except PeakDetectionError:
-                        value_to_write = "N/A"
-                    else:
-                        metrics_dict = dict()
-                        if iter_metric_uuid == WIDTH_UUID:
-                            metrics_dict = aggregate_metrics_dict[iter_metric_uuid][
-                                iter_width_percent
-                            ]
-                        else:
-                            metrics_dict = aggregate_metrics_dict[iter_metric_uuid]
-                        if iter_sub_metric_name == "Mean":
-                            value_to_write = metrics_dict["mean"]
-                        elif iter_sub_metric_name == "StDev":
-                            value_to_write = metrics_dict["std"]
-                        elif iter_sub_metric_name == "CoV":
-                            value_to_write = metrics_dict["std"] / metrics_dict["mean"]
-                            cell_format = self._workbook_formats["CoV"]
-                        elif iter_sub_metric_name == "SEM":
-                            value_to_write = (
-                                metrics_dict["std"] / metrics_dict["n"] ** 0.5
-                            )
-                        else:
-                            raise NotImplementedError(
-                                f"Unrecognized submetric name: {iter_sub_metric_name}"
-                            )
-
-                        if iter_metric_uuid in (
-                            TWITCH_PERIOD_UUID,
-                            WIDTH_UUID,
-                        ):  # for time-based metrics, convert from centi-milliseconds to seconds before writing to Excel
-                            if (
-                                iter_sub_metric_name != "CoV"
-                            ):  # coefficients of variation are %, not a raw time unit
-                                value_to_write /= CENTIMILLISECONDS_PER_SECOND
-                    curr_sheet.write(
-                        curr_row, 2 + iter_well_idx, value_to_write, cell_format
-                    )
-
-                curr_row += 1
+            new_row = self._write_submetrics(
+                curr_sheet,
+                curr_row,
+                iter_metric_uuid,
+                iter_metric_name,
+            )
+            curr_row = new_row
 
         # The formatting items below are not explicitly unit-tested...not sure the best way to do this
         # Adjust the column widths to be able to see the data
@@ -462,3 +416,65 @@ class PlateRecording(FileManagerPlateRecording):
                 options={"hidden": iter_column_idx not in well_indices},
             )
         curr_sheet.freeze_panes(2, 2)
+
+    def _write_submetrics(
+        self,
+        curr_sheet: xlsxwriter.worksheet.Worksheet,
+        curr_row: int,
+        iter_metric_uuid: uuid.UUID,
+        iter_metric_name: Union[str, Tuple[int, str]],
+    ) -> int:
+        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
+        if isinstance(iter_metric_name, tuple):
+            iter_width_percent, iter_metric_name = iter_metric_name
+        curr_sheet.write(curr_row, 0, iter_metric_name)
+        for iter_sub_metric_name in sub_metrics:
+            curr_sheet.write(curr_row, 1, iter_sub_metric_name)
+            for iter_well_idx in self.get_well_indices():
+                value_to_write: Optional[Union[float, int, str]] = None
+                cell_format: Optional[Format] = None
+                iter_pipeline = self._pipelines[iter_well_idx]
+
+                try:
+                    (
+                        _,
+                        aggregate_metrics_dict,
+                    ) = iter_pipeline.get_magnetic_data_metrics()
+                except PeakDetectionError:
+                    value_to_write = "N/A"
+                else:
+                    metrics_dict = dict()
+                    if iter_metric_uuid == WIDTH_UUID:
+                        metrics_dict = aggregate_metrics_dict[iter_metric_uuid][
+                            iter_width_percent
+                        ]
+                    else:
+                        metrics_dict = aggregate_metrics_dict[iter_metric_uuid]
+                    if iter_sub_metric_name == "Mean":
+                        value_to_write = metrics_dict["mean"]
+                    elif iter_sub_metric_name == "StDev":
+                        value_to_write = metrics_dict["std"]
+                    elif iter_sub_metric_name == "CoV":
+                        value_to_write = metrics_dict["std"] / metrics_dict["mean"]
+                        cell_format = self._workbook_formats["CoV"]
+                    elif iter_sub_metric_name == "SEM":
+                        value_to_write = metrics_dict["std"] / metrics_dict["n"] ** 0.5
+                    else:
+                        raise NotImplementedError(
+                            f"Unrecognized submetric name: {iter_sub_metric_name}"
+                        )
+
+                    if iter_metric_uuid in (
+                        TWITCH_PERIOD_UUID,
+                        WIDTH_UUID,
+                    ):  # for time-based metrics, convert from centi-milliseconds to seconds before writing to Excel
+                        if (
+                            iter_sub_metric_name != "CoV"
+                        ):  # coefficients of variation are %, not a raw time unit
+                            value_to_write /= CENTIMILLISECONDS_PER_SECOND
+                curr_sheet.write(
+                    curr_row, 2 + iter_well_idx, value_to_write, cell_format
+                )
+
+            curr_row += 1
+        return curr_row

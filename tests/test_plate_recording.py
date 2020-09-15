@@ -31,6 +31,10 @@ from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
+from mantarray_waveform_analysis import Pipeline
+from mantarray_waveform_analysis import TooFewPeaksDetectedError
+from mantarray_waveform_analysis import TwoPeaksInARowError
+from mantarray_waveform_analysis import TwoValleysInARowError
 from matplotlib.figure import Figure
 from openpyxl import load_workbook
 from PIL import Image
@@ -433,3 +437,74 @@ def test_PlateRecording__create_stacked_plot_for_24_wells():
             ),
             fig,
         )
+
+
+@pytest.mark.parametrize(
+    "expected_error,error_message,test_description",
+    [
+        (
+            TwoPeaksInARowError(([], []), [], (0, 1)),
+            "Error: Two Peaks in a Row Detected",
+            "handles TwoPeaksInARowError",
+        ),
+        (
+            TwoValleysInARowError(([], []), [], (0, 1)),
+            "Error: Two Valleys in a Row Detected",
+            "handles TwoValleysInARowError",
+        ),
+        (
+            TooFewPeaksDetectedError(),
+            "Error: Not Enough Peaks Detected",
+            "handles TooFewPeaksDetectedError",
+        ),
+    ],
+)
+def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
+    mocker,
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,
+    expected_error,
+    error_message,
+    test_description,
+):
+    error_val = "N/A"
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
+    expected_file_name = "temp.xlsx"
+    mocker.patch.object(
+        Pipeline, "get_magnetic_data_metrics", autospec=True, side_effect=expected_error
+    )
+    pr.write_xlsx(tmp_dir, file_name=expected_file_name)
+
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
+
+    expected_well_idx = 11
+    curr_row = 0
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx) == "B3"
+    curr_row += 2
+    assert get_cell_value(aggregate_metrics_sheet, curr_row, 1) == "n (twitches)"
+    assert (
+        get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+        == error_val
+    )
+    curr_row += 1
+    assert (
+        get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+        == error_message
+    )
+
+    curr_row += 1
+    for _ in range(4):
+        for iter_sub_metric_name in ("Mean", "StDev", "CoV", "SEM"):
+            actual_sub_metric_name = get_cell_value(
+                aggregate_metrics_sheet, curr_row, 1
+            )
+            assert actual_sub_metric_name == iter_sub_metric_name
+            actual_sub_metric_val = get_cell_value(
+                aggregate_metrics_sheet, curr_row, expected_well_idx
+            )
+            assert actual_sub_metric_val == error_val
+            curr_row += 1
+        assert (
+            get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx) is None
+        )
+        curr_row += 1

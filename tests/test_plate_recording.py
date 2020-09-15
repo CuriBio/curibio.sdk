@@ -493,18 +493,31 @@ def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
     )
 
     curr_row += 1
-    for _ in range(4):
+    for (
+        _,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
         for iter_sub_metric_name in ("Mean", "StDev", "CoV", "SEM"):
             actual_sub_metric_name = get_cell_value(
                 aggregate_metrics_sheet, curr_row, 1
             )
-            assert actual_sub_metric_name == iter_sub_metric_name
+            assert (iter_metric_name, iter_sub_metric_name, actual_sub_metric_name) == (
+                iter_metric_name,
+                iter_sub_metric_name,
+                iter_sub_metric_name,
+            )
             actual_sub_metric_val = get_cell_value(
                 aggregate_metrics_sheet, curr_row, expected_well_idx
             )
-            assert actual_sub_metric_val == error_val
+            assert (iter_metric_name, iter_sub_metric_name, actual_sub_metric_val) == (
+                iter_metric_name,
+                iter_sub_metric_name,
+                error_val,
+            )
             curr_row += 1
         assert (
-            get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx) is None
+            iter_metric_name is not None
+            and get_cell_value(aggregate_metrics_sheet, curr_row, expected_well_idx)
+            is None
         )
         curr_row += 1

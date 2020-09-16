@@ -1,6 +1,12 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.4.1 (unreleased)
+------------------
+
+- Added Jupyter getting started documentation.
+
+
 0.4.0 (2020-09-16)
 ------------------
 

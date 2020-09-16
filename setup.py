@@ -4,10 +4,9 @@
 from setuptools import find_packages
 from setuptools import setup
 
-
 setup(
     name="curibio.sdk",
-    version="0.4.0",
+    version="0.4.1",
     description="CREATE A DESCRIPTION",
     url="https://github.com/CuriBio/curibio.sdk",
     project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/"},

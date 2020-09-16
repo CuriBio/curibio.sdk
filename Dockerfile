@@ -40,6 +40,7 @@ USER ${USER}
 # clear out the unneeded files copied from the repo
 RUN ls -l
 RUN cp repo/notebooks/*.ipynb .
+RUN mkdir test-data
 RUN cp repo/tests/h5/v0.3.1/MA201110001__2020_09_03_213024/*.h5 ./test-data
 RUN rm -r repo
 #RUN rm *

@@ -13,32 +13,13 @@ Getting Started with Jupyter
 Click `here <https://mybinder.org/v2/gh/curibio/curibio.sdk/master?filepath=intro.ipynb>`_ to navigate to the online
 notebook.
 
+You should land on a page that looks like this:
 
-Installing the SDK
-==================
+INSERT SCREENSHOT OF MYBINDER LOADING PAGE HERE
 
-This section will demonstrate how to install the SDK and get started with it.
+It may take a few minutes to load the notebook. Once it's loaded you should see this page:
 
-Download curibio.sdk to the Online Jupyter notebook
------------------------------------------------
-
-First, create a new code cell
-
-Add the following lines to a code cell and run before running any code from the package::
-
-    !pip install Cython
-    !pip install curibio.sdk --no-binary "mantarray-waveform-analysis"
-
-
-Test that the SDK downloaded correctly and is working
------------------------------------------------------
-
-In another code cell run the following code::
-
-    import curibio.sdk
-    print(curibio.sdk.__version__)
-
-This should display "REPLACEWITHCURRENTSDKVERSION" underneath the cell.
+INSERT SCREENSHOT OF FRESH NB HERE
 
 
 Working With the SDK

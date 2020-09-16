@@ -20,7 +20,7 @@ RUN adduser --disabled-password \
     ${NB_USER}
 
 # copy files from cloned repo into the HOME directory
-COPY --chown=${NB_USER}:${NB_USER} ${HOME}
+COPY --chown=${NB_USER}:${NB_USER} . ${HOME}
 
 WORKDIR ${HOME}
 USER ${USER}

@@ -5,7 +5,7 @@ RUN pip install --no-cache --upgrade pip==20.2.3 && \
     pip install --no-cache notebook==6.1.4 && \
     pip install --no-cache jupyterlab==2.2.8
 
-RUN pip install curibio.sdk --no-cache
+RUN pip install curibio.sdk==0.4.0 --no-cache
 
 # create user with a home directory
 ARG NB_USER

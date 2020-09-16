@@ -22,7 +22,7 @@ RUN adduser --disabled-password \
 # copy files from cloned repo into the HOME directory
 RUN echo ${HOME}
 # chown flag is necessary to make sure that the Notebooks don't launch as "read only" mode (without chown they are still owned by the 'root' user)
-COPY . ${HOME} # to make it simpler for the users, just copy the notebooks folder right into the main Home directory. The URL links point to the file struction in the Home directory, so make sure to adjust those accordingly
+COPY . /testdir # to make it simpler for the users, just copy the notebooks folder right into the main Home directory. The URL links point to the file struction in the Home directory, so make sure to adjust those accordingly
 COPY --chown=${NB_USER}:${NB_USER} ./notebooks/ ${HOME} # to make it simpler for the users, just copy the notebooks folder right into the main Home directory. The URL links point to the file struction in the Home directory, so make sure to adjust those accordingly
 COPY --chown=${NB_USER}:${NB_USER} ./tests/h5/v0.3.1/MA201110001__2020_09_03_213024/ ${HOME}/test-data
 

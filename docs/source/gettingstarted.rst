@@ -10,8 +10,8 @@ each of which can be executed independently of others.
 Getting Started with Jupyter
 ----------------------------
 
-Click `here <https://hub-binder.mybinder.ovh/user/curibio-curibio.sdk-mag3pmek/tre>`_ to go to Jupyter Online.
-
+Click `here <https://mybinder.org/v2/gh/curibio/curibio.sdk/master?filepath=intro.ipynb>`_ to navigate to the online
+notebook.
 
 
 Installing the SDK
@@ -19,7 +19,7 @@ Installing the SDK
 
 This section will demonstrate how to install the SDK and get started with it.
 
-Download curibio.sdk to Online Jupyter notebook
+Download curibio.sdk to the Online Jupyter notebook
 -----------------------------------------------
 
 First, create a new code cell

@@ -20,3 +20,4 @@ RUN adduser --disabled-password \
 WORKDIR ${HOME}
 USER ${USER}
 
+ENTRYPOINT []

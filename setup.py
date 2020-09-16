@@ -6,7 +6,7 @@ import inspect
 from setuptools import find_packages
 from setuptools import setup
 
-print(inspect.stack([1][0]))  # allow-print
+print("***", inspect.stack([1][0]))  # allow-print
 
 setup(
     name="curibio.sdk",

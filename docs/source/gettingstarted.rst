@@ -68,8 +68,17 @@ Click on ``my-data``. You should now be in the ``my-data`` folder:
 .. image:: images/my_data.png
     :width: 600
 
-Click on the upload button in the top rightand select the files you with to upload.
-When the upload completes, you should see the uploaded files now on the page.
+Click on the upload button in the top right and select the files you wish to upload.
+You may see an upload button next to each file you selected to upload.
+If this happens, just click the new upload button next to each file to complete the process.
+
+.. image:: images/file_upload_button.png
+    :width: 600
+
+When the uploads complete, the page should look like this:
+
+.. image:: images/uploaded_files.png
+    :width: 600
 
 Now click the folder icon shown below to go back to the main files page:
 
@@ -90,7 +99,6 @@ to::
 
     recording = PlateRecording.from_directory('./my-data')
 
-
 You can now begin running the code. To do so, click ``Cell`` near the top left, then click ``Run All``:
 
 .. image:: images/cell_run_all.png
@@ -101,7 +109,6 @@ When all cells complete execution there should be a number next to every cell:
 
 .. image:: images/finished_cells.png
     :width: 600
-
 
 Click on the Jupyter Logo in the top left of the page again to
 go back to the files page. You should should now see a new ``.xlsx`` file. The

@@ -33,6 +33,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
+from stdlib_utils import configure_logging
 import xlsxwriter
 from xlsxwriter import Workbook
 from xlsxwriter.format import Format
@@ -52,6 +53,7 @@ from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
 
 logger = logging.getLogger(__name__)
+configure_logging(logging_format="notebook")
 
 
 def _write_xlsx_device_metadata(
@@ -136,6 +138,7 @@ def _write_xlsx_recording_metadata(
 def _write_xlsx_metadata(
     workbook: xlsxwriter.workbook.Workbook, first_well_file: WellFile
 ) -> None:
+    logger.info("Writing H5 file metadata")
     metadata_sheet = workbook.add_worksheet(METADATA_EXCEL_SHEET_NAME)
     curr_sheet = metadata_sheet
     _write_xlsx_recording_metadata(curr_sheet, first_well_file)
@@ -246,10 +249,12 @@ class PlateRecording(FileManagerPlateRecording):
         first_well_index = self.get_well_indices()[0]
         # this file is used to get general information applicable across the recording
         first_well_file = self.get_well_by_index(first_well_index)
+        logger.info("Loading data from H5 file(s)")
         self._init_pipelines()
         if file_name is None:
             file_name = f"{first_well_file.get_plate_barcode()}-{first_well_file.get_begin_recording().strftime('%Y-%m-%d-%H-%M-%S')}.xlsx"
         file_path = os.path.join(file_dir, file_name)
+        logger.info("Opening .xlsx file")
         self._workbook = Workbook(
             file_path, {"default_date_format": "YYYY-MM-DD hh:mm:ss UTC"}
         )
@@ -260,7 +265,9 @@ class PlateRecording(FileManagerPlateRecording):
         _write_xlsx_metadata(self._workbook, first_well_file)
         self._write_xlsx_continuous_waveforms(skip_content=skip_continuous_waveforms)
         self._write_xlsx_aggregate_metrics()
+        logger.info("Saving .xlsx file")
         self._workbook.close()  # This is actually when the file gets written to d
+        logger.info("Done writing to .xlsx")
 
     def _write_xlsx_continuous_waveforms(self, skip_content: bool = False) -> None:
         continuous_waveform_sheet = self._workbook.add_worksheet(
@@ -268,6 +275,8 @@ class PlateRecording(FileManagerPlateRecording):
         )
         if skip_content:
             return
+        logger.info("Creating waveform data sheet")
+
         curr_sheet = continuous_waveform_sheet
 
         # create headings
@@ -307,7 +316,10 @@ class PlateRecording(FileManagerPlateRecording):
             )
 
         # add data for valid wells
-        for well_index in self.get_well_indices():
+        well_indices = self.get_well_indices()
+        num_wells = len(well_indices)
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+        for iter_well_idx, well_index in enumerate(well_indices):
             filtered_data = self._pipelines[
                 well_index
             ].get_noise_filtered_magnetic_data()
@@ -315,18 +327,16 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
-            i = 0
-            # for i, time_index in enumerate(np.flip(interpolated_data_indices)):
-            #     if filtered_data[0][-1] >= time_index:
-            #     break
-            # else:
-            #     raise NotImplementedError(
-            #         "There should be at least one valid data point when interpolating"
-            #     )
 
-            last_index = len(interpolated_data_indices) - i
+            # TODO Tanner: change this to well name, not index
+            well_name = twenty_four_well.get_well_name_from_well_index(well_index)
+            msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
+            logger.info(msg)
+            last_index = len(interpolated_data_indices)
+            if interpolated_data_indices[-1] > filtered_data[0][-1]:
+                last_index -= 1
             interpolated_data = interpolated_data_function(
-                interpolated_data_indices[:last_index]
+                interpolated_data_indices[: last_index - 1]
             )
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
@@ -346,6 +356,7 @@ class PlateRecording(FileManagerPlateRecording):
         curr_sheet.freeze_panes(1, 1)
 
     def _write_xlsx_aggregate_metrics(self) -> None:
+        logger.info("Creating aggregate metrics sheet")
         aggregate_metrics_sheet = self._workbook.add_worksheet(
             AGGREGATE_METRICS_SHEET_NAME
         )
@@ -424,16 +435,23 @@ class PlateRecording(FileManagerPlateRecording):
         iter_metric_uuid: uuid.UUID,
         iter_metric_name: Union[str, Tuple[int, str]],
     ) -> int:
-        sub_metrics = ("Mean", "StDev", "CoV", "SEM")
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+        submetrics = ("Mean", "StDev", "CoV", "SEM")
         if isinstance(iter_metric_name, tuple):
             iter_width_percent, iter_metric_name = iter_metric_name
         curr_sheet.write(curr_row, 0, iter_metric_name)
-        for iter_sub_metric_name in sub_metrics:
+        for iter_sub_metric_name in submetrics:
             curr_sheet.write(curr_row, 1, iter_sub_metric_name)
-            for iter_well_idx in self.get_well_indices():
+            well_indices = self.get_well_indices()
+            num_wells = len(well_indices)
+            for iter_well_idx, well_index in enumerate(well_indices):
+                # TODO Tanner: change this to well name, not index
+                well_name = twenty_four_well.get_well_name_from_well_index(well_index)
+                msg = f"Writing {iter_sub_metric_name} of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
+                logger.info(msg)
                 value_to_write: Optional[Union[float, int, str]] = None
                 cell_format: Optional[Format] = None
-                iter_pipeline = self._pipelines[iter_well_idx]
+                iter_pipeline = self._pipelines[well_index]
 
                 try:
                     (
@@ -472,9 +490,7 @@ class PlateRecording(FileManagerPlateRecording):
                             iter_sub_metric_name != "CoV"
                         ):  # coefficients of variation are %, not a raw time unit
                             value_to_write /= CENTIMILLISECONDS_PER_SECOND
-                curr_sheet.write(
-                    curr_row, 2 + iter_well_idx, value_to_write, cell_format
-                )
+                curr_sheet.write(curr_row, 2 + well_index, value_to_write, cell_format)
 
             curr_row += 1
         return curr_row

@@ -328,7 +328,6 @@ class PlateRecording(FileManagerPlateRecording):
                 filtered_data[0], filtered_data[1]
             )
 
-            # TODO Tanner: change this to well name, not index
             well_name = twenty_four_well.get_well_name_from_well_index(well_index)
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
@@ -445,7 +444,6 @@ class PlateRecording(FileManagerPlateRecording):
             well_indices = self.get_well_indices()
             num_wells = len(well_indices)
             for iter_well_idx, well_index in enumerate(well_indices):
-                # TODO Tanner: change this to well name, not index
                 well_name = twenty_four_well.get_well_name_from_well_index(well_index)
                 msg = f"Writing {iter_sub_metric_name} of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
                 logger.info(msg)

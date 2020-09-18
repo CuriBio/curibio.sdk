@@ -557,3 +557,30 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
         )
     spied_info_logger.assert_any_call("Saving .xlsx file")
     spied_info_logger.assert_any_call("Done writing to .xlsx")
+
+
+def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.1.1",
+        )
+    )
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir)
+
+        expected_file_name = "MA20001123-2020-08-20-17-06-00.xlsx"
+        actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+
+        metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]
+        assert metadata_sheet.cell(row=5 + 1, column=2 + 1).value == "0.1.1"
+
+        waveform_sheet = actual_workbook[CONTINUOUS_WAVEFORM_SHEET_NAME]
+        assert waveform_sheet.cell(row=0 + 1, column=1 + 1).value == "A1"
+        assert waveform_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
+        assert (
+            waveform_sheet.cell(row=1 + 1, column=0 + 1).value
+            == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        )

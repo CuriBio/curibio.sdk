@@ -332,8 +332,6 @@ class PlateRecording(FileManagerPlateRecording):
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
             last_index = len(interpolated_data_indices)
-            if interpolated_data_indices[-1] > filtered_data[0][-1]:
-                last_index -= 1
             interpolated_data = interpolated_data_function(
                 interpolated_data_indices[: last_index - 1]
             )

@@ -553,7 +553,7 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
             f"Writing {submetric} of well A2 (5 out of 24)"
         )
         spied_info_logger.assert_any_call(
-            f"Writing {submetric} of well D6 (1 out of 24)"
+            f"Writing {submetric} of well D6 (24 out of 24)"
         )
     spied_info_logger.assert_any_call("Saving .xlsx file")
     spied_info_logger.assert_any_call("Done writing to .xlsx")

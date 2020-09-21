@@ -183,16 +183,17 @@ class PlateRecording(FileManagerPlateRecording):
         except AttributeError:
             pass
         self._pipelines = dict()
-        for iter_well_idx in self.get_well_indices():
+        num_wells = len(self.get_well_indices())
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+        for i, iter_well_idx in enumerate(self.get_well_indices()):
             iter_pipeline = self.get_pipeline_template().create_pipeline()
             well = self.get_well_by_index(iter_well_idx)
-            msg = f"before getting tissue reading for {iter_well_idx}"
+            well_name = twenty_four_well.get_well_name_from_well_index(iter_well_idx)
+            msg = (
+                f"Loading tissue data of well {well_name} ({i + 1} out of {num_wells})"
+            )
             logger.info(msg)
             data = well.get_raw_tissue_reading()
-            # print(f"after getting tissue reading for {iter_well_idx}")
-            # print (data.shape)
-            # print (data[0,:int(30*100000/960)].shape)
-            # assert False
             iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))
             self._pipelines[iter_well_idx] = iter_pipeline
 
@@ -296,8 +297,8 @@ class PlateRecording(FileManagerPlateRecording):
         )
         max_time_index = 0
         for well_index in self.get_well_indices():
-            well = self.get_well_by_index(well_index)
-            last_time_index = well.get_raw_tissue_reading()[0][-1]
+            well_pipeline = self._pipelines[well_index]
+            last_time_index = well_pipeline.get_raw_tissue_magnetic_data()[0][-1]
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
         interpolated_data_indices = np.arange(
@@ -432,19 +433,16 @@ class PlateRecording(FileManagerPlateRecording):
         iter_metric_uuid: uuid.UUID,
         iter_metric_name: Union[str, Tuple[int, str]],
     ) -> int:
-        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
         submetrics = ("Mean", "StDev", "CoV", "SEM")
         if isinstance(iter_metric_name, tuple):
             iter_width_percent, iter_metric_name = iter_metric_name
         curr_sheet.write(curr_row, 0, iter_metric_name)
         for iter_sub_metric_name in submetrics:
+            msg = f"Writing {iter_sub_metric_name} of {iter_metric_name}"
+            logger.info(msg)
             curr_sheet.write(curr_row, 1, iter_sub_metric_name)
             well_indices = self.get_well_indices()
-            num_wells = len(well_indices)
-            for iter_well_idx, well_index in enumerate(well_indices):
-                well_name = twenty_four_well.get_well_name_from_well_index(well_index)
-                msg = f"Writing {iter_sub_metric_name} of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
-                logger.info(msg)
+            for well_index in well_indices:
                 value_to_write: Optional[Union[float, int, str]] = None
                 cell_format: Optional[Format] = None
                 iter_pipeline = self._pipelines[well_index]

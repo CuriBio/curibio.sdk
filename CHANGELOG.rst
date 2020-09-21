@@ -1,7 +1,14 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.4.1 (2020-09-21)
+0.5.0 (2020-09-21)
+------------------
+
+- Added logging to write_xlsx.
+- Added backwards compatibility with file version >= 0.1.1.
+
+
+0.4.1 (2020-09-16)
 ------------------
 
 - Added Jupyter getting started documentation.

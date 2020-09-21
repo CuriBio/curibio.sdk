@@ -7,6 +7,7 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 """
 import datetime
 import os
+import tempfile
 from typing import Optional
 from typing import Union
 
@@ -18,6 +19,7 @@ from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
 from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 from freezegun import freeze_time
@@ -521,3 +523,64 @@ def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
             is None
         )
         curr_row += 1
+
+
+@pytest.mark.slow
+def test_PlateRecording__write_xlsx__logs_progress(mocker):
+    spied_info_logger = mocker.spy(plate_recording.logger, "info")
+
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE, "h5", "v0.3.1", "MA201110001__2020_09_03_213024"
+        )
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir)
+
+    spied_info_logger.assert_any_call("Loading data from H5 file(s)")
+    spied_info_logger.assert_any_call("Opening .xlsx file")
+    spied_info_logger.assert_any_call("Writing H5 file metadata")
+    spied_info_logger.assert_any_call("Creating waveform data sheet")
+    spied_info_logger.assert_any_call("Writing waveform data of well A1 (1 out of 24)")
+    spied_info_logger.assert_any_call("Writing waveform data of well A2 (5 out of 24)")
+    spied_info_logger.assert_any_call("Writing waveform data of well D6 (24 out of 24)")
+    spied_info_logger.assert_any_call("Creating aggregate metrics sheet")
+    for submetric in ("Mean", "StDev", "CoV", "SEM"):
+        spied_info_logger.assert_any_call(
+            f"Writing {submetric} of well A1 (1 out of 24)"
+        )
+        spied_info_logger.assert_any_call(
+            f"Writing {submetric} of well A2 (5 out of 24)"
+        )
+        spied_info_logger.assert_any_call(
+            f"Writing {submetric} of well D6 (24 out of 24)"
+        )
+    spied_info_logger.assert_any_call("Saving .xlsx file")
+    spied_info_logger.assert_any_call("Done writing to .xlsx")
+
+
+def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.1.1",
+        )
+    )
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir)
+
+        expected_file_name = "MA20001123-2020-08-20-17-06-00.xlsx"
+        actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+
+        metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]
+        assert metadata_sheet.cell(row=5 + 1, column=2 + 1).value == "0.1.1"
+
+        waveform_sheet = actual_workbook[CONTINUOUS_WAVEFORM_SHEET_NAME]
+        assert waveform_sheet.cell(row=0 + 1, column=1 + 1).value == "A1"
+        assert waveform_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
+        assert (
+            waveform_sheet.cell(row=1 + 1, column=0 + 1).value
+            == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        )

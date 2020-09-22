@@ -41,6 +41,9 @@ from xlsxwriter.format import Format
 from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
+from .constants import CHART_BASE_WIDTH
+from .constants import CHART_HEIGHT
+from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -51,9 +54,16 @@ from .constants import PACKAGE_VERSION
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
+from .constants import WAVEFORM_CHART_SHEET_NAME
 
 logger = logging.getLogger(__name__)
 configure_logging(logging_format="notebook")
+
+
+def _get_cell_column_from_24_well_idx(well_index: int) -> str:
+    return chr(
+        ord("B") + well_index
+    )  # Tanner (9/22/20): This will need to handle getting correct cell column once we reach "AA" (won't be until we have plates with > 24 wells)
 
 
 def _write_xlsx_device_metadata(
@@ -276,6 +286,7 @@ class PlateRecording(FileManagerPlateRecording):
         )
         if skip_content:
             return
+        self._workbook.add_worksheet(WAVEFORM_CHART_SHEET_NAME)
         logger.info("Creating waveform data sheet")
 
         curr_sheet = continuous_waveform_sheet
@@ -333,12 +344,20 @@ class PlateRecording(FileManagerPlateRecording):
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
             last_index = len(interpolated_data_indices)
+            if filtered_data[0][-1] < interpolated_data_indices[-1]:
+                last_index -= 1
             interpolated_data = interpolated_data_function(
-                interpolated_data_indices[: last_index - 1]
+                interpolated_data_indices[:last_index]
             )
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
+            self._create_waveform_chart(
+                iter_well_idx,
+                last_index,
+                well_index,
+                well_name,
+            )
 
         # The formatting items below are not explicitly unit-tested...not sure the best way to do this
         # Adjust the column widths to be able to see the data
@@ -352,6 +371,43 @@ class PlateRecording(FileManagerPlateRecording):
                 options={"hidden": iter_well_idx not in well_indices},
             )
         curr_sheet.freeze_panes(1, 1)
+
+    def _create_waveform_chart(
+        self,
+        iter_well_idx: int,
+        num_data_points: int,
+        well_index: int,
+        well_name: int,
+    ) -> None:
+        # continuous_waveform_sheet = self._workbook.get_worksheet_by_name(CONTINUOUS_WAVEFORM_SHEET_NAME)
+        waveform_chart_sheet = self._workbook.get_worksheet_by_name(
+            WAVEFORM_CHART_SHEET_NAME
+        )
+
+        msg = f"Creating chart of waveform data of well {well_name}"
+        logger.info(msg)
+
+        chart = self._workbook.add_chart({"type": "line"})
+        cell_column = _get_cell_column_from_24_well_idx(well_index)
+        chart.add_series(
+            {
+                "name": "Waveform Data",
+                "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
+                "values": f"='continuous-waveforms'!${cell_column}$2:${cell_column}${num_data_points + 1}",
+            }
+        )
+        chart.set_x_axis({"name": "Time (seconds)"})
+        chart.set_y_axis(
+            {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
+        )
+        chart.set_size(
+            {"width": num_data_points + CHART_BASE_WIDTH, "height": CHART_HEIGHT}
+        )
+        chart.set_title({"name": f"Well {well_name}"})
+
+        waveform_chart_sheet.insert_chart(
+            1 + (CHART_HEIGHT_CELLS + 1) * iter_well_idx, 1, chart
+        )
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")

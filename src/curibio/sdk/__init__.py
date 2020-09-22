@@ -6,6 +6,9 @@ from mantarray_file_manager import WellFile
 from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
+from .constants import CHART_BASE_WIDTH
+from .constants import CHART_HEIGHT
+from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -15,6 +18,7 @@ from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION as __version__
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
+from .constants import WAVEFORM_CHART_SHEET_NAME
 from .plate_recording import PlateRecording
 
 
@@ -33,4 +37,8 @@ __all__ = [
     "AGGREGATE_METRICS_SHEET_NAME",
     "ALL_FORMATS",
     "__version__",
+    "WAVEFORM_CHART_SHEET_NAME",
+    "CHART_HEIGHT",
+    "CHART_BASE_WIDTH",
+    "CHART_HEIGHT_CELLS",
 ]

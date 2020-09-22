@@ -33,11 +33,16 @@ METADATA_OUTPUT_FILE_ROW_START = METADATA_INSTRUMENT_ROW_START + 6
 
 CONTINUOUS_WAVEFORM_SHEET_NAME = "continuous-waveforms"
 AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
+WAVEFORM_CHART_SHEET_NAME = "continuous-waveform-plots"
+
+CHART_HEIGHT = 300
+CHART_BASE_WIDTH = 120
+CHART_HEIGHT_CELLS = 15
+
 TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (centi-milliseconds) to Interpolated Data Period (centi-milliseconds)
     960: 1 / 100 * CENTIMILLISECONDS_PER_SECOND,
     160: 1 / 625 * CENTIMILLISECONDS_PER_SECOND,
 }
-
 TSP_TO_DEFAULT_FILTER_UUID = (
     {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
         960: BESSEL_LOWPASS_10_UUID,

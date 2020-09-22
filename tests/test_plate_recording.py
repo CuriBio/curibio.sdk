@@ -545,8 +545,11 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
     spied_info_logger.assert_any_call("Writing H5 file metadata")
     spied_info_logger.assert_any_call("Creating waveform data sheet")
     spied_info_logger.assert_any_call("Writing waveform data of well A1 (1 out of 24)")
+    spied_info_logger.assert_any_call("Creating chart of waveform data of well A1")
     spied_info_logger.assert_any_call("Writing waveform data of well A2 (5 out of 24)")
+    spied_info_logger.assert_any_call("Creating chart of waveform data of well A2")
     spied_info_logger.assert_any_call("Writing waveform data of well D6 (24 out of 24)")
+    spied_info_logger.assert_any_call("Creating chart of waveform data of well D6")
     spied_info_logger.assert_any_call("Creating aggregate metrics sheet")
     for (_, metric) in CALCULATED_METRIC_DISPLAY_NAMES.items():
         if isinstance(metric, tuple):
@@ -584,3 +587,28 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
             waveform_sheet.cell(row=1 + 1, column=0 + 1).value
             == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
         )
+
+
+def test_write_xlsx__creates_two_charts_correctly():
+    pr = PlateRecording(
+        [
+            os.path.join(
+                PATH_OF_CURRENT_FILE,
+                "h5",
+                "v0.3.1",
+                "MA20123456__2020_08_17_145752__A1.h5",
+            ),
+            os.path.join(
+                PATH_OF_CURRENT_FILE,
+                "h5",
+                "v0.3.1",
+                "MA20123456__2020_08_17_145752__B2.h5",
+            ),
+        ]
+    )
+    test_file_name = "test_file.xlsx"
+
+    tmp_dir = "."  # with tempfile.TemporaryDirectory() as tmp_dir
+    pr.write_xlsx(tmp_dir, file_name=test_file_name)
+
+    # TODO Tanner: complete this test

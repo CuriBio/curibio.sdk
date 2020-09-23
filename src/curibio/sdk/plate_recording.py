@@ -53,6 +53,7 @@ from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION
+from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
@@ -453,8 +454,12 @@ class PlateRecording(FileManagerPlateRecording):
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
 
-        index_column = xl_col_to_name(50 + (well_index * 2) + offset)
-        result_column = xl_col_to_name(50 + (well_index * 2) + offset + 1)
+        index_column = xl_col_to_name(
+            PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
+        )
+        result_column = xl_col_to_name(
+            PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset + 1
+        )
         continuous_waveform_sheet.write(
             f"{index_column}1", f"{well_name} {detector_type} Timepoints"
         )

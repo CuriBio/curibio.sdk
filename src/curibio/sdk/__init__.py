@@ -16,6 +16,7 @@ from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION as __version__
+from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import WAVEFORM_CHART_SHEET_NAME
@@ -41,4 +42,5 @@ __all__ = [
     "CHART_HEIGHT",
     "CHART_BASE_WIDTH",
     "CHART_HEIGHT_CELLS",
+    "PEAK_VALLEY_COLUMN_START",
 ]

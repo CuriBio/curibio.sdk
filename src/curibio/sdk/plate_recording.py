@@ -349,7 +349,12 @@ class PlateRecording(FileManagerPlateRecording):
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
             self._create_waveform_chart(
-                iter_well_idx, last_index, well_index, well_name, filtered_data[0]
+                iter_well_idx,
+                last_index,
+                well_index,
+                well_name,
+                filtered_data[0],
+                interpolated_data_function,
             )
 
         # The formatting items below are not explicitly unit-tested...not sure the best way to do this
@@ -370,12 +375,10 @@ class PlateRecording(FileManagerPlateRecording):
         iter_well_idx: int,
         num_data_points: int,
         well_index: int,
-        well_name: int,
+        well_name: str,
         time_values: NDArray[(2, Any), int],
+        interpolated_data_function: interpolate.interpolate.interp1d,
     ) -> None:
-        continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
-            CONTINUOUS_WAVEFORM_SHEET_NAME
-        )
         waveform_chart_sheet = self._workbook.get_worksheet_by_name(
             WAVEFORM_CHART_SHEET_NAME
         )
@@ -394,42 +397,31 @@ class PlateRecording(FileManagerPlateRecording):
 
         msg = f"Adding peak and valley markers to chart of well {well_name}"
         logger.info(msg)
-        # peak_valley_chart = self._workbook.add_chart({"type": "scatter"})
         peak_indices, valley_indices = self._pipelines[
             well_index
         ].get_peak_detection_results()
-        peak_column = xl_col_to_name(50 + (well_index * 2))
-        continuous_waveform_sheet.write(f"{peak_column}1", f"{well_name} Peaks")
-        for i, index in enumerate(peak_indices):
-            interpolated_time_value = round(
-                time_values[index] / CENTIMILLISECONDS_PER_SECOND, 2
-            )
-            continuous_waveform_sheet.write(
-                f"{peak_column}{i + 2}", interpolated_time_value
-            )
-        # peak_valley_chart.add_series(
-        #     {
-        #         "name": "Peaks",
-        #         "categories": f"='continuous-waveforms'!$A$2:$A${len(peak_indices) + 1}",
-        #         "values": f"='continuous-waveforms'!${peak_column}$2:${peak_column}${len(peak_indices) + 1}",
-        #     }
-        # )
-        valley_column = xl_col_to_name(50 + 1 + (well_index * 2))
-        continuous_waveform_sheet.write(f"{valley_column}1", f"{well_name} Valleys")
-        for i, index in enumerate(valley_indices):
-            interpolated_time_value = round(
-                time_values[index] / CENTIMILLISECONDS_PER_SECOND, 2
-            )
-            continuous_waveform_sheet.write(
-                f"{valley_column}{i + 2}", interpolated_time_value
-            )
-        # peak_valley_chart.add_series(
-        #     {
-        #         "name": "Valleys",
-        #         "categories": f"='continuous-waveforms'!$A$2:$A${len(valley_indices) + 1}",
-        #         "values": f"='continuous-waveforms'!${valley_column}$2:${valley_column}${len(valley_indices) + 1}",
-        #     }
-        # )
+        peak_detection_chart = self._workbook.add_chart({"type": "scatter"})
+        self._add_peak_detection_chart_series(
+            peak_detection_chart,
+            "Peak",
+            well_index,
+            well_name,
+            num_data_points,
+            peak_indices,
+            interpolated_data_function,
+            time_values,
+        )
+        self._add_peak_detection_chart_series(
+            peak_detection_chart,
+            "Valley",
+            well_index,
+            well_name,
+            num_data_points,
+            valley_indices,
+            interpolated_data_function,
+            time_values,
+        )
+        waveform_chart.combine(peak_detection_chart)
 
         waveform_chart.set_x_axis({"name": "Time (seconds)"})
         waveform_chart.set_y_axis(
@@ -442,6 +434,58 @@ class PlateRecording(FileManagerPlateRecording):
 
         waveform_chart_sheet.insert_chart(
             1 + (CHART_HEIGHT_CELLS + 1) * iter_well_idx, 1, waveform_chart
+        )
+
+    def _add_peak_detection_chart_series(
+        self,
+        peak_detection_chart: xlsxwriter.chart_scatter.ChartScatter,
+        detector_type: str,
+        well_index: int,
+        well_name: str,
+        num_data_points: int,
+        indices: NDArray[(1, Any), int],
+        interpolated_data_function: interpolate.interpolate.interp1d,
+        time_values: NDArray[(2, Any), int],
+    ) -> None:
+        offset = 2 if detector_type == "Valley" else 0
+        marker_color = "lime" if detector_type == "Valley" else "pink"
+        continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
+            CONTINUOUS_WAVEFORM_SHEET_NAME
+        )
+
+        index_column = xl_col_to_name(50 + (well_index * 2) + offset)
+        result_column = xl_col_to_name(50 + (well_index * 2) + offset + 1)
+        continuous_waveform_sheet.write(
+            f"{index_column}1", f"{well_name} {detector_type} Timepoints"
+        )
+        continuous_waveform_sheet.write(
+            f"{result_column}1", f"{well_name} {detector_type} Values"
+        )
+        for idx in indices:
+            interpolated_time_value = round(
+                time_values[idx] / CENTIMILLISECONDS_PER_SECOND, 2
+            )
+            # continuous_waveform_sheet.write(
+            #     f"{index_column}{i + 2}", interpolated_time_value
+            # )
+            continuous_waveform_sheet.write(
+                f"{result_column}{interpolated_time_value * 100 + 1}",
+                interpolated_data_function(
+                    interpolated_time_value * CENTIMILLISECONDS_PER_SECOND
+                ),
+            )
+        peak_detection_chart.add_series(
+            {
+                "name": f"{detector_type}s",
+                "categories": "=",  # f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
+                "values": f"='continuous-waveforms'!${result_column}$2:${result_column}${num_data_points + 1}",
+                "marker": {
+                    "type": "square",
+                    "size": 8,
+                    "border": {"color": marker_color},
+                    "fill": {"color": marker_color},
+                },
+            }
         )
 
     def _write_xlsx_aggregate_metrics(self) -> None:

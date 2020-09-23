@@ -546,10 +546,14 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
     spied_info_logger.assert_any_call("Creating waveform data sheet")
     spied_info_logger.assert_any_call("Writing waveform data of well A1 (1 out of 24)")
     spied_info_logger.assert_any_call("Creating chart of waveform data of well A1")
-    spied_info_logger.assert_any_call("Writing waveform data of well A2 (5 out of 24)")
-    spied_info_logger.assert_any_call("Creating chart of waveform data of well A2")
+    spied_info_logger.assert_any_call(
+        "Adding peak and valley markers to chart of well A1"
+    )
     spied_info_logger.assert_any_call("Writing waveform data of well D6 (24 out of 24)")
     spied_info_logger.assert_any_call("Creating chart of waveform data of well D6")
+    spied_info_logger.assert_any_call(
+        "Adding peak and valley markers to chart of well D6"
+    )
     spied_info_logger.assert_any_call("Creating aggregate metrics sheet")
     for (_, metric) in CALCULATED_METRIC_DISPLAY_NAMES.items():
         if isinstance(metric, tuple):
@@ -608,7 +612,8 @@ def test_write_xlsx__creates_two_charts_correctly():
     )
     test_file_name = "test_file.xlsx"
 
-    tmp_dir = "."  # with tempfile.TemporaryDirectory() as tmp_dir
-    pr.write_xlsx(tmp_dir, file_name=test_file_name)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_dir = "."
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
 
-    # TODO Tanner: complete this test
+        # TODO Tanner: complete this test

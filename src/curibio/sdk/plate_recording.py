@@ -37,6 +37,7 @@ from stdlib_utils import configure_logging
 import xlsxwriter
 from xlsxwriter import Workbook
 from xlsxwriter.format import Format
+from xlsxwriter.utility import xl_col_to_name
 
 from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
@@ -58,12 +59,6 @@ from .constants import WAVEFORM_CHART_SHEET_NAME
 
 logger = logging.getLogger(__name__)
 configure_logging(logging_format="notebook")
-
-
-def _get_cell_column_from_24_well_idx(well_index: int) -> str:
-    return chr(
-        ord("B") + well_index
-    )  # Tanner (9/22/20): This will need to handle getting correct cell column once we reach "AA" (won't be until we have plates with > 24 wells)
 
 
 def _write_xlsx_device_metadata(
@@ -379,34 +374,65 @@ class PlateRecording(FileManagerPlateRecording):
         well_index: int,
         well_name: int,
     ) -> None:
-        # continuous_waveform_sheet = self._workbook.get_worksheet_by_name(CONTINUOUS_WAVEFORM_SHEET_NAME)
+        continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
+            CONTINUOUS_WAVEFORM_SHEET_NAME
+        )
         waveform_chart_sheet = self._workbook.get_worksheet_by_name(
             WAVEFORM_CHART_SHEET_NAME
         )
 
         msg = f"Creating chart of waveform data of well {well_name}"
         logger.info(msg)
-
-        chart = self._workbook.add_chart({"type": "line"})
-        cell_column = _get_cell_column_from_24_well_idx(well_index)
-        chart.add_series(
+        waveform_chart = self._workbook.add_chart({"type": "line"})
+        well_column = xl_col_to_name(well_index + 1)
+        waveform_chart.add_series(
             {
                 "name": "Waveform Data",
                 "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
-                "values": f"='continuous-waveforms'!${cell_column}$2:${cell_column}${num_data_points + 1}",
+                "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points + 1}",
             }
         )
-        chart.set_x_axis({"name": "Time (seconds)"})
-        chart.set_y_axis(
+
+        msg = f"Adding peak and valley markers to chart of well {well_name}"
+        logger.info(msg)
+        # peak_valley_chart = self._workbook.add_chart({"type": "scatter"})
+        peak_indices, valley_indices = self._pipelines[
+            well_index
+        ].get_peak_detection_results()
+        peak_column = xl_col_to_name(50 + (well_index * 2))
+        continuous_waveform_sheet.write(f"{peak_column}1", f"{well_name} Peaks")
+        for i, index in enumerate(peak_indices):
+            continuous_waveform_sheet.write(f"{peak_column}{i + 2}", index)
+        # peak_valley_chart.add_series(
+        #     {
+        #         "name": "Peaks",
+        #         "categories": f"='continuous-waveforms'!$A$2:$A${len(peak_indices) + 1}",
+        #         "values": f"='continuous-waveforms'!${peak_column}$2:${peak_column}${len(peak_indices) + 1}",
+        #     }
+        # )
+        valley_column = xl_col_to_name(50 + 1 + (well_index * 2))
+        continuous_waveform_sheet.write(f"{valley_column}1", f"{well_name} Valleys")
+        for i, index in enumerate(valley_indices):
+            continuous_waveform_sheet.write(f"{valley_column}{i + 2}", index)
+        # peak_valley_chart.add_series(
+        #     {
+        #         "name": "Valleys",
+        #         "categories": f"='continuous-waveforms'!$A$2:$A${len(valley_indices) + 1}",
+        #         "values": f"='continuous-waveforms'!${valley_column}$2:${valley_column}${len(valley_indices) + 1}",
+        #     }
+        # )
+
+        waveform_chart.set_x_axis({"name": "Time (seconds)"})
+        waveform_chart.set_y_axis(
             {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
         )
-        chart.set_size(
+        waveform_chart.set_size(
             {"width": num_data_points + CHART_BASE_WIDTH, "height": CHART_HEIGHT}
         )
-        chart.set_title({"name": f"Well {well_name}"})
+        waveform_chart.set_title({"name": f"Well {well_name}"})
 
         waveform_chart_sheet.insert_chart(
-            1 + (CHART_HEIGHT_CELLS + 1) * iter_well_idx, 1, chart
+            1 + (CHART_HEIGHT_CELLS + 1) * iter_well_idx, 1, waveform_chart
         )
 
     def _write_xlsx_aggregate_metrics(self) -> None:

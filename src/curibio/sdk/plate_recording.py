@@ -31,6 +31,7 @@ from mantarray_waveform_analysis import WIDTH_UUID
 from mantarray_waveform_analysis.exceptions import PeakDetectionError
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from nptyping import NDArray
 import numpy as np
 from scipy import interpolate
 from stdlib_utils import configure_logging
@@ -348,10 +349,7 @@ class PlateRecording(FileManagerPlateRecording):
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
             self._create_waveform_chart(
-                iter_well_idx,
-                last_index,
-                well_index,
-                well_name,
+                iter_well_idx, last_index, well_index, well_name, filtered_data[0]
             )
 
         # The formatting items below are not explicitly unit-tested...not sure the best way to do this
@@ -373,6 +371,7 @@ class PlateRecording(FileManagerPlateRecording):
         num_data_points: int,
         well_index: int,
         well_name: int,
+        time_values: NDArray[(2, Any), int],
     ) -> None:
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
             CONTINUOUS_WAVEFORM_SHEET_NAME
@@ -402,7 +401,12 @@ class PlateRecording(FileManagerPlateRecording):
         peak_column = xl_col_to_name(50 + (well_index * 2))
         continuous_waveform_sheet.write(f"{peak_column}1", f"{well_name} Peaks")
         for i, index in enumerate(peak_indices):
-            continuous_waveform_sheet.write(f"{peak_column}{i + 2}", index)
+            interpolated_time_value = round(
+                time_values[index] / CENTIMILLISECONDS_PER_SECOND, 2
+            )
+            continuous_waveform_sheet.write(
+                f"{peak_column}{i + 2}", interpolated_time_value
+            )
         # peak_valley_chart.add_series(
         #     {
         #         "name": "Peaks",
@@ -413,7 +417,12 @@ class PlateRecording(FileManagerPlateRecording):
         valley_column = xl_col_to_name(50 + 1 + (well_index * 2))
         continuous_waveform_sheet.write(f"{valley_column}1", f"{well_name} Valleys")
         for i, index in enumerate(valley_indices):
-            continuous_waveform_sheet.write(f"{valley_column}{i + 2}", index)
+            interpolated_time_value = round(
+                time_values[index] / CENTIMILLISECONDS_PER_SECOND, 2
+            )
+            continuous_waveform_sheet.write(
+                f"{valley_column}{i + 2}", interpolated_time_value
+            )
         # peak_valley_chart.add_series(
         #     {
         #         "name": "Valleys",

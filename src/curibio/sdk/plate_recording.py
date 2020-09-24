@@ -10,7 +10,6 @@ from typing import Tuple
 from typing import Union
 import uuid
 
-from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -47,6 +46,7 @@ from .constants import CHART_FIXED_WIDTH
 from .constants import CHART_FIXED_WIDTH_CELLS
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
+from .constants import CHART_WINDOW_NUM_DATA_POINTS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
@@ -192,11 +192,12 @@ class PlateRecording(FileManagerPlateRecording):
             pass
         self._pipelines = dict()
         num_wells = len(self.get_well_indices())
-        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
         for i, iter_well_idx in enumerate(self.get_well_indices()):
             iter_pipeline = self.get_pipeline_template().create_pipeline()
             well = self.get_well_by_index(iter_well_idx)
-            well_name = twenty_four_well.get_well_name_from_well_index(iter_well_idx)
+            well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
+                iter_well_idx
+            )
             msg = (
                 f"Loading tissue data of well {well_name} ({i + 1} out of {num_wells})"
             )
@@ -211,8 +212,6 @@ class PlateRecording(FileManagerPlateRecording):
     def create_stacked_plot(self) -> Figure:
         """Create a stacked plot of all wells in the recording."""
         # Note Eli (9/11/20): this is hardcoded for a very specific use case at the moment and just visually tested using the newly evolving visual regression tool
-        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
-
         self._init_pipelines()
         factor = 0.25
         plt.figure(figsize=(15 * factor, 35 * 1), dpi=300)
@@ -226,7 +225,7 @@ class PlateRecording(FileManagerPlateRecording):
             else:
                 iter_ax = plt.subplot(24, 1, count + 1, sharex=ax1)
                 iter_ax.set(
-                    ylabel=twenty_four_well.get_well_name_from_well_index(count)
+                    ylabel=TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(count)
                 )
                 if count != 23:
                     plt.setp(iter_ax.get_xticklabels(), visible=False)
@@ -328,7 +327,6 @@ class PlateRecording(FileManagerPlateRecording):
         # add data for valid wells
         well_indices = self.get_well_indices()
         num_wells = len(well_indices)
-        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
         for iter_well_idx, well_index in enumerate(well_indices):
             filtered_data = self._pipelines[
                 well_index
@@ -338,7 +336,7 @@ class PlateRecording(FileManagerPlateRecording):
                 filtered_data[0], filtered_data[1]
             )
 
-            well_name = twenty_four_well.get_well_name_from_well_index(well_index)
+            well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(well_index)
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
             last_index = len(interpolated_data_indices)
@@ -389,11 +387,21 @@ class PlateRecording(FileManagerPlateRecording):
         logger.info(msg)
         waveform_chart = self._workbook.add_chart({"type": "line"})
         well_column = xl_col_to_name(well_index + 1)
+        first_chart_data_point = (
+            2
+            if num_data_points <= CHART_WINDOW_NUM_DATA_POINTS
+            else int((num_data_points - CHART_WINDOW_NUM_DATA_POINTS) // 2)
+        )
+        last_chart_data_point = (
+            num_data_points + 1
+            if num_data_points <= CHART_WINDOW_NUM_DATA_POINTS
+            else int((num_data_points + CHART_WINDOW_NUM_DATA_POINTS) // 2)
+        )
         waveform_chart.add_series(
             {
                 "name": "Waveform Data",
-                "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
-                "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points + 1}",
+                "categories": f"='continuous-waveforms'!$A${first_chart_data_point}:$A${last_chart_data_point}",
+                "values": f"='continuous-waveforms'!${well_column}${first_chart_data_point}:${well_column}${last_chart_data_point}",
                 "line": {"color": "#1B9E77"},
             }
         )
@@ -409,7 +417,7 @@ class PlateRecording(FileManagerPlateRecording):
             "Peak",
             well_index,
             well_name,
-            num_data_points,
+            (first_chart_data_point, last_chart_data_point),
             peak_indices,
             interpolated_data_function,
             time_values,
@@ -419,15 +427,14 @@ class PlateRecording(FileManagerPlateRecording):
             "Valley",
             well_index,
             well_name,
-            num_data_points,
+            (first_chart_data_point, last_chart_data_point),
             valley_indices,
             interpolated_data_function,
             time_values,
         )
         waveform_chart.combine(peak_detection_chart)
 
-        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
-        well_row, well_col = twenty_four_well.get_row_and_column_from_well_index(
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
             well_index
         )
         waveform_chart.set_x_axis({"name": "Time (seconds)"})
@@ -449,7 +456,7 @@ class PlateRecording(FileManagerPlateRecording):
         detector_type: str,
         well_index: int,
         well_name: str,
-        num_data_points: int,
+        data_start_stop: Tuple[int, int],
         indices: NDArray[(1, Any), int],
         interpolated_data_function: interpolate.interpolate.interp1d,
         time_values: NDArray[(2, Any), int],
@@ -487,7 +494,7 @@ class PlateRecording(FileManagerPlateRecording):
             {
                 "name": label,
                 "categories": "=",
-                "values": f"='continuous-waveforms'!${result_column}$2:${result_column}${num_data_points + 1}",
+                "values": f"='continuous-waveforms'!${result_column}${data_start_stop[0]}:${result_column}${data_start_stop[1]}",
                 "marker": {
                     "type": "square",
                     "size": 8,

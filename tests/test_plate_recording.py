@@ -593,7 +593,7 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
         )
 
 
-def test_write_xlsx__creates_two_charts_correctly():
+def test_write_xlsx__creates_two_charts_correctly_with_data_shorter_than_chart_window():
     pr = PlateRecording(
         [
             os.path.join(
@@ -607,6 +607,34 @@ def test_write_xlsx__creates_two_charts_correctly():
                 "h5",
                 "v0.3.1",
                 "MA20123456__2020_08_17_145752__B2.h5",
+            ),
+        ]
+    )
+    test_file_name = "test_file.xlsx"
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_dir = "."
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
+
+        # TODO Tanner: complete this test
+
+
+def test_write_xlsx__creates_two_charts_correctly_with_data_longer_than_chart_window():
+    pr = PlateRecording(
+        [
+            os.path.join(
+                PATH_OF_CURRENT_FILE,
+                "h5",
+                "v0.3.1",
+                "MA201110001__2020_09_03_213024",
+                "MA201110001__2020_09_03_213024__A1.h5",
+            ),
+            os.path.join(
+                PATH_OF_CURRENT_FILE,
+                "h5",
+                "v0.3.1",
+                "MA201110001__2020_09_03_213024",
+                "MA201110001__2020_09_03_213024__B2.h5",
             ),
         ]
     )

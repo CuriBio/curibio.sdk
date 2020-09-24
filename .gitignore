@@ -46,6 +46,6 @@ pipeline_outputs/
 *.gz
 *.tsv
 *.csv
-
+*.xlsx
 
 secrets.json

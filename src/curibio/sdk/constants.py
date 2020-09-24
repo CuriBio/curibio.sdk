@@ -36,10 +36,7 @@ AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
 WAVEFORM_CHART_SHEET_NAME = "continuous-waveform-plots"
 
 INTERPOLATED_DATA_PERIOD = 1 / 100
-TSP_TO_INTERPOLATED_DATA_PERIOD = {  # Tissue Sampling Period (centi-milliseconds) to Interpolated Data Period (centi-milliseconds)
-    960: 1 / 100 * CENTIMILLISECONDS_PER_SECOND,
-    160: 1 / 625 * CENTIMILLISECONDS_PER_SECOND,
-}
+INTERPOLATED_DATA_PERIOD_CMS = INTERPOLATED_DATA_PERIOD * CENTIMILLISECONDS_PER_SECOND
 TSP_TO_DEFAULT_FILTER_UUID = (
     {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
         960: BESSEL_LOWPASS_10_UUID,

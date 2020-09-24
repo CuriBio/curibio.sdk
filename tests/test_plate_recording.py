@@ -15,13 +15,13 @@ from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
 from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
-from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 from freezegun import freeze_time
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -325,11 +325,11 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert actual_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
     assert (
         actual_sheet.cell(row=1 + 1, column=0 + 1).value
-        == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
     )
     assert (
         actual_sheet.cell(row=10 + 1, column=0 + 1).value
-        == 10 * TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        == 10 * INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
     )
 
     assert get_cell_value(actual_sheet, 0, 5) == "A2"
@@ -589,7 +589,7 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
         assert waveform_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
         assert (
             waveform_sheet.cell(row=1 + 1, column=0 + 1).value
-            == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+            == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
         )
 
 

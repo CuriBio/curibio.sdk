@@ -48,6 +48,7 @@ from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_DATA_POINTS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
+from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -56,7 +57,6 @@ from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION
 from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
-from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import TWENTY_FOUR_WELL_PLATE
 from .constants import WAVEFORM_CHART_SHEET_NAME
 
@@ -298,11 +298,6 @@ class PlateRecording(FileManagerPlateRecording):
             )
 
         # initialize time values (use longest data)
-        first_well = self.get_well_by_index(self.get_well_indices()[0])
-        tissue_sampling_period = (
-            first_well.get_tissue_sampling_period_microseconds()
-            / MICROSECONDS_PER_CENTIMILLISECOND
-        )
         max_time_index = 0
         for well_index in self.get_well_indices():
             well_pipeline = self._pipelines[well_index]
@@ -310,11 +305,9 @@ class PlateRecording(FileManagerPlateRecording):
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
         interpolated_data_indices = np.arange(
-            TSP_TO_INTERPOLATED_DATA_PERIOD[
-                tissue_sampling_period
-            ],  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
+            INTERPOLATED_DATA_PERIOD_CMS,  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
             max_time_index,
-            TSP_TO_INTERPOLATED_DATA_PERIOD[tissue_sampling_period],
+            INTERPOLATED_DATA_PERIOD_CMS,
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(

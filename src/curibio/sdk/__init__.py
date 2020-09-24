@@ -16,6 +16,7 @@ from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
 from .constants import INTERPOLATED_DATA_PERIOD
+from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -24,7 +25,6 @@ from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION as __version__
 from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
-from .constants import TSP_TO_INTERPOLATED_DATA_PERIOD
 from .constants import WAVEFORM_CHART_SHEET_NAME
 from .plate_recording import PlateRecording
 
@@ -37,7 +37,7 @@ __all__ = [
     "METADATA_INSTRUMENT_ROW_START",
     "METADATA_OUTPUT_FILE_ROW_START",
     "CONTINUOUS_WAVEFORM_SHEET_NAME",
-    "TSP_TO_INTERPOLATED_DATA_PERIOD",
+    "INTERPOLATED_DATA_PERIOD_CMS",
     "TSP_TO_DEFAULT_FILTER_UUID",
     "MICROSECONDS_PER_CENTIMILLISECOND",
     "CALCULATED_METRIC_DISPLAY_NAMES",

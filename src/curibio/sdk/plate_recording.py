@@ -47,6 +47,7 @@ from .constants import CHART_BASE_WIDTH
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
+from .constants import DEFAULT_CELL_WIDTH
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -393,6 +394,7 @@ class PlateRecording(FileManagerPlateRecording):
                 "name": "Waveform Data",
                 "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
                 "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points + 1}",
+                "line": {"color": "#1B9E77"},
             }
         )
 
@@ -424,17 +426,22 @@ class PlateRecording(FileManagerPlateRecording):
         )
         waveform_chart.combine(peak_detection_chart)
 
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+        well_row, well_col = twenty_four_well.get_row_and_column_from_well_index(
+            well_index
+        )
         waveform_chart.set_x_axis({"name": "Time (seconds)"})
         waveform_chart.set_y_axis(
             {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
         )
-        waveform_chart.set_size(
-            {"width": num_data_points + CHART_BASE_WIDTH, "height": CHART_HEIGHT}
-        )
+        chart_width = num_data_points + CHART_BASE_WIDTH
+        waveform_chart.set_size({"width": chart_width, "height": CHART_HEIGHT})
         waveform_chart.set_title({"name": f"Well {well_name}"})
 
         waveform_chart_sheet.insert_chart(
-            1 + (CHART_HEIGHT_CELLS + 1) * iter_well_idx, 1, waveform_chart
+            1 + well_row * (CHART_HEIGHT_CELLS + 1),
+            1 + well_col * ((chart_width + 50) // DEFAULT_CELL_WIDTH),
+            waveform_chart,
         )
 
     def _add_peak_detection_chart_series(
@@ -448,8 +455,9 @@ class PlateRecording(FileManagerPlateRecording):
         interpolated_data_function: interpolate.interpolate.interp1d,
         time_values: NDArray[(2, Any), int],
     ) -> None:
+        label = "Min Twitch Force" if detector_type == "Valley" else "Max Twitch Force"
         offset = 2 if detector_type == "Valley" else 0
-        marker_color = "lime" if detector_type == "Valley" else "pink"
+        marker_color = "#D95F02" if detector_type == "Valley" else "#7570B3"
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
@@ -470,9 +478,6 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_time_value = round(
                 time_values[idx] / CENTIMILLISECONDS_PER_SECOND, 2
             )
-            # continuous_waveform_sheet.write(
-            #     f"{index_column}{i + 2}", interpolated_time_value
-            # )
             continuous_waveform_sheet.write(
                 f"{result_column}{interpolated_time_value * 100 + 1}",
                 interpolated_data_function(
@@ -481,8 +486,8 @@ class PlateRecording(FileManagerPlateRecording):
             )
         peak_detection_chart.add_series(
             {
-                "name": f"{detector_type}s",
-                "categories": "=",  # f"='continuous-waveforms'!$A$2:$A${num_data_points + 1}",
+                "name": label,
+                "categories": "=",
                 "values": f"='continuous-waveforms'!${result_column}$2:${result_column}${num_data_points + 1}",
                 "marker": {
                     "type": "square",

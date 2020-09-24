@@ -8,6 +8,7 @@ from curibio.sdk import CHART_BASE_WIDTH
 from curibio.sdk import CHART_HEIGHT
 from curibio.sdk import CHART_HEIGHT_CELLS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import DEFAULT_CELL_WIDTH
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
@@ -72,4 +73,5 @@ def test_charts():
     assert CHART_HEIGHT == 300
     assert CHART_BASE_WIDTH == 120
     assert CHART_HEIGHT_CELLS == 15
-    assert PEAK_VALLEY_COLUMN_START == 50
+    assert PEAK_VALLEY_COLUMN_START == 100
+    assert DEFAULT_CELL_WIDTH == 53

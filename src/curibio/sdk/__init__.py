@@ -10,6 +10,7 @@ from .constants import CHART_BASE_WIDTH
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
+from .constants import DEFAULT_CELL_WIDTH
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -43,4 +44,5 @@ __all__ = [
     "CHART_BASE_WIDTH",
     "CHART_HEIGHT_CELLS",
     "PEAK_VALLEY_COLUMN_START",
+    "DEFAULT_CELL_WIDTH",
 ]

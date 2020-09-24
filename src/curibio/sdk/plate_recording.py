@@ -43,11 +43,11 @@ from xlsxwriter.utility import xl_col_to_name
 from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
-from .constants import CHART_BASE_WIDTH
+from .constants import CHART_FIXED_WIDTH
+from .constants import CHART_FIXED_WIDTH_CELLS
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
-from .constants import DEFAULT_CELL_WIDTH
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -434,13 +434,12 @@ class PlateRecording(FileManagerPlateRecording):
         waveform_chart.set_y_axis(
             {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
         )
-        chart_width = num_data_points + CHART_BASE_WIDTH
-        waveform_chart.set_size({"width": chart_width, "height": CHART_HEIGHT})
+        waveform_chart.set_size({"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT})
         waveform_chart.set_title({"name": f"Well {well_name}"})
 
         waveform_chart_sheet.insert_chart(
             1 + well_row * (CHART_HEIGHT_CELLS + 1),
-            1 + well_col * ((chart_width + 50) // DEFAULT_CELL_WIDTH),
+            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
             waveform_chart,
         )
 
@@ -526,11 +525,11 @@ class PlateRecording(FileManagerPlateRecording):
             except PeakDetectionError as e:
                 error_msg = "Error: "
                 if isinstance(e, TwoPeaksInARowError):
-                    error_msg += "Two Peaks in a Row Detected"
+                    error_msg += "Two Max Twitch Forces in a Row Detected"
                 elif isinstance(e, TwoValleysInARowError):
-                    error_msg += "Two Valleys in a Row Detected"
+                    error_msg += "Two Min Twitch Forces in a Row Detected"
                 elif isinstance(e, TooFewPeaksDetectedError):
-                    error_msg += "Not Enough Peaks Detected"
+                    error_msg += "Not Enough Max Twitch Forces Detected"
                 else:
                     raise NotImplementedError("Unknown PeakDetectionError") from e
                 curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")

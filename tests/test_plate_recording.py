@@ -446,17 +446,17 @@ def test_PlateRecording__create_stacked_plot_for_24_wells():
     [
         (
             TwoPeaksInARowError(([], []), [], (0, 1)),
-            "Error: Two Peaks in a Row Detected",
+            "Error: Two Max Twitch Forces in a Row Detected",
             "handles TwoPeaksInARowError",
         ),
         (
             TwoValleysInARowError(([], []), [], (0, 1)),
-            "Error: Two Valleys in a Row Detected",
+            "Error: Two Min Twitch Forces in a Row Detected",
             "handles TwoValleysInARowError",
         ),
         (
             TooFewPeaksDetectedError(),
-            "Error: Not Enough Peaks Detected",
+            "Error: Not Enough Max Twitch Forces Detected",
             "handles TooFewPeaksDetectedError",
         ),
     ],

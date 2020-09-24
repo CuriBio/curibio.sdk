@@ -7,6 +7,8 @@ from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
 from .constants import CHART_BASE_WIDTH
+from .constants import CHART_FIXED_WIDTH
+from .constants import CHART_FIXED_WIDTH_CELLS
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
@@ -45,4 +47,6 @@ __all__ = [
     "CHART_HEIGHT_CELLS",
     "PEAK_VALLEY_COLUMN_START",
     "DEFAULT_CELL_WIDTH",
+    "CHART_FIXED_WIDTH",
+    "CHART_FIXED_WIDTH_CELLS",
 ]

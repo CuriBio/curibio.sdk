@@ -5,6 +5,8 @@ from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import ALL_FORMATS
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CHART_BASE_WIDTH
+from curibio.sdk import CHART_FIXED_WIDTH
+from curibio.sdk import CHART_FIXED_WIDTH_CELLS
 from curibio.sdk import CHART_HEIGHT
 from curibio.sdk import CHART_HEIGHT_CELLS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
@@ -74,4 +76,6 @@ def test_charts():
     assert CHART_BASE_WIDTH == 120
     assert CHART_HEIGHT_CELLS == 15
     assert PEAK_VALLEY_COLUMN_START == 100
-    assert DEFAULT_CELL_WIDTH == 53
+    assert DEFAULT_CELL_WIDTH == 64
+    assert CHART_FIXED_WIDTH == DEFAULT_CELL_WIDTH * CHART_FIXED_WIDTH_CELLS
+    assert CHART_FIXED_WIDTH_CELLS == 8

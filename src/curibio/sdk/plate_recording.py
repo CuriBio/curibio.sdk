@@ -454,7 +454,7 @@ class PlateRecording(FileManagerPlateRecording):
         interpolated_data_function: interpolate.interpolate.interp1d,
         time_values: NDArray[(2, Any), int],
     ) -> None:
-        label = "Min Twitch Force" if detector_type == "Valley" else "Max Twitch Force"
+        label = "Relaxation" if detector_type == "Valley" else "Contraction"
         offset = 2 if detector_type == "Valley" else 0
         marker_color = "#D95F02" if detector_type == "Valley" else "#7570B3"
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
@@ -525,11 +525,11 @@ class PlateRecording(FileManagerPlateRecording):
             except PeakDetectionError as e:
                 error_msg = "Error: "
                 if isinstance(e, TwoPeaksInARowError):
-                    error_msg += "Two Max Twitch Forces in a Row Detected"
+                    error_msg += "Two Contractions in a Row Detected"
                 elif isinstance(e, TwoValleysInARowError):
-                    error_msg += "Two Min Twitch Forces in a Row Detected"
+                    error_msg += "Two Relaxations in a Row Detected"
                 elif isinstance(e, TooFewPeaksDetectedError):
-                    error_msg += "Not Enough Max Twitch Forces Detected"
+                    error_msg += "Not Enough Contractions Detected"
                 else:
                     raise NotImplementedError("Unknown PeakDetectionError") from e
                 curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")

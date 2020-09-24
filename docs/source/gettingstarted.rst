@@ -53,12 +53,13 @@ an excel sheet, and then download the converted files.
 Uploading H5 files
 ------------------
 
-To begin uploading H5 files, click the Jupyter logo in the top left corner:
+To begin uploading H5 files, click the Jupyter logo in the top left corner to
+navigate to the file explorer page:
 
 .. image:: images/jupyter.png
     :width: 200
 
-You should now be on a page listing all the folders and files currently in the environment:
+You should now be on this page listing all the folders and files currently in the environment:
 
 .. image:: images/fresh_files_page.png
     :width: 600
@@ -105,7 +106,10 @@ You can now begin running the code. To do so, click ``Cell`` near the top left, 
     :width: 600
 
 If there are many files, it may take a minute or two to convert all of them.
-When all cells complete execution there should be a number next to every cell:
+This step will print out progress messages to show that is working and not hanging.
+When all cells complete execution there should be a number next to every cell.
+You will also see a message printed underneath the last cell indicating that
+writing to the ``.xlsx`` file is complete:
 
 .. image:: images/finished_cells.png
     :width: 600

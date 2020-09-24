@@ -57,7 +57,7 @@ To begin uploading H5 files, click the Jupyter logo in the top left corner to
 navigate to the file explorer page:
 
 .. image:: images/jupyter.png
-    :width: 200
+    :width: 600
 
 You should now be on this page listing all the folders and files currently in the environment:
 

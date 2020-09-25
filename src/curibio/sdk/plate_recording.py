@@ -277,7 +277,11 @@ class PlateRecording(FileManagerPlateRecording):
         self._workbook.close()  # This is actually when the file gets written to d
         logger.info("Done writing to .xlsx")
 
-    def _write_xlsx_continuous_waveforms(self, skip_content: bool = False) -> None:
+    def _write_xlsx_continuous_waveforms(
+        self,
+        skip_content: bool = False,
+        skip_charts: bool = False,
+    ) -> None:
         continuous_waveform_sheet = self._workbook.add_worksheet(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
@@ -341,6 +345,9 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
+            if skip_charts:
+                # Tanner (9/25/20): this skip is primarily used for unit testing at the moment
+                continue
             self._create_waveform_chart(
                 iter_well_idx,
                 last_index,
@@ -455,21 +462,21 @@ class PlateRecording(FileManagerPlateRecording):
         time_values: NDArray[(2, Any), int],
     ) -> None:
         label = "Relaxation" if detector_type == "Valley" else "Contraction"
-        offset = 2 if detector_type == "Valley" else 0
+        offset = 1 if detector_type == "Valley" else 0
         marker_color = "#D95F02" if detector_type == "Valley" else "#7570B3"
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
 
-        index_column = xl_col_to_name(
+        # index_column = xl_col_to_name(
+        #     PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
+        # )
+        result_column = xl_col_to_name(
             PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
         )
-        result_column = xl_col_to_name(
-            PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset + 1
-        )
-        continuous_waveform_sheet.write(
-            f"{index_column}1", f"{well_name} {detector_type} Timepoints"
-        )
+        # continuous_waveform_sheet.write(
+        #     f"{index_column}1", f"{well_name} {detector_type} Timepoints"
+        # )
         continuous_waveform_sheet.write(
             f"{result_column}1", f"{well_name} {detector_type} Values"
         )

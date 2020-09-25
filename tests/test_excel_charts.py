@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 from curibio.sdk import PlateRecording
+import pytest
 from stdlib_utils import get_current_file_abs_directory
 
 from .fixtures import fixture_generic_well_file_0_3_1
@@ -36,55 +37,110 @@ __fixtures__ = (
 )
 
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
+NS = {
+    "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+    "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+    "xdr": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
+}
 
 
-def test_write_xlsx__creates_two_snapshot_charts_correctly__with_data_shorter_than_chart_window():
-    pr = PlateRecording(
-        [
-            os.path.join(
-                PATH_OF_CURRENT_FILE,
-                "h5",
-                "v0.3.1",
-                "MA20123456__2020_08_17_145752__A1.h5",
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "pr,expected_A1_attrs,expected_B2_attrs,test_description",
+    [
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__B2.h5",
+                    ),
+                ]
             ),
-            os.path.join(
-                PATH_OF_CURRENT_FILE,
-                "h5",
-                "v0.3.1",
-                "MA20123456__2020_08_17_145752__B2.h5",
+            {
+                "chart_num": 1,
+                "well_name": "A1",
+                "x_range": "$A$2:$A$355",
+                "y_range_w": "$B$2:$B$355",
+                "y_range_c": "$CW$2:$CW$355",
+                "y_range_r": "$CX$2:$CX$355",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+            },
+            {
+                "chart_num": 2,
+                "well_name": "B2",
+                "x_range": "$A$2:$A$356",
+                "y_range_w": "$G$2:$G$356",
+                "y_range_c": "$DG$2:$DG$356",
+                "y_range_r": "$DH$2:$DH$356",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+            },
+            "creates chart correctly with data shorter than chart window",
+        ),
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__B2.h5",
+                    ),
+                ]
             ),
-        ]
-    )
-    expected_A1_attrs = {
-        "chart_num": 1,
-        "well_name": "A1",
-        "x_range": "$A$2:$A$355",
-        "y_range_w": "$B$2:$B$355",
-        "y_range_c": "$CW$2:$CW$355",
-        "y_range_r": "$CX$2:$CX$355",
-        "from_col": 1,
-        "from_row": 1,
-        "to_col": 9,
-        "to_row": 16,
-    }
-    expected_B2_attrs = {
-        "chart_num": 2,
-        "well_name": "B2",
-        "x_range": "$A$2:$A$356",
-        "y_range_w": "$G$2:$G$356",
-        "y_range_c": "$DG$2:$DG$356",
-        "y_range_r": "$DH$2:$DH$356",
-        "from_col": 10,
-        "from_row": 17,
-        "to_col": 18,
-        "to_row": 32,
-    }
-    ns = {
-        "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
-        "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
-        "xdr": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
-    }
-
+            {
+                "chart_num": 1,
+                "well_name": "A1",
+                "x_range": "$A$10543:$A$11543",
+                "y_range_w": "$B$10543:$B$11543",
+                "y_range_c": "$CW$10543:$CW$11543",
+                "y_range_r": "$CX$10543:$CX$11543",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+            },
+            {
+                "chart_num": 2,
+                "well_name": "B2",
+                "x_range": "$A$10543:$A$11543",
+                "y_range_w": "$G$10543:$G$11543",
+                "y_range_c": "$DG$10543:$DG$11543",
+                "y_range_r": "$DH$10543:$DH$11543",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+            },
+            "creates chart correctly with data longer than chart window",
+        ),
+    ],
+)
+def test_write_xlsx__creates_two_snapshot_charts_correctly(
+    pr, expected_A1_attrs, expected_B2_attrs, test_description
+):
     test_file_name = "test_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
         # tmp_dir = 'New Folder'
@@ -98,48 +154,48 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly__with_data_shorter_th
                     tmp_dir, "xl", "charts", f"chart{expected_attrs['chart_num']}.xml"
                 )
             ).getroot()
-            chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", ns)
+            chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_attrs['well_name']}"
             x_axis_label = chart_root.find(
-                "c:chart/c:plotArea/c:catAx/c:title/c:tx/c:rich/a:p/a:r/a:t", ns
+                "c:chart/c:plotArea/c:catAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
             )
             assert x_axis_label.text == "Time (seconds)"
             y_axis_label = chart_root.find(
-                "c:chart/c:plotArea/c:valAx/c:title/c:tx/c:rich/a:p/a:r/a:t", ns
+                "c:chart/c:plotArea/c:valAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
             )
             assert y_axis_label.text == "Magnetic Sensor Data"
             assert (
-                chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", ns)
+                chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
                 is None
             )
             waveform_series_node = chart_root.find(
-                "c:chart/c:plotArea/c:lineChart/c:ser", ns
+                "c:chart/c:plotArea/c:lineChart/c:ser", NS
             )
-            assert waveform_series_node.find("c:tx/c:v", ns).text == "Waveform Data"
+            assert waveform_series_node.find("c:tx/c:v", NS).text == "Waveform Data"
             assert (
                 waveform_series_node.find(
-                    "c:spPr/a:ln/a:solidFill/a:srgbClr", ns
+                    "c:spPr/a:ln/a:solidFill/a:srgbClr", NS
                 ).attrib["val"]
                 == "1B9E77"
             )
             assert (
-                waveform_series_node.find("c:cat/c:numRef/c:f", ns).text
+                waveform_series_node.find("c:cat/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['x_range']}"
             )
             assert (
-                waveform_series_node.find("c:val/c:numRef/c:f", ns).text
+                waveform_series_node.find("c:val/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['y_range_w']}"
             )
             for node in chart_root.findall(
-                "c:chart/c:plotArea/c:scatterChart/c:ser", ns
+                "c:chart/c:plotArea/c:scatterChart/c:ser", NS
             ):
-                series_label = node.find("c:tx/c:v", ns)
+                series_label = node.find("c:tx/c:v", NS)
                 series_color = node.find(
-                    "c:marker/c:spPr/a:solidFill/a:srgbClr", ns
+                    "c:marker/c:spPr/a:solidFill/a:srgbClr", NS
                 ).attrib["val"]
-                y_range = node.find("c:yVal/c:numRef/c:f", ns).text
-                assert node.find("c:xVal/c:numRef/c:f", ns).text is None
-                if int(node.find("c:idx", ns).attrib["val"]) == 1:
+                y_range = node.find("c:yVal/c:numRef/c:f", NS).text
+                assert node.find("c:xVal/c:numRef/c:f", NS).text is None
+                if int(node.find("c:idx", NS).attrib["val"]) == 1:
                     assert series_label.text == "Contraction"
                     assert series_color == "7570B3"
                     assert (
@@ -157,57 +213,32 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly__with_data_shorter_th
         drawing_root = ET.parse(
             os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
         ).getroot()
-        for chart_node in drawing_root.findall("xdr:twoCellAnchor", ns):
+        for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
             chart_name = chart_node.find(
-                "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", ns
+                "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
             ).attrib["name"]
             expected_attrs = (
                 expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
             )
-            from_node = chart_node.find("xdr:from", ns)
-            assert int(from_node.find("xdr:col", ns).text) == expected_attrs["from_col"]
-            assert (chart_name, int(from_node.find("xdr:colOff", ns).text)) == (
+            from_node = chart_node.find("xdr:from", NS)
+            assert int(from_node.find("xdr:col", NS).text) == expected_attrs["from_col"]
+            assert (chart_name, int(from_node.find("xdr:colOff", NS).text)) == (
                 chart_name,
                 0,
             )
-            assert int(from_node.find("xdr:row", ns).text) == expected_attrs["from_row"]
-            assert (chart_name, int(from_node.find("xdr:rowOff", ns).text)) == (
+            assert int(from_node.find("xdr:row", NS).text) == expected_attrs["from_row"]
+            assert (chart_name, int(from_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,
             )
-            to_node = chart_node.find("xdr:to", ns)
-            assert int(to_node.find("xdr:col", ns).text) == expected_attrs["to_col"]
-            assert (chart_name, int(to_node.find("xdr:colOff", ns).text)) == (
+            to_node = chart_node.find("xdr:to", NS)
+            assert int(to_node.find("xdr:col", NS).text) == expected_attrs["to_col"]
+            assert (chart_name, int(to_node.find("xdr:colOff", NS).text)) == (
                 chart_name,
                 0,
             )
-            assert int(to_node.find("xdr:row", ns).text) == expected_attrs["to_row"]
-            assert (chart_name, int(to_node.find("xdr:rowOff", ns).text)) == (
+            assert int(to_node.find("xdr:row", NS).text) == expected_attrs["to_row"]
+            assert (chart_name, int(to_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,
             )
-
-
-def test_write_xlsx__creates_two_snapshot_charts_correctly__with_data_longer_than_chart_window():
-    pr = PlateRecording(
-        [
-            os.path.join(
-                PATH_OF_CURRENT_FILE,
-                "h5",
-                "v0.3.1",
-                "MA201110001__2020_09_03_213024",
-                "MA201110001__2020_09_03_213024__A1.h5",
-            ),
-            os.path.join(
-                PATH_OF_CURRENT_FILE,
-                "h5",
-                "v0.3.1",
-                "MA201110001__2020_09_03_213024",
-                "MA201110001__2020_09_03_213024__B2.h5",
-            ),
-        ]
-    )
-    test_file_name = "test_file.xlsx"
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        pr.write_xlsx(tmp_dir, file_name=test_file_name)

@@ -173,7 +173,7 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
     pr.write_xlsx(tmp_dir, skip_continuous_waveforms=True)
     expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
+    assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
     actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     well_idx = real_3min_well_file_0_3_1.get_well_index()
     curr_row = 2

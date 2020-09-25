@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for excel chart creation using PlateRecording subclass.
-
-To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
-To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
-To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
-"""
+"""Tests for excel chart creation using PlateRecording subclass."""
 import os
 import tempfile
 import xml.etree.ElementTree as ET
@@ -76,6 +71,10 @@ NS = {
                 "from_row": 1,
                 "to_col": 9,
                 "to_row": 16,
+                "first_c_idx": 7,
+                "first_c_y": -156778.33,
+                "first_r_idx": 56,
+                "first_r_y": 156838.0,
             },
             {
                 "chart_num": 2,
@@ -88,6 +87,10 @@ NS = {
                 "from_row": 17,
                 "to_col": 18,
                 "to_row": 32,
+                "first_c_idx": 7,
+                "first_c_y": -942193.83,
+                "first_r_idx": 56,
+                "first_r_y": 943009.0,
             },
             "creates chart correctly with data shorter than chart window",
         ),
@@ -121,6 +124,10 @@ NS = {
                 "from_row": 1,
                 "to_col": 9,
                 "to_row": 16,
+                "first_c_idx": 71,
+                "first_c_y": -95944.38,
+                "first_r_idx": 28,
+                "first_r_y": 7530.80,
             },
             {
                 "chart_num": 2,
@@ -133,6 +140,10 @@ NS = {
                 "from_row": 17,
                 "to_col": 18,
                 "to_row": 32,
+                "first_c_idx": 34,
+                "first_c_y": -127349.83,
+                "first_r_idx": 8,
+                "first_r_y": -50245.47,
             },
             "creates chart correctly with data longer than chart window",
         ),
@@ -186,28 +197,45 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 waveform_series_node.find("c:val/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['y_range_w']}"
             )
-            for node in chart_root.findall(
+            for ser_node in chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
             ):
-                series_label = node.find("c:tx/c:v", NS)
-                series_color = node.find(
+                series_color = ser_node.find(
                     "c:marker/c:spPr/a:solidFill/a:srgbClr", NS
                 ).attrib["val"]
-                y_range = node.find("c:yVal/c:numRef/c:f", NS).text
-                assert node.find("c:xVal/c:numRef/c:f", NS).text is None
-                if int(node.find("c:idx", NS).attrib["val"]) == 1:
-                    assert series_label.text == "Contraction"
+                y_range = ser_node.find("c:yVal/c:numRef/c:f", NS).text
+                assert ser_node.find("c:xVal/c:numRef/c:f", NS).text is None
+                if int(ser_node.find("c:idx", NS).attrib["val"]) == 1:
+                    assert ser_node.find("c:tx/c:v", NS).text == "Contraction"
                     assert series_color == "7570B3"
                     assert (
                         y_range
                         == f"'continuous-waveforms'!{expected_attrs['y_range_c']}"
                     )
-                else:
-                    assert series_label.text == "Relaxation"
+                    first_c_marker_idx = expected_attrs["first_c_idx"]
+                    first_c_marker_node = ser_node.find(
+                        f"c:yVal/c:numRef/c:numCache/c:pt/[@idx='{first_c_marker_idx}']",
+                        NS,
+                    )
+                    assert (
+                        round(float(first_c_marker_node.find("c:v", NS).text), 2)
+                        == expected_attrs["first_c_y"]
+                    )
+                elif int(ser_node.find("c:idx", NS).attrib["val"]) == 2:
+                    assert ser_node.find("c:tx/c:v", NS).text == "Relaxation"
                     assert series_color == "D95F02"
                     assert (
                         y_range
                         == f"'continuous-waveforms'!{expected_attrs['y_range_r']}"
+                    )
+                    first_r_marker_idx = expected_attrs["first_r_idx"]
+                    first_r_marker_node = ser_node.find(
+                        f"c:yVal/c:numRef/c:numCache/c:pt/[@idx='{first_r_marker_idx}']",
+                        NS,
+                    )
+                    assert (
+                        round(float(first_r_marker_node.find("c:v", NS).text), 2)
+                        == expected_attrs["first_r_y"]
                     )
 
         drawing_root = ET.parse(

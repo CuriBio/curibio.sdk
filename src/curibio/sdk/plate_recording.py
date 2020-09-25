@@ -354,7 +354,6 @@ class PlateRecording(FileManagerPlateRecording):
                 # Tanner (9/25/20): this skip is primarily used for unit testing at the moment
                 continue
             self._create_waveform_chart(
-                iter_well_idx,
                 last_index,
                 well_index,
                 well_name,
@@ -377,7 +376,6 @@ class PlateRecording(FileManagerPlateRecording):
 
     def _create_waveform_chart(
         self,
-        iter_well_idx: int,
         num_data_points: int,
         well_index: int,
         well_name: str,

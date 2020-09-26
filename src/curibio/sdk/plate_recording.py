@@ -351,7 +351,6 @@ class PlateRecording(FileManagerPlateRecording):
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
             if skip_charts:
-                # Tanner (9/25/20): this skip is primarily used for unit testing at the moment
                 continue
             self._create_waveform_chart(
                 last_index,

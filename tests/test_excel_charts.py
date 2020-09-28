@@ -173,7 +173,7 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
 ):
     test_file_name = "test_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "New Folder"
+        # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)
@@ -187,6 +187,14 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
             ).getroot()
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_well_name}"
+            assert (
+                int(
+                    chart_root.find(
+                        "c:chart/c:plotArea/c:catAx/c:tickMarkSkip", NS
+                    ).attrib["val"]
+                ),
+                expected_well_name,
+            ) == (100, expected_well_name)
             x_axis_label = chart_root.find(
                 "c:chart/c:plotArea/c:catAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
             )

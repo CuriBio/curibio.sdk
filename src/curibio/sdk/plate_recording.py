@@ -437,7 +437,7 @@ class PlateRecording(FileManagerPlateRecording):
         well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
             well_index
         )
-        waveform_chart.set_x_axis({"name": "Time (seconds)"})
+        waveform_chart.set_x_axis({"name": "Time (seconds)", "interval_tick": 100})
         waveform_chart.set_y_axis(
             {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
         )

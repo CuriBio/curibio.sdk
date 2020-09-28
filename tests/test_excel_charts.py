@@ -40,7 +40,21 @@ NS = {
     "xdr": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
 }
 
-#
+# variable descriptions
+# "chart_num":      Chart number in XML
+# "well_name":      Name of well the data in the chart pertains to
+# "x_range":        Excel data range for x-axis
+# "y_range_w":      Excel data range for y values of waveforms
+# "y_range_c":      Excel data range for y values of contraction markers
+# "y_range_r":      Excel data range for y values of relaxation markers
+# "from_col":       left-most column occupied by chart
+# "from_row":       top-most column occupied by chart
+# "to_col":         right-most column occupied by chart
+# "to_row":         bottom-most row occupied by chart
+# "first_c_idx":    first XML 'idx' value of contraction markers
+# "first_c_y":      first y value of contraction markers
+# "first_r_idx":    first XML 'idx' value of relaxation markers
+# "first_r_y":      first y value of relaxation markers
 
 
 @pytest.mark.slow

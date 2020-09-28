@@ -198,9 +198,7 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
                 iter_well_idx
             )
-            msg = (
-                f"Loading tissue data of well {well_name} ({i + 1} out of {num_wells})"
-            )
+            msg = f"Loading tissue data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
             data = well.get_raw_tissue_reading()
             iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))

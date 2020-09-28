@@ -538,9 +538,15 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
         pr.write_xlsx(tmp_dir)
 
     spied_info_logger.assert_any_call("Loading data from H5 file(s)")
-    spied_info_logger.assert_any_call("Loading tissue data of well A1 (1 out of 24)")
-    spied_info_logger.assert_any_call("Loading tissue data of well A2 (5 out of 24)")
-    spied_info_logger.assert_any_call("Loading tissue data of well D6 (24 out of 24)")
+    spied_info_logger.assert_any_call(
+        "Loading tissue data... 0% (Well A1, 1 out of 24)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue data... 17% (Well A2, 5 out of 24)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue data... 96% (Well D6, 24 out of 24)"
+    )
     spied_info_logger.assert_any_call("Opening .xlsx file")
     spied_info_logger.assert_any_call("Writing H5 file metadata")
     spied_info_logger.assert_any_call("Creating waveform data sheet")

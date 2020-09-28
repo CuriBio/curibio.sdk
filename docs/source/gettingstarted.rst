@@ -107,7 +107,7 @@ Exporting Data to an Excel File and Downloading
     :width: 600
 
 If there are many files, it may take a minute or two to convert all of them.
-Progress messages will be printed to indicate the code is working and not hanging.
+Progress messages will be printed to indicate the code is working and not frozen.
 When all cells complete execution there should be a number next to every cell.
 You will also see a message printed underneath the last cell indicating that
 writing to the ``.xlsx`` file is complete:
@@ -117,7 +117,7 @@ writing to the ``.xlsx`` file is complete:
 
 4. Click on the Jupyter Logo in the top left of the page again to
 go back to the files page. You should should now see a new ``.xlsx`` file. The
-name of the file should contain the date the data was recorded formatted ``yyyy-mm-dd``.
+name of the file should contain the barcode of the plate the data was recorded from.
 
 5. To download, check the box to the left of the file and then press ``download``
 near the top left.

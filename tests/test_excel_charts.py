@@ -173,7 +173,7 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
 ):
     test_file_name = "test_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = 'New Folder'
+        tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)
@@ -232,8 +232,19 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 assert (
                     expected_well_name == expected_attrs["well_name"]
                 ) and ser_node.find("c:xVal/c:numRef/c:f", NS).text is None
+                assert (
+                    expected_well_name == expected_attrs["well_name"]
+                ) and ser_node.find("c:marker/c:spPr/a:noFill", NS).text is None
+                assert (
+                    ser_node.find("c:marker/c:symbol", NS).attrib["val"],
+                    expected_well_name,
+                ) == ("circle", expected_well_name)
+                assert (
+                    int(ser_node.find("c:marker/c:spPr/a:ln", NS).attrib["w"]),
+                    expected_well_name,
+                ) == (19050, expected_well_name)
                 series_color = ser_node.find(
-                    "c:marker/c:spPr/a:solidFill/a:srgbClr", NS
+                    "c:marker/c:spPr/a:ln/a:solidFill/a:srgbClr", NS
                 ).attrib["val"]
                 y_range = ser_node.find("c:yVal/c:numRef/c:f", NS).text
                 if int(ser_node.find("c:idx", NS).attrib["val"]) == 1:

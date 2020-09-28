@@ -496,10 +496,10 @@ class PlateRecording(FileManagerPlateRecording):
                 "categories": "=",
                 "values": f"='continuous-waveforms'!${result_column}${data_start_stop[0]}:${result_column}${data_start_stop[1]}",
                 "marker": {
-                    "type": "square",
+                    "type": "circle",
                     "size": 8,
-                    "border": {"color": marker_color},
-                    "fill": {"color": marker_color},
+                    "border": {"color": marker_color, "width": 1.5},
+                    "fill": {"none": True},
                 },
             }
         )

@@ -13,8 +13,8 @@ from curibio.sdk import CHART_WINDOW_NUM_DATA_POINTS
 from curibio.sdk import CHART_WINDOW_NUM_SECONDS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_CELL_WIDTH
-from curibio.sdk import INTERPOLATED_DATA_PERIOD
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
+from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
@@ -62,10 +62,10 @@ def test_excel_sheet_rows():
 
 
 def test_interpolated_data_period():
-    assert INTERPOLATED_DATA_PERIOD == 1 / 100
+    assert INTERPOLATED_DATA_PERIOD_SECONDS == 1 / 100
     assert (
         INTERPOLATED_DATA_PERIOD_CMS
-        == INTERPOLATED_DATA_PERIOD * CENTIMILLISECONDS_PER_SECOND
+        == INTERPOLATED_DATA_PERIOD_SECONDS * CENTIMILLISECONDS_PER_SECOND
     )
 
 
@@ -87,5 +87,5 @@ def test_charts():
     assert CHART_WINDOW_NUM_SECONDS == 10
     assert (
         CHART_WINDOW_NUM_DATA_POINTS
-        == CHART_WINDOW_NUM_SECONDS / INTERPOLATED_DATA_PERIOD
+        == CHART_WINDOW_NUM_SECONDS / INTERPOLATED_DATA_PERIOD_SECONDS
     )

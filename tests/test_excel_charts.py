@@ -32,11 +32,15 @@ __fixtures__ = (
 )
 
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
+
+# XML namespaces in excel file
 NS = {
     "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
     "xdr": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
 }
+
+#
 
 
 @pytest.mark.slow

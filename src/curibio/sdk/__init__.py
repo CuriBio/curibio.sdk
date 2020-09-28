@@ -15,8 +15,8 @@ from .constants import CHART_WINDOW_NUM_DATA_POINTS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
-from .constants import INTERPOLATED_DATA_PERIOD
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
+from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -52,7 +52,7 @@ __all__ = [
     "DEFAULT_CELL_WIDTH",
     "CHART_FIXED_WIDTH",
     "CHART_FIXED_WIDTH_CELLS",
-    "INTERPOLATED_DATA_PERIOD",
+    "INTERPOLATED_DATA_PERIOD_SECONDS",
     "CHART_WINDOW_NUM_SECONDS",
     "CHART_WINDOW_NUM_DATA_POINTS",
 ]

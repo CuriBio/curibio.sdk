@@ -57,6 +57,7 @@ NS = {
 # "first_r_y":      first y value of relaxation markers
 
 
+# pylint: disable=too-many-locals
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "pr,expected_A1_attrs,expected_B2_attrs,test_description",
@@ -178,35 +179,45 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
             zip_ref.extractall(tmp_dir)
 
         for expected_attrs in (expected_A1_attrs, expected_B2_attrs):
+            expected_well_name = expected_attrs["well_name"]
             chart_root = ET.parse(
                 os.path.join(
                     tmp_dir, "xl", "charts", f"chart{expected_attrs['chart_num']}.xml"
                 )
             ).getroot()
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
-            assert chart_title.text == f"Well {expected_attrs['well_name']}"
+            assert chart_title.text == f"Well {expected_well_name}"
             x_axis_label = chart_root.find(
                 "c:chart/c:plotArea/c:catAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
             )
-            assert x_axis_label.text == "Time (seconds)"
+            assert (x_axis_label.text, expected_well_name) == (
+                "Time (seconds)",
+                expected_well_name,
+            )
             y_axis_label = chart_root.find(
                 "c:chart/c:plotArea/c:valAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
             )
-            assert y_axis_label.text == "Magnetic Sensor Data"
-            assert (
+            assert (y_axis_label.text, expected_well_name) == (
+                "Magnetic Sensor Data",
+                expected_well_name,
+            )
+            assert (expected_well_name == expected_attrs["well_name"]) and (
                 chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
                 is None
             )
             waveform_series_node = chart_root.find(
                 "c:chart/c:plotArea/c:lineChart/c:ser", NS
             )
-            assert waveform_series_node.find("c:tx/c:v", NS).text == "Waveform Data"
+            assert (
+                waveform_series_node.find("c:tx/c:v", NS).text,
+                expected_well_name,
+            ) == ("Waveform Data", expected_well_name)
             assert (
                 waveform_series_node.find(
                     "c:spPr/a:ln/a:solidFill/a:srgbClr", NS
-                ).attrib["val"]
-                == "1B9E77"
-            )
+                ).attrib["val"],
+                expected_well_name,
+            ) == ("1B9E77", expected_well_name)
             assert (
                 waveform_series_node.find("c:cat/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['x_range']}"
@@ -218,17 +229,28 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
             for ser_node in chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
             ):
+                assert (
+                    expected_well_name == expected_attrs["well_name"]
+                ) and ser_node.find("c:xVal/c:numRef/c:f", NS).text is None
                 series_color = ser_node.find(
                     "c:marker/c:spPr/a:solidFill/a:srgbClr", NS
                 ).attrib["val"]
                 y_range = ser_node.find("c:yVal/c:numRef/c:f", NS).text
-                assert ser_node.find("c:xVal/c:numRef/c:f", NS).text is None
                 if int(ser_node.find("c:idx", NS).attrib["val"]) == 1:
-                    assert ser_node.find("c:tx/c:v", NS).text == "Contraction"
-                    assert series_color == "7570B3"
                     assert (
-                        y_range
-                        == f"'continuous-waveforms'!{expected_attrs['y_range_c']}"
+                        ser_node.find("c:tx/c:v", NS).text,
+                        expected_well_name,
+                        ser_node,
+                    ) == ("Contraction", expected_well_name, ser_node)
+                    assert (series_color, expected_well_name, ser_node) == (
+                        "7570B3",
+                        expected_well_name,
+                        ser_node,
+                    )
+                    assert (y_range, expected_well_name, ser_node) == (
+                        f"'continuous-waveforms'!{expected_attrs['y_range_c']}",
+                        expected_well_name,
+                        ser_node,
                     )
                     first_c_marker_idx = expected_attrs["first_c_idx"]
                     first_c_marker_node = ser_node.find(
@@ -236,15 +258,25 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                         NS,
                     )
                     assert (
-                        round(float(first_c_marker_node.find("c:v", NS).text), 2)
-                        == expected_attrs["first_c_y"]
-                    )
+                        round(float(first_c_marker_node.find("c:v", NS).text), 2),
+                        expected_well_name,
+                        ser_node,
+                    ) == (expected_attrs["first_c_y"], expected_well_name, ser_node)
                 elif int(ser_node.find("c:idx", NS).attrib["val"]) == 2:
-                    assert ser_node.find("c:tx/c:v", NS).text == "Relaxation"
-                    assert series_color == "D95F02"
                     assert (
-                        y_range
-                        == f"'continuous-waveforms'!{expected_attrs['y_range_r']}"
+                        ser_node.find("c:tx/c:v", NS).text,
+                        expected_well_name,
+                        ser_node,
+                    ) == ("Relaxation", expected_well_name, ser_node)
+                    assert (series_color, expected_well_name, ser_node) == (
+                        "D95F02",
+                        expected_well_name,
+                        ser_node,
+                    )
+                    assert (y_range, expected_well_name, ser_node) == (
+                        f"'continuous-waveforms'!{expected_attrs['y_range_r']}",
+                        expected_well_name,
+                        ser_node,
                     )
                     first_r_marker_idx = expected_attrs["first_r_idx"]
                     first_r_marker_node = ser_node.find(
@@ -252,9 +284,10 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                         NS,
                     )
                     assert (
-                        round(float(first_r_marker_node.find("c:v", NS).text), 2)
-                        == expected_attrs["first_r_y"]
-                    )
+                        round(float(first_r_marker_node.find("c:v", NS).text), 2),
+                        expected_well_name,
+                        ser_node,
+                    ) == (expected_attrs["first_r_y"], expected_well_name, ser_node)
 
         drawing_root = ET.parse(
             os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
@@ -267,7 +300,10 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
             )
             from_node = chart_node.find("xdr:from", NS)
-            assert int(from_node.find("xdr:col", NS).text) == expected_attrs["from_col"]
+            assert (int(from_node.find("xdr:col", NS).text), chart_name) == (
+                expected_attrs["from_col"],
+                chart_name,
+            )
             assert (chart_name, int(from_node.find("xdr:colOff", NS).text)) == (
                 chart_name,
                 0,

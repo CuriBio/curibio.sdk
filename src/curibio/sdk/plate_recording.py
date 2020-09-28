@@ -245,16 +245,16 @@ class PlateRecording(FileManagerPlateRecording):
         self,
         file_dir: str,
         file_name: Optional[str] = None,
-        skip_continuous_waveforms: bool = False,
-        skip_waveform_charts: bool = False,
+        create_continuous_waveforms: bool = True,
+        create_waveform_charts: bool = True,
     ) -> None:
         """Create an XLSX file.
 
         Args:
             file_dir: the directory in which to create the file.
             file_name: By default an automatic name is generated based on barcode and recording date. Extension will always be xlsx---if user provides something else then it is stripped
-            skip_continuous_waveforms: typically used in unit testing, if set to True, the continuous-waveforms sheet and continuous-waveform-plots sheet will be created with no content
-            skip_waveform_charts: typically used in unit testing, if set to True, only the continuous-waveform-plots sheet will be created with no content
+            create_continuous_waveforms: typically used in unit testing, if set to True, the continuous-waveforms sheet and continuous-waveform-plots sheet will be created with no content
+            create_waveform_charts: typically used in unit testing, if set to True, only the continuous-waveform-plots sheet will be created with no content
         """
         first_well_index = self.get_well_indices()[0]
         # this file is used to get general information applicable across the recording
@@ -274,8 +274,8 @@ class PlateRecording(FileManagerPlateRecording):
             )
         _write_xlsx_metadata(self._workbook, first_well_file)
         self._write_xlsx_continuous_waveforms(
-            skip_content=skip_continuous_waveforms,
-            skip_charts=skip_waveform_charts,
+            skip_content=(not create_continuous_waveforms),
+            skip_charts=(not create_waveform_charts),
         )
         self._write_xlsx_aggregate_metrics()
         logger.info("Saving .xlsx file")

@@ -126,7 +126,7 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
 
-    pr.write_xlsx(tmp_dir, skip_waveform_charts=True)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
@@ -170,7 +170,7 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir, skip_continuous_waveforms=True)
+    pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
     expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
@@ -217,7 +217,7 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
     file_dir = tmp_dir
 
-    pr.write_xlsx(file_dir, skip_waveform_charts=True)
+    pr.write_xlsx(file_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -254,7 +254,7 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir, skip_waveform_charts=True)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -287,7 +287,7 @@ def test_write_xlsx__creates_metadata_sheet_with_output_format_info(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir, skip_waveform_charts=True)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -312,7 +312,7 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
 
-    pr.write_xlsx(tmp_dir, skip_waveform_charts=True)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     expected_sheet_name = CONTINUOUS_WAVEFORM_SHEET_NAME
@@ -474,7 +474,7 @@ def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
     mocker.patch.object(
         Pipeline, "get_magnetic_data_metrics", autospec=True, side_effect=expected_error
     )
-    pr.write_xlsx(tmp_dir, file_name=expected_file_name, skip_waveform_charts=True)
+    pr.write_xlsx(tmp_dir, file_name=expected_file_name, create_waveform_charts=False)
 
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
@@ -576,7 +576,7 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        pr.write_xlsx(tmp_dir, skip_waveform_charts=True)
+        pr.write_xlsx(tmp_dir, create_waveform_charts=False)
 
         expected_file_name = "MA20001123-2020-08-20-17-06-00.xlsx"
         actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))

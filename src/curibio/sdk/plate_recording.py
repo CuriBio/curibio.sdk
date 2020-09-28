@@ -538,7 +538,7 @@ class PlateRecording(FileManagerPlateRecording):
                 elif isinstance(e, TwoValleysInARowError):
                     error_msg += "Two Relaxations in a Row Detected"
                 elif isinstance(e, TooFewPeaksDetectedError):
-                    error_msg += "Not Enough Contractions Detected"
+                    error_msg += "Not Enough Twitches Detected"
                 else:
                     raise NotImplementedError("Unknown PeakDetectionError") from e
                 curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")

@@ -456,7 +456,7 @@ def test_PlateRecording__create_stacked_plot_for_24_wells():
         ),
         (
             TooFewPeaksDetectedError(),
-            "Error: Not Enough Contractions Detected",
+            "Error: Not Enough Twitches Detected",
             "handles TooFewPeaksDetectedError",
         ),
     ],

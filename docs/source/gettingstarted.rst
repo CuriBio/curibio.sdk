@@ -50,27 +50,28 @@ This section will demonstrate how to upload H5 files to Jupyter, convert them to
 an excel sheet, and then download the converted files.
 
 
-Uploading H5 files
+Uploading H5 Files
 ------------------
 
-To begin uploading H5 files, click the Jupyter logo in the top left corner:
+1. To begin uploading H5 files, click the Jupyter logo in the top left corner to
+   navigate to the file explorer page:
 
 .. image:: images/jupyter.png
-    :width: 200
+    :width: 600
 
-You should now be on a page listing all the folders and files currently in the environment:
+You should now be on this page listing all the folders and files currently in the environment:
 
 .. image:: images/fresh_files_page.png
     :width: 600
 
-Click on ``my-data``. You should now be in the ``my-data`` folder:
+2. Click on ``my-data``. You should now be in the ``my-data`` folder:
 
 .. image:: images/my_data.png
     :width: 600
 
-Click on the upload button in the top right and select the files you wish to upload.
-You may see an upload button next to each file you selected to upload.
-If this happens, just click the new upload button next to each file to complete the process.
+3. Click on the upload button in the top right and select the files you wish to upload.
+   You may see an upload button next to each file you selected to upload.
+   If this happens, just click the new upload button next to each file to complete the process.
 
 .. image:: images/file_upload_button.png
     :width: 600
@@ -80,41 +81,45 @@ When the uploads complete, the page should look like this:
 .. image:: images/uploaded_files.png
     :width: 600
 
-Now click the folder icon shown below to go back to the main files page:
+4. Click the folder icon shown below to go back to the main files page:
 
 .. image:: images/folder_icon.png
     :width: 50
 
 
-Exporting data to an excel file
--------------------------------
+Exporting Data to an Excel File and Downloading
+-----------------------------------------------
 
-Navigate back to the notebook page by clicking on ``intro.ipynb``.
+1. Navigate back to the notebook page by clicking on ``intro.ipynb``.
 
-Before running any code cells, change the line::
+2. Before running any code cells, you will need to update the file location.
+   Change the line::
 
-    recording = PlateRecording.from_directory('./sample-data')
+      recording = PlateRecording.from_directory('./sample-data')
 
-to::
+   to::
 
-    recording = PlateRecording.from_directory('./my-data')
+      recording = PlateRecording.from_directory('./my-data')
 
-You can now begin running the code. To do so, click ``Cell`` near the top left, then click ``Run All``:
+3. You can now begin running the code. To do so, click ``Cell`` near the top left, then click ``Run All``:
 
 .. image:: images/cell_run_all.png
     :width: 600
 
 If there are many files, it may take a minute or two to convert all of them.
-When all cells complete execution there should be a number next to every cell:
+Progress messages will be printed to indicate the code is working and not frozen.
+When all cells complete execution there should be a number next to every cell.
+You will also see a message printed underneath the last cell indicating that
+writing to the ``.xlsx`` file is complete:
 
 .. image:: images/finished_cells.png
     :width: 600
 
-Click on the Jupyter Logo in the top left of the page again to
+4. Click on the Jupyter Logo in the top left of the page again to
 go back to the files page. You should should now see a new ``.xlsx`` file. The
-name of the file should contain the date the data was recorded formatted ``yyyy-mm-dd``.
+name of the file should contain the barcode of the plate the data was recorded from.
 
-To download, check the box to the left of the file and then press ``download``
+5. To download, check the box to the left of the file and then press ``download``
 near the top left.
 
 .. image:: images/download_screen.png

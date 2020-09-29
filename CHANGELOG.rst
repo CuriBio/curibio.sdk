@@ -1,11 +1,22 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.6.0 (unreleased)
+------------------
+
+- Added numbered steps to getting started documentation.
+- Added ``contiuous-waveform-plots`` sheet to excel file generation.
+  The only current format for chart creation is a <= 10 "snapshot" of
+  the middle data points. It shows waveforms as well as Contraction and
+  Relaxation markers.
+- Changed all interpolation to 100 Hz.
+
+
 0.5.0 (2020-09-21)
 ------------------
 
-- Added logging to write_xlsx.
-- Added backwards compatibility with file version >= 0.1.1.
+- Added logging to ``write_xlsx``.
+- Added backwards compatibility with file versions >= ``0.1.1``.
 
 
 0.4.1 (2020-09-16)

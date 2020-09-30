@@ -12,6 +12,8 @@ Changelog for Curi Bio Software Development Kit
 - Added access to reference sensor data.
 - Added performance improvements for accessing raw data.
 - Changed all interpolation to 100 Hz.
+- Fixed peak detection algorithm so it is less likely to report two
+  contractions/relaxations of a twitch in a row.
 
 
 0.5.0 (2020-09-21)

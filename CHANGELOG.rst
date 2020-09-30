@@ -6,9 +6,11 @@ Changelog for Curi Bio Software Development Kit
 
 - Added numbered steps to getting started documentation.
 - Added ``contiuous-waveform-plots`` sheet to excel file generation.
-  The only current format for chart creation is a <= 10 "snapshot" of
+  Currently, the only format for chart creation is a <= 10 "snapshot" of
   the middle data points. It shows waveforms as well as Contraction and
-  Relaxation markers.
+  Relaxation markers on twitches.
+- Added access to reference sensor data.
+- Added performance improvements for accessing raw data.
 - Changed all interpolation to 100 Hz.
 
 

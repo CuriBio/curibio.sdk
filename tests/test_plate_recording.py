@@ -7,6 +7,7 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 """
 import datetime
 import os
+from shutil import copy
 import tempfile
 from typing import Optional
 from typing import Union
@@ -607,3 +608,29 @@ def test_PlateRecording__get_reference_magnetic_data__returns_expected_values(
     assert actual.shape[0] == 2
     assert actual[1][0] == -376649
     assert actual[1][-1] == -552810
+
+
+def test_PlateRecording__can_be_initialized_from_zipped_files():
+    file_name = "MA20123456__2020_08_17_145752_files.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(
+                PATH_OF_CURRENT_FILE, "zipped_MA20123456__2020_08_17_145752", file_name
+            ),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)
+
+
+def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
+    file_name = "MA20123456__2020_08_17_145752_folder.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "zipped_folder", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)

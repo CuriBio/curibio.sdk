@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 import uuid
+import zipfile
 
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
@@ -183,6 +184,27 @@ class PlateRecording(FileManagerPlateRecording):
             )
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]
+
+    @classmethod
+    def from_directory(cls, dir_to_load_files_from: str) -> "PlateRecording":
+        first_item = os.listdir(dir_to_load_files_from)[0]
+        if first_item.endswith(".zip"):
+            path_to_zip_file = os.path.join(dir_to_load_files_from, first_item)
+            with zipfile.ZipFile(path_to_zip_file, "r") as zip_ref:
+                members = [
+                    member
+                    for member in zip_ref.namelist()
+                    if member.endswith(".h5") and "__MACOSX" not in member
+                    # Tanner (10/1/20): "__MACOSX" is an artifact of zipping a file on MacOS that is not needed by the SDK. This is likely not a typically use case, but this gaurds against in case a user does zip their files on Mac
+                ]
+                zip_contains_folder = all(os.path.sep in member for member in members)
+                zip_ref.extractall(dir_to_load_files_from, members=members)
+            if zip_contains_folder:
+                unzipped_dir_to_load_files_from = os.path.join(
+                    dir_to_load_files_from, os.path.dirname(members[0])
+                )
+                return cls.from_directory(unzipped_dir_to_load_files_from)
+        return super().from_directory(dir_to_load_files_from)  # type: ignore # Tanner (10/1/20): Not sure why mypy doesn't see the super class method's return type
 
     def _init_pipelines(self) -> None:
         try:

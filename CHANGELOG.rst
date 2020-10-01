@@ -1,7 +1,7 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.6.0 (unreleased)
+0.6.0 (2020-10-01)
 ------------------
 
 - Added numbered steps to getting started documentation.
@@ -11,6 +11,7 @@ Changelog for Curi Bio Software Development Kit
   Relaxation markers on twitches.
 - Added access to reference sensor data.
 - Added performance improvements for accessing raw data.
+- Added ability to upload zip files to Jupyter.
 - Changed all interpolation to 100 Hz.
 - Changed default filter for 1600 µs sampling period from Bessel Lowpass 30Hz
   to Butterworth Lowpass 30Hz.
@@ -22,7 +23,7 @@ Changelog for Curi Bio Software Development Kit
 ------------------
 
 - Added logging to ``write_xlsx``.
-- Added backwards compatibility with file versions >= ``0.1.1``.
+- Added backwards compatibility with H5 file versions >= ``0.1.1``.
 
 
 0.4.1 (2020-09-16)

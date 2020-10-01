@@ -25,7 +25,7 @@ from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
 from curibio.sdk import WAVEFORM_CHART_SHEET_NAME
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
-from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
@@ -72,7 +72,7 @@ def test_interpolated_data_period():
 def test_default_filter_dict():
     assert TSP_TO_DEFAULT_FILTER_UUID == {
         960: BESSEL_LOWPASS_10_UUID,
-        160: BESSEL_LOWPASS_30_UUID,
+        160: BUTTERWORTH_LOWPASS_30_UUID,
     }
 
 

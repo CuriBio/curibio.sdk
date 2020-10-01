@@ -12,6 +12,8 @@ Changelog for Curi Bio Software Development Kit
 - Added access to reference sensor data.
 - Added performance improvements for accessing raw data.
 - Changed all interpolation to 100 Hz.
+- Changed default filter for 1600 µs sampling period from Bessel Lowpass 30Hz
+  to Butterworth Lowpass 30Hz.
 - Fixed peak detection algorithm so it is less likely to report two
   contractions/relaxations of a twitch in a row.
 

@@ -31,7 +31,7 @@ from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
 from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
-from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
@@ -82,12 +82,12 @@ def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_b
     assert actual.tissue_sampling_period == 960
 
 
-def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_bessel_for_160cms_if_none_is_given(
+def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_butterworth_for_160cms_if_none_is_given(
     generic_well_file_0_3_2,
 ):
     pr = PlateRecording([generic_well_file_0_3_2])
     actual = pr.get_pipeline_template()
-    assert actual.noise_filter_uuid == BESSEL_LOWPASS_30_UUID
+    assert actual.noise_filter_uuid == BUTTERWORTH_LOWPASS_30_UUID
     assert actual.tissue_sampling_period == 160
 
 

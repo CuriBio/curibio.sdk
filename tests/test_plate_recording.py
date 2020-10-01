@@ -539,13 +539,13 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
 
     spied_info_logger.assert_any_call("Loading data from H5 file(s)")
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 0% (Well A1, 1 out of 24)"
+        "Loading tissue and reference data... 0% (Well A1, 1 out of 24)"
     )
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 17% (Well A2, 5 out of 24)"
+        "Loading tissue and reference data... 17% (Well A2, 5 out of 24)"
     )
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 96% (Well D6, 24 out of 24)"
+        "Loading tissue and reference data... 96% (Well D6, 24 out of 24)"
     )
     spied_info_logger.assert_any_call("Opening .xlsx file")
     spied_info_logger.assert_any_call("Writing H5 file metadata")
@@ -597,3 +597,13 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
             waveform_sheet.cell(row=1 + 1, column=0 + 1).value
             == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
         )
+
+
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values(
+    generic_well_file_0_3_2,
+):
+    pr = PlateRecording([generic_well_file_0_3_2])
+    actual = pr.get_reference_magnetic_data(4)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == -376649
+    assert actual[1][-1] == -552810

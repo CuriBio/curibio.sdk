@@ -198,14 +198,20 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
                 iter_well_idx
             )
-            msg = f"Loading tissue data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
+            msg = f"Loading tissue and reference data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
-            data = well.get_raw_tissue_reading()
-            iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))
+            iter_pipeline.load_raw_magnetic_data(
+                well.get_raw_tissue_reading(),
+                well.get_raw_reference_reading(),
+            )
             self._pipelines[iter_well_idx] = iter_pipeline
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template
+
+    def get_reference_magnetic_data(self, well_idx: int) -> NDArray[(2, Any), int]:
+        self._init_pipelines()
+        return self._pipelines[well_idx].get_raw_reference_magnetic_data()
 
     def create_stacked_plot(self) -> Figure:
         """Create a stacked plot of all wells in the recording."""

@@ -11,7 +11,8 @@ Changelog for Curi Bio Software Development Kit
   Relaxation markers on twitches.
 - Added access to reference sensor data.
 - Added performance improvements for accessing raw data.
-- Added ability to upload zip files to Jupyter.
+- Added ability to upload zip files to Jupyter and updated ``Getting Started``
+  documentation to show how to do so.
 - Changed all interpolation to 100 Hz.
 - Changed default filter for 1600 µs sampling period from Bessel Lowpass 30Hz
   to Butterworth Lowpass 30Hz.

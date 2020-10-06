@@ -1,7 +1,7 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.6.0 (2020-10-01)
+0.6.0 (2020-10-06)
 ------------------
 
 - Added numbered steps to getting started documentation.

@@ -81,11 +81,27 @@ When the uploads complete, the page should look like this:
 .. image:: images/uploaded_files.png
     :width: 600
 
-4. Click the folder icon shown below to go back to the main files page:
+Alternatively, you can upload multiple files as a ``zip`` file to speed up the
+upload process. To do so, just select the files you wish to zip. Right click
+on the selection, and choose ``Send to`` -> ``Compressed (zipped) folder``:
+
+.. image:: images/zip_menu.png
+    :width: 600
+
+After zipping you should see the ``zip`` file. This file will likely have the same
+name as one the the files you zipped as shown here:
+
+.. image:: images/zipped_files.png
+    :width: 600
+
+You can rename this ``zip`` file if you'd like to before uploading. Once the
+files are zipped together, remember to only upload the ``zip`` file.
+
+4. Once you finish uploading the file(s), click the folder icon shown below to go
+back to the main files page:
 
 .. image:: images/folder_icon.png
     :width: 50
-
 
 Exporting Data to an Excel File and Downloading
 -----------------------------------------------

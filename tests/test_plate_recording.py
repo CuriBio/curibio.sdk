@@ -610,6 +610,20 @@ def test_PlateRecording__get_reference_magnetic_data__returns_expected_values(
     assert actual[1][-1] == -552810
 
 
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values_with_file_version_0_1_1():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.1.1",
+        )
+    )
+    actual = pr.get_reference_magnetic_data(0)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == 78371
+    assert actual[1][-1] == 116599
+
+
 def test_PlateRecording__can_be_initialized_from_zipped_files():
     file_name = "MA20123456__2020_08_17_145752_files.zip"
     with tempfile.TemporaryDirectory() as tmp_dir:

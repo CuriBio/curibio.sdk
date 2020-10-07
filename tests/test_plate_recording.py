@@ -639,14 +639,27 @@ def test_PlateRecording__can_be_initialized_from_zipped_files():
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
 
 
-def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
+def test_PlateRecording__can_be_initialized_from_a_mac_zipped_folder():
     file_name = "MA20123456__2020_08_17_145752_folder.zip"
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_file_path = os.path.join(tmp_dir, file_name)
         copy(
-            os.path.join(PATH_OF_CURRENT_FILE, "zipped_folder", file_name),
+            os.path.join(PATH_OF_CURRENT_FILE, "zipped_mac_folder", file_name),
             tmp_file_path,
         )
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__can_be_initialized_from_a_windows_zipped_folder():
+    file_name = "MA 20 PEI Test Plate 2 - 2020_08_13_153638-20201007T210515Z-001.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "zipped_windows_folder", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == tuple(range(24))
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

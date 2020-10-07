@@ -197,7 +197,8 @@ class PlateRecording(FileManagerPlateRecording):
                     if member.endswith(".h5") and "__MACOSX" not in member
                     # Tanner (10/1/20): "__MACOSX" is an artifact of zipping a file on MacOS that is not needed by the SDK. This is likely not a typically use case, but this gaurds against in case a user does zip their files on Mac
                 ]
-                zip_contains_folder = all(os.path.sep in member for member in members)
+                path_sep = "/"  # Tanner (10/7/20): When zipfile unzips files, it always uses the unix style separator in the names of members
+                zip_contains_folder = all(path_sep in member for member in members)
                 zip_ref.extractall(dir_to_load_files_from, members=members)
             if zip_contains_folder:
                 unzipped_dir_to_load_files_from = os.path.join(

@@ -7,6 +7,7 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 """
 import datetime
 import os
+from shutil import copy
 import tempfile
 from typing import Optional
 from typing import Union
@@ -31,7 +32,7 @@ from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
 from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
-from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
@@ -82,12 +83,12 @@ def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_b
     assert actual.tissue_sampling_period == 960
 
 
-def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_bessel_for_160cms_if_none_is_given(
+def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_butterworth_for_160cms_if_none_is_given(
     generic_well_file_0_3_2,
 ):
     pr = PlateRecording([generic_well_file_0_3_2])
     actual = pr.get_pipeline_template()
-    assert actual.noise_filter_uuid == BESSEL_LOWPASS_30_UUID
+    assert actual.noise_filter_uuid == BUTTERWORTH_LOWPASS_30_UUID
     assert actual.tissue_sampling_period == 160
 
 
@@ -539,13 +540,13 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
 
     spied_info_logger.assert_any_call("Loading data from H5 file(s)")
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 0% (Well A1, 1 out of 24)"
+        "Loading tissue and reference data... 0% (Well A1, 1 out of 24)"
     )
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 17% (Well A2, 5 out of 24)"
+        "Loading tissue and reference data... 17% (Well A2, 5 out of 24)"
     )
     spied_info_logger.assert_any_call(
-        "Loading tissue data... 96% (Well D6, 24 out of 24)"
+        "Loading tissue and reference data... 96% (Well D6, 24 out of 24)"
     )
     spied_info_logger.assert_any_call("Opening .xlsx file")
     spied_info_logger.assert_any_call("Writing H5 file metadata")
@@ -597,3 +598,55 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
             waveform_sheet.cell(row=1 + 1, column=0 + 1).value
             == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
         )
+
+
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values(
+    generic_well_file_0_3_2,
+):
+    pr = PlateRecording([generic_well_file_0_3_2])
+    actual = pr.get_reference_magnetic_data(4)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == -376649
+    assert actual[1][-1] == -552810
+
+
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values_with_file_version_0_1_1():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.1.1",
+        )
+    )
+    actual = pr.get_reference_magnetic_data(0)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == 78371
+    assert actual[1][-1] == 116599
+
+
+def test_PlateRecording__can_be_initialized_from_zipped_files():
+    file_name = "MA20123456__2020_08_17_145752_files.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(
+                PATH_OF_CURRENT_FILE, "zipped_MA20123456__2020_08_17_145752", file_name
+            ),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
+    file_name = "MA20123456__2020_08_17_145752_folder.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "zipped_folder", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 import uuid
+import zipfile
 
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
@@ -184,6 +185,28 @@ class PlateRecording(FileManagerPlateRecording):
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]
 
+    @classmethod
+    def from_directory(cls, dir_to_load_files_from: str) -> "PlateRecording":
+        first_item = os.listdir(dir_to_load_files_from)[0]
+        if first_item.endswith(".zip"):
+            path_to_zip_file = os.path.join(dir_to_load_files_from, first_item)
+            with zipfile.ZipFile(path_to_zip_file, "r") as zip_ref:
+                members = [
+                    member
+                    for member in zip_ref.namelist()
+                    if member.endswith(".h5") and "__MACOSX" not in member
+                    # Tanner (10/1/20): "__MACOSX" is an artifact of zipping a file on MacOS that is not needed by the SDK. This is likely not a typically use case, but this gaurds against in case a user does zip their files on Mac
+                ]
+                path_sep = "/"  # Tanner (10/7/20): When zipfile unzips files, it always uses the unix style separator in the names of members
+                zip_contains_folder = all(path_sep in member for member in members)
+                zip_ref.extractall(dir_to_load_files_from, members=members)
+            if zip_contains_folder:
+                unzipped_dir_to_load_files_from = os.path.join(
+                    dir_to_load_files_from, os.path.dirname(members[0])
+                )
+                return cls.from_directory(unzipped_dir_to_load_files_from)
+        return super().from_directory(dir_to_load_files_from)  # type: ignore # Tanner (10/1/20): Not sure why mypy doesn't see the super class method's return type
+
     def _init_pipelines(self) -> None:
         try:
             self._pipelines  # pylint:disable=pointless-statement # Eli (9/11/20): this will cause the attribute error to be raised if the pipelines haven't yet been initialized
@@ -198,14 +221,20 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
                 iter_well_idx
             )
-            msg = f"Loading tissue data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
+            msg = f"Loading tissue and reference data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
-            data = well.get_raw_tissue_reading()
-            iter_pipeline.load_raw_magnetic_data(data, np.zeros(data.shape))
+            iter_pipeline.load_raw_magnetic_data(
+                well.get_raw_tissue_reading(),
+                well.get_raw_reference_reading(),
+            )
             self._pipelines[iter_well_idx] = iter_pipeline
 
     def get_pipeline_template(self) -> PipelineTemplate:
         return self._pipeline_template
+
+    def get_reference_magnetic_data(self, well_idx: int) -> NDArray[(2, Any), int]:
+        self._init_pipelines()
+        return self._pipelines[well_idx].get_raw_reference_magnetic_data()
 
     def create_stacked_plot(self) -> Figure:
         """Create a stacked plot of all wells in the recording."""

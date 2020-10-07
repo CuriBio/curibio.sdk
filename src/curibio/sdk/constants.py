@@ -10,7 +10,7 @@ from immutabledict import immutabledict
 from labware_domain_models import LabwareDefinition
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
-from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
@@ -42,7 +42,7 @@ INTERPOLATED_DATA_PERIOD_CMS = (
 TSP_TO_DEFAULT_FILTER_UUID = (
     {  # Tissue Sampling Period (centi-milliseconds) to default Pipeline Filter UUID
         960: BESSEL_LOWPASS_10_UUID,
-        160: BESSEL_LOWPASS_30_UUID,
+        160: BUTTERWORTH_LOWPASS_30_UUID,
     }
 )
 

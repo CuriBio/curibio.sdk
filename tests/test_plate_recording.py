@@ -636,6 +636,7 @@ def test_PlateRecording__can_be_initialized_from_zipped_files():
         )
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
 
 
 def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
@@ -648,3 +649,4 @@ def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
         )
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

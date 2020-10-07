@@ -7,6 +7,7 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 """
 import datetime
 import os
+from shutil import copy
 import tempfile
 from typing import Optional
 from typing import Union
@@ -15,13 +16,13 @@ from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
 from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
-from curibio.sdk import TSP_TO_INTERPOLATED_DATA_PERIOD
 from freezegun import freeze_time
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -31,7 +32,7 @@ from mantarray_file_manager import SOFTWARE_BUILD_NUMBER_UUID
 from mantarray_file_manager import SOFTWARE_RELEASE_VERSION_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
-from mantarray_waveform_analysis import BESSEL_LOWPASS_30_UUID
+from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
@@ -82,12 +83,12 @@ def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_b
     assert actual.tissue_sampling_period == 960
 
 
-def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_bessel_for_160cms_if_none_is_given(
+def test_init__creates_a_pipeline_template_with_correct_sampling_frequency_and_butterworth_for_160cms_if_none_is_given(
     generic_well_file_0_3_2,
 ):
     pr = PlateRecording([generic_well_file_0_3_2])
     actual = pr.get_pipeline_template()
-    assert actual.noise_filter_uuid == BESSEL_LOWPASS_30_UUID
+    assert actual.noise_filter_uuid == BUTTERWORTH_LOWPASS_30_UUID
     assert actual.tissue_sampling_period == 160
 
 
@@ -126,10 +127,10 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
 
-    pr.write_xlsx(tmp_dir)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
+    assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     curr_row = 0
     assert get_cell_value(aggregate_metrics_sheet, curr_row, 2) == "A1"
@@ -170,10 +171,10 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir, skip_continuous_waveforms=True)
+    pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
     expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[2] == AGGREGATE_METRICS_SHEET_NAME
+    assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
     actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     well_idx = real_3min_well_file_0_3_1.get_well_index()
     curr_row = 2
@@ -217,7 +218,7 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
     file_dir = tmp_dir
 
-    pr.write_xlsx(file_dir)
+    pr.write_xlsx(file_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -254,7 +255,7 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -287,7 +288,7 @@ def test_write_xlsx__creates_metadata_sheet_with_output_format_info(
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
-    pr.write_xlsx(tmp_dir)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
@@ -312,7 +313,7 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
 ):
     pr, tmp_dir = plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
 
-    pr.write_xlsx(tmp_dir)
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     expected_sheet_name = CONTINUOUS_WAVEFORM_SHEET_NAME
@@ -325,11 +326,11 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     assert actual_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
     assert (
         actual_sheet.cell(row=1 + 1, column=0 + 1).value
-        == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
     )
     assert (
         actual_sheet.cell(row=10 + 1, column=0 + 1).value
-        == 10 * TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+        == 10 * INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
     )
 
     assert get_cell_value(actual_sheet, 0, 5) == "A2"
@@ -446,17 +447,17 @@ def test_PlateRecording__create_stacked_plot_for_24_wells():
     [
         (
             TwoPeaksInARowError(([], []), [], (0, 1)),
-            "Error: Two Peaks in a Row Detected",
+            "Error: Two Contractions in a Row Detected",
             "handles TwoPeaksInARowError",
         ),
         (
             TwoValleysInARowError(([], []), [], (0, 1)),
-            "Error: Two Valleys in a Row Detected",
+            "Error: Two Relaxations in a Row Detected",
             "handles TwoValleysInARowError",
         ),
         (
             TooFewPeaksDetectedError(),
-            "Error: Not Enough Peaks Detected",
+            "Error: Not Enough Twitches Detected",
             "handles TooFewPeaksDetectedError",
         ),
     ],
@@ -474,7 +475,7 @@ def test_write_xlsx__writes_NA_if_peak_detections_errors_in_aggregate_metrics(
     mocker.patch.object(
         Pipeline, "get_magnetic_data_metrics", autospec=True, side_effect=expected_error
     )
-    pr.write_xlsx(tmp_dir, file_name=expected_file_name)
+    pr.write_xlsx(tmp_dir, file_name=expected_file_name, create_waveform_charts=False)
 
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
@@ -538,23 +539,36 @@ def test_PlateRecording__write_xlsx__logs_progress(mocker):
         pr.write_xlsx(tmp_dir)
 
     spied_info_logger.assert_any_call("Loading data from H5 file(s)")
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 0% (Well A1, 1 out of 24)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 17% (Well A2, 5 out of 24)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 96% (Well D6, 24 out of 24)"
+    )
     spied_info_logger.assert_any_call("Opening .xlsx file")
     spied_info_logger.assert_any_call("Writing H5 file metadata")
     spied_info_logger.assert_any_call("Creating waveform data sheet")
     spied_info_logger.assert_any_call("Writing waveform data of well A1 (1 out of 24)")
-    spied_info_logger.assert_any_call("Writing waveform data of well A2 (5 out of 24)")
+    spied_info_logger.assert_any_call("Creating chart of waveform data of well A1")
+    spied_info_logger.assert_any_call(
+        "Adding peak and valley markers to chart of well A1"
+    )
     spied_info_logger.assert_any_call("Writing waveform data of well D6 (24 out of 24)")
+    spied_info_logger.assert_any_call("Creating chart of waveform data of well D6")
+    spied_info_logger.assert_any_call(
+        "Adding peak and valley markers to chart of well D6"
+    )
     spied_info_logger.assert_any_call("Creating aggregate metrics sheet")
-    for submetric in ("Mean", "StDev", "CoV", "SEM"):
-        spied_info_logger.assert_any_call(
-            f"Writing {submetric} of well A1 (1 out of 24)"
-        )
-        spied_info_logger.assert_any_call(
-            f"Writing {submetric} of well A2 (5 out of 24)"
-        )
-        spied_info_logger.assert_any_call(
-            f"Writing {submetric} of well D6 (24 out of 24)"
-        )
+    for (_, metric) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(metric, tuple):
+            _, metric = metric
+        for submetric in ("Mean", "StDev", "CoV", "SEM"):
+            spied_info_logger.assert_any_call(f"Writing {submetric} of {metric}")
+            spied_info_logger.assert_any_call(f"Writing {submetric} of {metric}")
+            spied_info_logger.assert_any_call(f"Writing {submetric} of {metric}")
     spied_info_logger.assert_any_call("Saving .xlsx file")
     spied_info_logger.assert_any_call("Done writing to .xlsx")
 
@@ -569,7 +583,7 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        pr.write_xlsx(tmp_dir)
+        pr.write_xlsx(tmp_dir, create_waveform_charts=False)
 
         expected_file_name = "MA20001123-2020-08-20-17-06-00.xlsx"
         actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
@@ -582,5 +596,57 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
         assert waveform_sheet.cell(row=0 + 1, column=0 + 1).value == "Time (seconds)"
         assert (
             waveform_sheet.cell(row=1 + 1, column=0 + 1).value
-            == TSP_TO_INTERPOLATED_DATA_PERIOD[960] / CENTIMILLISECONDS_PER_SECOND
+            == INTERPOLATED_DATA_PERIOD_CMS / CENTIMILLISECONDS_PER_SECOND
         )
+
+
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values(
+    generic_well_file_0_3_2,
+):
+    pr = PlateRecording([generic_well_file_0_3_2])
+    actual = pr.get_reference_magnetic_data(4)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == -376649
+    assert actual[1][-1] == -552810
+
+
+def test_PlateRecording__get_reference_magnetic_data__returns_expected_values_with_file_version_0_1_1():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "h5",
+            "v0.1.1",
+        )
+    )
+    actual = pr.get_reference_magnetic_data(0)
+    assert actual.shape[0] == 2
+    assert actual[1][0] == 78371
+    assert actual[1][-1] == 116599
+
+
+def test_PlateRecording__can_be_initialized_from_zipped_files():
+    file_name = "MA20123456__2020_08_17_145752_files.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(
+                PATH_OF_CURRENT_FILE, "zipped_MA20123456__2020_08_17_145752", file_name
+            ),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__can_be_initialized_from_a_zipped_folder():
+    file_name = "MA20123456__2020_08_17_145752_folder.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "zipped_folder", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4, 8)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

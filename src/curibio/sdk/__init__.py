@@ -26,11 +26,13 @@ from .constants import PACKAGE_VERSION as __version__
 from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import WAVEFORM_CHART_SHEET_NAME
+from .excel_well_file import ExcelWellFile
 from .plate_recording import PlateRecording
 
 
 __all__ = [
     "WellFile",
+    "ExcelWellFile",
     "PlateRecording",
     "METADATA_EXCEL_SHEET_NAME",
     "METADATA_RECORDING_ROW_START",

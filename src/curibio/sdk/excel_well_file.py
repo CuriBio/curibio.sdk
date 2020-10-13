@@ -6,7 +6,6 @@ from typing import Optional
 from typing import Tuple
 from uuid import UUID
 
-from mantarray_file_manager import MICROSECONDS_PER_CENTIMILLISECOND
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
@@ -25,6 +24,21 @@ from .constants import TWITCHES_POINT_UP_UUID
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
 
 
+def _get_col_as_array(
+    sheet: Worksheet,
+    zero_based_row: int,
+    zero_based_col: int,
+) -> NDArray[(2, Any), float]:
+    result = _get_cell_value(sheet, zero_based_row, zero_based_col)
+    col_array = [result]
+    zero_based_row += 1
+    while result:
+        result = _get_cell_value(sheet, zero_based_row, zero_based_col)
+        col_array.append(result)
+        zero_based_row += 1
+    return np.array(col_array)
+
+
 def _get_well_index_from_well_name(well_name: str) -> int:
     return (ord(well_name[0]) - ord("A")) * 4 + int(well_name[1]) - 1
 
@@ -34,22 +48,24 @@ def _get_single_sheet(file_name: str) -> Any:
     return wb[wb.sheetnames[0]]
 
 
-def _get_cell_value(sheet: Worksheet, zero_based_row: int, zero_based_col: int) -> str:
-    return str(sheet.cell(row=zero_based_row + 1, column=zero_based_col + 1).value)
+def _get_cell_value(
+    sheet: Worksheet,
+    zero_based_row: int,
+    zero_based_col: int,
+) -> Optional[str]:
+    result = sheet.cell(row=zero_based_row + 1, column=zero_based_col + 1).value
+    if result is None:
+        return result
+    return str(result)
 
 
 def _get_excel_metadata_value(sheet: Worksheet, metadata_uuid: UUID) -> str:
-    # the metadata that we want users to for sure include in Excel files:
-    #
-    #   plate barcode
-    #   some recording timestamp (it's going to be approximate since it's just their guess)
-    #   well name (we can convert to well index using LabwareDefinition)
-    #   sampling period / framerate of the camera
-    #   twitches point up (bool)
-    #
     cell_name = EXCEL_OPTICAL_METADATA_CELLS[metadata_uuid]
     row, col = xl_cell_to_rowcol(cell_name)
-    return _get_cell_value(sheet, row, col)
+    result = _get_cell_value(sheet, row, col)
+    if result is None:
+        raise Exception()  # raise some custom error here: MetadataNotFoundError
+    return result
 
 
 class ExcelWellFile(WellFile):
@@ -116,8 +132,7 @@ class ExcelWellFile(WellFile):
         return int(round(sampling_period_seconds, 6) * 1e6)
 
     def get_reference_sampling_period_microseconds(self) -> int:
-        # TODO: ? this is a must have in the excel file
-        pass
+        return 0
 
     def get_recording_start_index(self) -> int:
         pass
@@ -127,68 +142,17 @@ class ExcelWellFile(WellFile):
             self._excel_sheet, TWITCHES_POINT_UP_UUID
         )
 
-    def get_raw_tissue_reading(self) -> NDArray[(2, Any), int]:
+    def get_raw_tissue_reading(self) -> NDArray[(2, Any), float]:
         if self._raw_tissue_reading is None:
-            recording_start_index_useconds = (
-                self.get_recording_start_index() * MICROSECONDS_PER_CENTIMILLISECOND
-            )
-            timestamp_of_start_index = (
-                self.get_timestamp_of_beginning_of_data_acquisition()
-                + datetime.timedelta(microseconds=recording_start_index_useconds)
-            )
-            time_delta = (
-                self.get_timestamp_of_first_ref_data_point() - timestamp_of_start_index
-            )
-
-            time_delta_centimilliseconds = int(
-                time_delta
-                / datetime.timedelta(microseconds=MICROSECONDS_PER_CENTIMILLISECOND)
-            )
-
-            time_step = int(
-                self.get_reference_sampling_period_microseconds()
-                / MICROSECONDS_PER_CENTIMILLISECOND
-            )
-            tissue_data = np.zeros((1, 1))  # TODO
-
-            times = np.arange(len(tissue_data), dtype=np.int32) * time_step
-            len_time = len(times)
-
             self._raw_tissue_reading = np.array(
-                (times + time_delta_centimilliseconds, tissue_data[:len_time]),
-                dtype=np.int32,
+                (
+                    _get_col_as_array(self._excel_sheet, 1, 0),
+                    _get_col_as_array(self._excel_sheet, 1, 1),
+                )
             )
         return self._raw_tissue_reading
 
-    def get_raw_reference_reading(self) -> NDArray[(2, Any), int]:
+    def get_raw_reference_reading(self) -> NDArray[(2, Any), float]:
         if self._raw_ref_reading is None:
-            recording_start_index_useconds = (
-                self.get_recording_start_index() * MICROSECONDS_PER_CENTIMILLISECOND
-            )
-            timestamp_of_start_index = (
-                self.get_timestamp_of_beginning_of_data_acquisition()
-                + datetime.timedelta(microseconds=recording_start_index_useconds)
-            )
-            time_delta = (
-                self.get_timestamp_of_first_ref_data_point() - timestamp_of_start_index
-            )
-
-            time_delta_centimilliseconds = int(
-                time_delta
-                / datetime.timedelta(microseconds=MICROSECONDS_PER_CENTIMILLISECOND)
-            )
-
-            time_step = int(
-                self.get_reference_sampling_period_microseconds()
-                / MICROSECONDS_PER_CENTIMILLISECOND
-            )
-            ref_data = np.zeros((1, 1))  # TODO
-
-            times = np.arange(len(ref_data), dtype=np.int32) * time_step
-            len_time = len(times)
-
-            self._raw_ref_reading = np.array(
-                (times + time_delta_centimilliseconds, ref_data[:len_time]),
-                dtype=np.int32,
-            )
+            self._raw_ref_reading = np.zeros(self.get_raw_tissue_reading().shape)
         return self._raw_ref_reading

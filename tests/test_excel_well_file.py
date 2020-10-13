@@ -111,7 +111,7 @@ def test_ExcelWellFile__get_reference_sampling_period_microseconds(
     generic_excel_well_file_0_1_0,
 ):
     assert (
-        generic_excel_well_file_0_1_0.get_reference_sampling_period_microseconds() == -1
+        generic_excel_well_file_0_1_0.get_reference_sampling_period_microseconds() == 0
     )
 
 
@@ -124,8 +124,8 @@ def test_ExcelWellFile__get_twitches_point_up(generic_excel_well_file_0_1_0):
 
 
 def test_ExcelWellFile__get_raw_tissue_reading(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_raw_tissue_reading() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_raw_tissue_reading().shape == (2, 1467)
 
 
 def test_ExcelWellFile__get_raw_reference_reading(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_raw_reference_reading() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_raw_reference_reading().shape == (2, 1467)

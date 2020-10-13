@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+import uuid
 
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import ALL_FORMATS
@@ -13,6 +14,7 @@ from curibio.sdk import CHART_WINDOW_NUM_DATA_POINTS
 from curibio.sdk import CHART_WINDOW_NUM_SECONDS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_CELL_WIDTH
+from curibio.sdk import EXCEL_OPTICAL_METADATA_CELLS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
@@ -22,7 +24,12 @@ from curibio.sdk import METADATA_RECORDING_ROW_START
 from curibio.sdk import MICROSECONDS_PER_CENTIMILLISECOND
 from curibio.sdk import PEAK_VALLEY_COLUMN_START
 from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
+from curibio.sdk import TWITCHES_POINT_UP_UUID
 from curibio.sdk import WAVEFORM_CHART_SHEET_NAME
+from mantarray_file_manager import PLATE_BARCODE_UUID
+from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
+from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
+from mantarray_file_manager import WELL_NAME_UUID
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
@@ -89,3 +96,14 @@ def test_charts():
         CHART_WINDOW_NUM_DATA_POINTS
         == CHART_WINDOW_NUM_SECONDS / INTERPOLATED_DATA_PERIOD_SECONDS
     )
+
+
+def test_excel_optical_metadata():
+    assert TWITCHES_POINT_UP_UUID == uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+    assert EXCEL_OPTICAL_METADATA_CELLS == {
+        WELL_NAME_UUID: "E3",
+        UTC_BEGINNING_RECORDING_UUID: "F3",
+        PLATE_BARCODE_UUID: "G3",
+        TISSUE_SAMPLING_PERIOD_UUID: "H3",
+        TWITCHES_POINT_UP_UUID: "I3",
+    }

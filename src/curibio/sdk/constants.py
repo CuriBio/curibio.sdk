@@ -8,6 +8,10 @@ import uuid
 
 from immutabledict import immutabledict
 from labware_domain_models import LabwareDefinition
+from mantarray_file_manager import PLATE_BARCODE_UUID
+from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
+from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
+from mantarray_file_manager import WELL_NAME_UUID
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
@@ -69,3 +73,12 @@ CALCULATED_METRIC_DISPLAY_NAMES: Dict[
     ]
 )
 ALL_FORMATS = immutabledict({"CoV": {"num_format": "0.00%"}})
+
+TWITCHES_POINT_UP_UUID = uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+EXCEL_OPTICAL_METADATA_CELLS = {
+    WELL_NAME_UUID: "E3",
+    UTC_BEGINNING_RECORDING_UUID: "F3",
+    PLATE_BARCODE_UUID: "G3",
+    TISSUE_SAMPLING_PERIOD_UUID: "H3",
+    TWITCHES_POINT_UP_UUID: "I3",
+}

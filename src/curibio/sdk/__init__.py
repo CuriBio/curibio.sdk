@@ -15,6 +15,7 @@ from .constants import CHART_WINDOW_NUM_DATA_POINTS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
+from .constants import EXCEL_OPTICAL_METADATA_CELLS
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
 from .constants import METADATA_EXCEL_SHEET_NAME
@@ -25,6 +26,7 @@ from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION as __version__
 from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
+from .constants import TWITCHES_POINT_UP_UUID
 from .constants import WAVEFORM_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 from .plate_recording import PlateRecording
@@ -57,4 +59,6 @@ __all__ = [
     "INTERPOLATED_DATA_PERIOD_SECONDS",
     "CHART_WINDOW_NUM_SECONDS",
     "CHART_WINDOW_NUM_DATA_POINTS",
+    "EXCEL_OPTICAL_METADATA_CELLS",
+    "TWITCHES_POINT_UP_UUID",
 ]

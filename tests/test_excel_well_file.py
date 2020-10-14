@@ -4,8 +4,12 @@ import datetime
 import os
 
 from curibio.sdk import ExcelWellFile
+from curibio.sdk import MetadataNotFoundError
 from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
 from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
+from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
+from mantarray_file_manager import WELL_NAME_UUID
+import pytest
 from stdlib_utils import get_current_file_abs_directory
 
 from .fixtures import fixture_generic_excel_well_file_0_1_0
@@ -28,6 +32,23 @@ def test_ExcelWellFile__opens_and_get_file_name():
     )
     expected_path = os.path.join(PATH_OF_CURRENT_FILE, file_name)
     assert wf.get_file_name() == expected_path
+
+
+def test_ExcelWellFile__get_excel_metadata_value__raises_error_when_metadata_is_missing():
+    file_name = os.path.join(
+        "excel_optical_data", "optical_data_missing_well_name.xlsx"
+    )
+    wf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            file_name,
+        )
+    )
+    test_metadata_uuid = WELL_NAME_UUID
+    with pytest.raises(
+        MetadataNotFoundError, match=METADATA_UUID_DESCRIPTIONS[test_metadata_uuid]
+    ):
+        wf.get_excel_metadata_value(test_metadata_uuid)
 
 
 def test_ExcelWellFile__get_file_version(generic_excel_well_file_0_1_0):

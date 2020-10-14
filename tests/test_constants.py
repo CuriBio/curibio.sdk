@@ -21,11 +21,13 @@ from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import METADATA_UUID_DESCRIPTIONS
 from curibio.sdk import MICROSECONDS_PER_CENTIMILLISECOND
 from curibio.sdk import PEAK_VALLEY_COLUMN_START
 from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
 from curibio.sdk import TWITCHES_POINT_UP_UUID
 from curibio.sdk import WAVEFORM_CHART_SHEET_NAME
+from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
@@ -100,10 +102,15 @@ def test_charts():
 
 def test_excel_optical_metadata():
     assert TWITCHES_POINT_UP_UUID == uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+    assert (
+        METADATA_UUID_DESCRIPTIONS[TWITCHES_POINT_UP_UUID]
+        == "Flag indicating whether or not the twitches in the data point up or not"
+    )
     assert EXCEL_OPTICAL_METADATA_CELLS == {
         WELL_NAME_UUID: "E3",
         UTC_BEGINNING_RECORDING_UUID: "F3",
         PLATE_BARCODE_UUID: "G3",
         TISSUE_SAMPLING_PERIOD_UUID: "H3",
         TWITCHES_POINT_UP_UUID: "I3",
+        MANTARRAY_SERIAL_NUMBER_UUID: "J3",
     }

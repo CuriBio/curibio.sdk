@@ -9,6 +9,7 @@ import uuid
 from immutabledict import immutabledict
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
+from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
@@ -76,6 +77,10 @@ CALCULATED_METRIC_DISPLAY_NAMES: Dict[
 ALL_FORMATS = immutabledict({"CoV": {"num_format": "0.00%"}})
 
 TWITCHES_POINT_UP_UUID = uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+METADATA_UUID_DESCRIPTIONS[
+    TWITCHES_POINT_UP_UUID
+] = "Flag indicating whether or not the twitches in the data point up or not"
+
 EXCEL_OPTICAL_METADATA_CELLS = {
     WELL_NAME_UUID: "E3",
     UTC_BEGINNING_RECORDING_UUID: "F3",

@@ -21,7 +21,9 @@ from stdlib_utils import get_current_file_abs_directory
 from xlsxwriter.utility import xl_cell_to_rowcol
 
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
+from .constants import METADATA_UUID_DESCRIPTIONS
 from .constants import TWITCHES_POINT_UP_UUID
+from .exceptions import MetadataNotFoundError
 
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
 
@@ -61,15 +63,6 @@ def _get_cell_value(
     return str(result)
 
 
-def _get_excel_metadata_value(sheet: Worksheet, metadata_uuid: UUID) -> str:
-    cell_name = EXCEL_OPTICAL_METADATA_CELLS[metadata_uuid]
-    row, col = xl_cell_to_rowcol(cell_name)
-    result = _get_cell_value(sheet, row, col)
-    if result is None:
-        raise Exception()  # raise some custom error here: MetadataNotFoundError
-    return result
-
-
 class ExcelWellFile(WellFile):
     """Wrapper around an Excel file for a single well of optical data.
 
@@ -87,6 +80,21 @@ class ExcelWellFile(WellFile):
         self._raw_tissue_reading: Optional[NDArray[(2, Any), int]] = None
         self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = None
 
+    def get_excel_metadata_value(self, metadata_uuid: UUID) -> str:
+        metadata_description = METADATA_UUID_DESCRIPTIONS[metadata_uuid]
+        cell_name = EXCEL_OPTICAL_METADATA_CELLS.get(metadata_uuid, None)
+        if cell_name is None:
+            raise NotImplementedError(
+                f"Metadata value for {metadata_description} is not contained in excel files of well data"
+            )
+        row, col = xl_cell_to_rowcol(cell_name)
+        result = _get_cell_value(self._excel_sheet, row, col)
+        if result is None:
+            raise MetadataNotFoundError(
+                f"Metadata entry not found for {metadata_description}"
+            )
+        return result
+
     def get_h5_file(self) -> None:
         raise NotImplementedError("ExcelWellFiles do not store an H5 file")
 
@@ -96,13 +104,13 @@ class ExcelWellFile(WellFile):
         )
 
     def get_well_name(self) -> str:
-        return _get_excel_metadata_value(self._excel_sheet, WELL_NAME_UUID)
+        return self.get_excel_metadata_value(WELL_NAME_UUID)
 
     def get_well_index(self) -> int:
         return _get_well_index_from_well_name(self.get_well_name())
 
     def get_plate_barcode(self) -> str:
-        return _get_excel_metadata_value(self._excel_sheet, PLATE_BARCODE_UUID)
+        return self.get_excel_metadata_value(PLATE_BARCODE_UUID)
 
     def get_user_account(self) -> UUID:
         if not isinstance(CURI_BIO_USER_ACCOUNT_ID, UUID):
@@ -122,14 +130,10 @@ class ExcelWellFile(WellFile):
         return CURI_BIO_ACCOUNT_UUID
 
     def get_mantarray_serial_number(self) -> str:
-        return _get_excel_metadata_value(
-            self._excel_sheet, MANTARRAY_SERIAL_NUMBER_UUID
-        )
+        return self.get_excel_metadata_value(MANTARRAY_SERIAL_NUMBER_UUID)
 
     def get_begin_recording(self) -> datetime.datetime:
-        timestamp_str = _get_excel_metadata_value(
-            self._excel_sheet, UTC_BEGINNING_RECORDING_UUID
-        )
+        timestamp_str = self.get_excel_metadata_value(UTC_BEGINNING_RECORDING_UUID)
         timestamp = datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
         return timestamp
 
@@ -141,7 +145,7 @@ class ExcelWellFile(WellFile):
 
     def get_tissue_sampling_period_microseconds(self) -> int:
         sampling_period_seconds = float(
-            _get_excel_metadata_value(self._excel_sheet, TISSUE_SAMPLING_PERIOD_UUID)
+            self.get_excel_metadata_value(TISSUE_SAMPLING_PERIOD_UUID)
         )
         return int(round(sampling_period_seconds, 6) * 1e6)
 
@@ -152,9 +156,7 @@ class ExcelWellFile(WellFile):
         return 0
 
     def get_twitches_point_up(self) -> bool:
-        return "y" in _get_excel_metadata_value(
-            self._excel_sheet, TWITCHES_POINT_UP_UUID
-        )
+        return "y" in self.get_excel_metadata_value(TWITCHES_POINT_UP_UUID)
 
     def get_raw_tissue_reading(self) -> NDArray[(2, Any), float]:
         if self._raw_tissue_reading is None:

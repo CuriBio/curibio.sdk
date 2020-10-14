@@ -4,6 +4,8 @@ import datetime
 import os
 
 from curibio.sdk import ExcelWellFile
+from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
+from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
 from stdlib_utils import get_current_file_abs_directory
 
 from .fixtures import fixture_generic_excel_well_file_0_1_0
@@ -33,7 +35,10 @@ def test_ExcelWellFile__get_file_version(generic_excel_well_file_0_1_0):
 
 
 def test_ExcelWellFile__get_unique_recording_key(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_unique_recording_key() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_unique_recording_key() == (
+        "Test Barcode",
+        datetime.datetime(2020, 10, 12, 4, 40),
+    )
 
 
 def test_ExcelWellFile__get_well_name(generic_excel_well_file_0_1_0):
@@ -45,11 +50,11 @@ def test_ExcelWellFile__get_well_index(generic_excel_well_file_0_1_0):
 
 
 def test_ExcelWellFile__get_plate_barcode(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_plate_barcode() == "M02001900"
+    assert generic_excel_well_file_0_1_0.get_plate_barcode() == "Test Barcode"
 
 
 def test_ExcelWellFile__get_user_account(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_user_account() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_user_account() == CURI_BIO_USER_ACCOUNT_ID
 
 
 def test_ExcelWellFile__get_timestamp_of_beginning_of_data_acquisition(
@@ -57,7 +62,7 @@ def test_ExcelWellFile__get_timestamp_of_beginning_of_data_acquisition(
 ):
     assert (
         generic_excel_well_file_0_1_0.get_timestamp_of_beginning_of_data_acquisition()
-        == -1
+        == datetime.datetime(2020, 10, 12, 4, 40)
     )
 
 
@@ -69,11 +74,11 @@ def test_ExcelWellFile__get_customer_account(generic_excel_well_file_0_1_0):
             "optical_data_filled_template.xlsx",
         )
     )
-    assert wf.get_customer_account() == -1  # TODO
+    assert wf.get_customer_account() == CURI_BIO_ACCOUNT_UUID
 
 
 def test_ExcelWellFile__get_mantarray_serial_number(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_mantarray_serial_number() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_mantarray_serial_number() == "Test Name"
 
 
 def test_ExcelWellFile__get_begin_recording(generic_excel_well_file_0_1_0):
@@ -86,16 +91,18 @@ def test_ExcelWellFile__get_timestamp_of_first_tissue_data_point(
     generic_excel_well_file_0_1_0,
 ):
     assert (
-        generic_excel_well_file_0_1_0.get_timestamp_of_first_tissue_data_point() == -1
-    )  # TODO
+        generic_excel_well_file_0_1_0.get_timestamp_of_first_tissue_data_point()
+        == datetime.datetime(2020, 10, 12, 4, 40)
+    )
 
 
 def test_ExcelWellFile__get_timestamp_of_first_ref_data_point(
     generic_excel_well_file_0_1_0,
 ):
     assert (
-        generic_excel_well_file_0_1_0.get_timestamp_of_first_ref_data_point() == -1
-    )  # TODO
+        generic_excel_well_file_0_1_0.get_timestamp_of_first_ref_data_point()
+        == datetime.datetime(2020, 10, 12, 4, 40)
+    )
 
 
 def test_ExcelWellFile__get_tissue_sampling_period_microseconds(
@@ -116,7 +123,7 @@ def test_ExcelWellFile__get_reference_sampling_period_microseconds(
 
 
 def test_ExcelWellFile__get_recording_start_index(generic_excel_well_file_0_1_0):
-    assert generic_excel_well_file_0_1_0.get_recording_start_index() == -1  # TODO
+    assert generic_excel_well_file_0_1_0.get_recording_start_index() == 0
 
 
 def test_ExcelWellFile__get_twitches_point_up(generic_excel_well_file_0_1_0):

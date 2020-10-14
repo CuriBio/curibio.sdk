@@ -8,6 +8,7 @@ import uuid
 
 from immutabledict import immutabledict
 from labware_domain_models import LabwareDefinition
+from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
@@ -81,4 +82,5 @@ EXCEL_OPTICAL_METADATA_CELLS = {
     PLATE_BARCODE_UUID: "G3",
     TISSUE_SAMPLING_PERIOD_UUID: "H3",
     TWITCHES_POINT_UP_UUID: "I3",
+    MANTARRAY_SERIAL_NUMBER_UUID: "J3",
 }

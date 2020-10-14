@@ -3,9 +3,11 @@
 import datetime
 from typing import Any
 from typing import Optional
-from typing import Tuple
 from uuid import UUID
 
+from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
+from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
+from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import PLATE_BARCODE_UUID
 from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
@@ -88,8 +90,10 @@ class ExcelWellFile(WellFile):
     def get_h5_file(self) -> None:
         raise NotImplementedError("ExcelWellFiles do not store an H5 file")
 
-    def get_unique_recording_key(self) -> Tuple[str, datetime.datetime]:
-        pass
+    def get_h5_attribute(self, attr_name: str) -> Any:
+        raise NotImplementedError(
+            "ExcelWellFiles do not store an H5 file and therefore cannot get H5 attributes"
+        )
 
     def get_well_name(self) -> str:
         return _get_excel_metadata_value(self._excel_sheet, WELL_NAME_UUID)
@@ -101,16 +105,26 @@ class ExcelWellFile(WellFile):
         return _get_excel_metadata_value(self._excel_sheet, PLATE_BARCODE_UUID)
 
     def get_user_account(self) -> UUID:
-        pass
+        if not isinstance(CURI_BIO_USER_ACCOUNT_ID, UUID):
+            # Tanner (10/13/20): Making mypy happy
+            raise NotImplementedError(
+                "CURI_BIO_USER_ACCOUNT_ID should always be a UUID"
+            )
+        return CURI_BIO_USER_ACCOUNT_ID
 
     def get_timestamp_of_beginning_of_data_acquisition(self) -> datetime.datetime:
-        pass
+        return self.get_begin_recording()
 
     def get_customer_account(self) -> UUID:
-        pass
+        if not isinstance(CURI_BIO_ACCOUNT_UUID, UUID):
+            # Tanner (10/13/20): Making mypy happy
+            raise NotImplementedError("CURI_BIO_ACCOUNT_UUID should always be a UUID")
+        return CURI_BIO_ACCOUNT_UUID
 
     def get_mantarray_serial_number(self) -> str:
-        pass
+        return _get_excel_metadata_value(
+            self._excel_sheet, MANTARRAY_SERIAL_NUMBER_UUID
+        )
 
     def get_begin_recording(self) -> datetime.datetime:
         timestamp_str = _get_excel_metadata_value(
@@ -120,10 +134,10 @@ class ExcelWellFile(WellFile):
         return timestamp
 
     def get_timestamp_of_first_tissue_data_point(self) -> datetime.datetime:
-        pass
+        return self.get_begin_recording()
 
     def get_timestamp_of_first_ref_data_point(self) -> datetime.datetime:
-        pass
+        return self.get_begin_recording()
 
     def get_tissue_sampling_period_microseconds(self) -> int:
         sampling_period_seconds = float(
@@ -135,7 +149,7 @@ class ExcelWellFile(WellFile):
         return 0
 
     def get_recording_start_index(self) -> int:
-        pass
+        return 0
 
     def get_twitches_point_up(self) -> bool:
         return "y" in _get_excel_metadata_value(

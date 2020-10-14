@@ -77,9 +77,13 @@ CALCULATED_METRIC_DISPLAY_NAMES: Dict[
 ALL_FORMATS = immutabledict({"CoV": {"num_format": "0.00%"}})
 
 TWITCHES_POINT_UP_UUID = uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
-METADATA_UUID_DESCRIPTIONS[
-    TWITCHES_POINT_UP_UUID
-] = "Flag indicating whether or not the twitches in the data point up or not"
+INTERPOLATION_VALUE_UUID = uuid.UUID("466d0131-06b7-4f0f-ba1e-062a771cb280")
+METADATA_UUID_DESCRIPTIONS.update(
+    {
+        TWITCHES_POINT_UP_UUID: "Flag indicating whether or not the twitches in the data point up or not",
+        INTERPOLATION_VALUE_UUID: "Desired value for optical well data interpolation",
+    }
+)
 
 EXCEL_OPTICAL_METADATA_CELLS = {
     WELL_NAME_UUID: "E3",
@@ -88,4 +92,5 @@ EXCEL_OPTICAL_METADATA_CELLS = {
     TISSUE_SAMPLING_PERIOD_UUID: "H3",
     TWITCHES_POINT_UP_UUID: "I3",
     MANTARRAY_SERIAL_NUMBER_UUID: "J3",
+    INTERPOLATION_VALUE_UUID: "E7",
 }

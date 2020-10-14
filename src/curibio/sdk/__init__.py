@@ -18,6 +18,7 @@ from .constants import DEFAULT_CELL_WIDTH
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
+from .constants import INTERPOLATION_VALUE_UUID
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -65,4 +66,5 @@ __all__ = [
     "TWITCHES_POINT_UP_UUID",
     "METADATA_UUID_DESCRIPTIONS",
     "MetadataNotFoundError",
+    "INTERPOLATION_VALUE_UUID",
 ]

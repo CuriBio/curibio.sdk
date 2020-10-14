@@ -17,6 +17,7 @@ from curibio.sdk import DEFAULT_CELL_WIDTH
 from curibio.sdk import EXCEL_OPTICAL_METADATA_CELLS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
+from curibio.sdk import INTERPOLATION_VALUE_UUID
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
@@ -102,10 +103,17 @@ def test_charts():
 
 def test_excel_optical_metadata():
     assert TWITCHES_POINT_UP_UUID == uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+    assert INTERPOLATION_VALUE_UUID == uuid.UUID("466d0131-06b7-4f0f-ba1e-062a771cb280")
+
     assert (
         METADATA_UUID_DESCRIPTIONS[TWITCHES_POINT_UP_UUID]
         == "Flag indicating whether or not the twitches in the data point up or not"
     )
+    assert (
+        METADATA_UUID_DESCRIPTIONS[INTERPOLATION_VALUE_UUID]
+        == "Desired value for optical well data interpolation"
+    )
+
     assert EXCEL_OPTICAL_METADATA_CELLS == {
         WELL_NAME_UUID: "E3",
         UTC_BEGINNING_RECORDING_UUID: "F3",
@@ -113,4 +121,5 @@ def test_excel_optical_metadata():
         TISSUE_SAMPLING_PERIOD_UUID: "H3",
         TWITCHES_POINT_UP_UUID: "I3",
         MANTARRAY_SERIAL_NUMBER_UUID: "J3",
+        INTERPOLATION_VALUE_UUID: "E7",
     }

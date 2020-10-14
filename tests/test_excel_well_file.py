@@ -35,13 +35,11 @@ def test_ExcelWellFile__opens_and_get_file_name():
 
 
 def test_ExcelWellFile__get_excel_metadata_value__raises_error_when_metadata_is_missing():
-    file_name = os.path.join(
-        "excel_optical_data", "optical_data_missing_well_name.xlsx"
-    )
     wf = ExcelWellFile(
         os.path.join(
             PATH_OF_CURRENT_FILE,
-            file_name,
+            "excel_optical_data",
+            "optical_data_missing_well_name.xlsx",
         )
     )
     test_metadata_uuid = WELL_NAME_UUID
@@ -88,14 +86,7 @@ def test_ExcelWellFile__get_timestamp_of_beginning_of_data_acquisition(
 
 
 def test_ExcelWellFile__get_customer_account(generic_excel_well_file_0_1_0):
-    wf = ExcelWellFile(
-        os.path.join(
-            PATH_OF_CURRENT_FILE,
-            "excel_optical_data",
-            "optical_data_filled_template.xlsx",
-        )
-    )
-    assert wf.get_customer_account() == CURI_BIO_ACCOUNT_UUID
+    assert generic_excel_well_file_0_1_0.get_customer_account() == CURI_BIO_ACCOUNT_UUID
 
 
 def test_ExcelWellFile__get_mantarray_serial_number(generic_excel_well_file_0_1_0):
@@ -157,3 +148,20 @@ def test_ExcelWellFile__get_raw_tissue_reading(generic_excel_well_file_0_1_0):
 
 def test_ExcelWellFile__get_raw_reference_reading(generic_excel_well_file_0_1_0):
     assert generic_excel_well_file_0_1_0.get_raw_reference_reading().shape == (2, 1467)
+
+
+def test_ExcelWellFile__get_interpolation_value__returns_negative_1_if_no_value_is_given():
+    wf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "optical_data_missing_well_name.xlsx",
+        )
+    )
+    assert wf.get_interpolation_value() == -1
+
+
+def test_ExcelWellFile__get_interpolation_value__returns_correct_value_when_given(
+    generic_excel_well_file_0_1_0,
+):
+    assert generic_excel_well_file_0_1_0.get_interpolation_value() == 12.3

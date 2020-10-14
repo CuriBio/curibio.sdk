@@ -21,6 +21,7 @@ from stdlib_utils import get_current_file_abs_directory
 from xlsxwriter.utility import xl_cell_to_rowcol
 
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
+from .constants import INTERPOLATION_VALUE_UUID
 from .constants import METADATA_UUID_DESCRIPTIONS
 from .constants import TWITCHES_POINT_UP_UUID
 from .exceptions import MetadataNotFoundError
@@ -80,7 +81,7 @@ class ExcelWellFile(WellFile):
         self._raw_tissue_reading: Optional[NDArray[(2, Any), int]] = None
         self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = None
 
-    def get_excel_metadata_value(self, metadata_uuid: UUID) -> str:
+    def get_excel_metadata_value(self, metadata_uuid: UUID) -> Optional[str]:
         metadata_description = METADATA_UUID_DESCRIPTIONS[metadata_uuid]
         cell_name = EXCEL_OPTICAL_METADATA_CELLS.get(metadata_uuid, None)
         if cell_name is None:
@@ -89,7 +90,7 @@ class ExcelWellFile(WellFile):
             )
         row, col = xl_cell_to_rowcol(cell_name)
         result = _get_cell_value(self._excel_sheet, row, col)
-        if result is None:
+        if result is None and metadata_uuid != INTERPOLATION_VALUE_UUID:
             raise MetadataNotFoundError(
                 f"Metadata entry not found for {metadata_description}"
             )
@@ -104,13 +105,13 @@ class ExcelWellFile(WellFile):
         )
 
     def get_well_name(self) -> str:
-        return self.get_excel_metadata_value(WELL_NAME_UUID)
+        return str(self.get_excel_metadata_value(WELL_NAME_UUID))
 
     def get_well_index(self) -> int:
         return _get_well_index_from_well_name(self.get_well_name())
 
     def get_plate_barcode(self) -> str:
-        return self.get_excel_metadata_value(PLATE_BARCODE_UUID)
+        return str(self.get_excel_metadata_value(PLATE_BARCODE_UUID))
 
     def get_user_account(self) -> UUID:
         if not isinstance(CURI_BIO_USER_ACCOUNT_ID, UUID):
@@ -130,10 +131,10 @@ class ExcelWellFile(WellFile):
         return CURI_BIO_ACCOUNT_UUID
 
     def get_mantarray_serial_number(self) -> str:
-        return self.get_excel_metadata_value(MANTARRAY_SERIAL_NUMBER_UUID)
+        return str(self.get_excel_metadata_value(MANTARRAY_SERIAL_NUMBER_UUID))
 
     def get_begin_recording(self) -> datetime.datetime:
-        timestamp_str = self.get_excel_metadata_value(UTC_BEGINNING_RECORDING_UUID)
+        timestamp_str = str(self.get_excel_metadata_value(UTC_BEGINNING_RECORDING_UUID))
         timestamp = datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
         return timestamp
 
@@ -144,9 +145,12 @@ class ExcelWellFile(WellFile):
         return self.get_begin_recording()
 
     def get_tissue_sampling_period_microseconds(self) -> int:
-        sampling_period_seconds = float(
-            self.get_excel_metadata_value(TISSUE_SAMPLING_PERIOD_UUID)
-        )
+        value = self.get_excel_metadata_value(TISSUE_SAMPLING_PERIOD_UUID)
+        if value is None:
+            raise NotImplementedError(
+                "Tissue Sampling Period should never be None here. A MetadataNotFoundError should have been raised by get_excel_metadata_value"
+            )
+        sampling_period_seconds = float(value)
         return int(round(sampling_period_seconds, 6) * 1e6)
 
     def get_reference_sampling_period_microseconds(self) -> int:
@@ -156,7 +160,7 @@ class ExcelWellFile(WellFile):
         return 0
 
     def get_twitches_point_up(self) -> bool:
-        return "y" in self.get_excel_metadata_value(TWITCHES_POINT_UP_UUID)
+        return "y" in str(self.get_excel_metadata_value(TWITCHES_POINT_UP_UUID))
 
     def get_raw_tissue_reading(self) -> NDArray[(2, Any), float]:
         if self._raw_tissue_reading is None:
@@ -172,3 +176,9 @@ class ExcelWellFile(WellFile):
         if self._raw_ref_reading is None:
             self._raw_ref_reading = np.zeros(self.get_raw_tissue_reading().shape)
         return self._raw_ref_reading
+
+    def get_interpolation_value(self) -> float:
+        result = self.get_excel_metadata_value(INTERPOLATION_VALUE_UUID)
+        if result is None:
+            return -1
+        return float(result)

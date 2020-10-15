@@ -16,3 +16,4 @@ global-exclude prerelease.py
 global-exclude conftest.py
 global-exclude Dockerfile
 global-exclude *.ipynb
+global-exclude *.xlsx

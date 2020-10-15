@@ -11,6 +11,7 @@ from typing import Union
 import uuid
 import zipfile
 
+from mantarray_file_manager import MAIN_FIRMWARE_VERSION_UUID
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -82,6 +83,10 @@ def _write_xlsx_device_metadata(
             (
                 MANTARRAY_SERIAL_NUMBER_UUID,
                 first_well_file.get_mantarray_serial_number(),
+            ),
+            (
+                MAIN_FIRMWARE_VERSION_UUID,
+                first_well_file.get_h5_attribute(str(MAIN_FIRMWARE_VERSION_UUID)),
             ),
             (
                 SOFTWARE_RELEASE_VERSION_UUID,

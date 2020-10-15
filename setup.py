@@ -22,6 +22,7 @@ setup(
         "numpy>=1.19.0",
         "immutabledict>=1.0",
         "XlsxWriter>=1.3.3",
+        "openpyxl>=3.0.5",
         "matplotlib>=3.3.1",
         "mantarray-file-manager>=0.4.1",
         "stdlib_utils>=0.3.1",

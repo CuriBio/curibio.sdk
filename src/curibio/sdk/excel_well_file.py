@@ -49,8 +49,8 @@ def _get_well_index_from_well_name(well_name: str) -> int:
 
 
 def _get_single_sheet(file_name: str) -> Any:
-    wb = load_workbook(file_name)
-    return wb[wb.sheetnames[0]]
+    work_book = load_workbook(file_name)
+    return work_book[work_book.sheetnames[0]]
 
 
 def _get_cell_value(
@@ -75,6 +75,7 @@ class ExcelWellFile(WellFile):
     """
 
     def __init__(self, file_name: str) -> None:
+        # pylint: disable=super-init-not-called
         self._excel_sheet = _get_single_sheet(file_name)
         self._file_name = file_name
         self._file_version = "0.1.1"
@@ -82,6 +83,7 @@ class ExcelWellFile(WellFile):
         self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = None
 
     def get_excel_metadata_value(self, metadata_uuid: UUID) -> Optional[str]:
+        """Return a user-entered metadata value."""
         metadata_description = METADATA_UUID_DESCRIPTIONS[metadata_uuid]
         cell_name = EXCEL_OPTICAL_METADATA_CELLS.get(metadata_uuid, None)
         if cell_name is None:

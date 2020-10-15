@@ -202,7 +202,8 @@ class PlateRecording(FileManagerPlateRecording):
                 members = [
                     member
                     for member in zip_ref.namelist()
-                    if member.endswith(".h5") and "__MACOSX" not in member
+                    if (member.endswith(".h5") or member.endswith(".xlsx"))
+                    and "__MACOSX" not in member
                     # Tanner (10/1/20): "__MACOSX" is an artifact of zipping a file on MacOS that is not needed by the SDK. This is likely not a typically use case, but this gaurds against in case a user does zip their files on Mac
                 ]
                 path_sep = "/"  # Tanner (10/7/20): When zipfile unzips files, it always uses the unix style separator in the names of members
@@ -213,6 +214,19 @@ class PlateRecording(FileManagerPlateRecording):
                     dir_to_load_files_from, os.path.dirname(members[0])
                 )
                 return cls.from_directory(unzipped_dir_to_load_files_from)
+            if members[0].endswith(".xlsx"):
+                optical_well_files = [
+                    ExcelWellFile(os.path.join(dir_to_load_files_from, member))
+                    for member in members
+                ]
+                return cls(optical_well_files)
+        if first_item.endswith(".xlsx"):
+            optical_well_files = [
+                ExcelWellFile(os.path.join(dir_to_load_files_from, item))
+                for item in os.listdir(dir_to_load_files_from)
+                if item.endswith(".xlsx")
+            ]
+            return cls(optical_well_files)
         return super().from_directory(dir_to_load_files_from)  # type: ignore # Tanner (10/1/20): Not sure why mypy doesn't see the super class method's return type
 
     def _init_pipelines(self) -> None:

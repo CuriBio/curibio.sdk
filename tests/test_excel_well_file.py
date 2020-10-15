@@ -2,6 +2,7 @@
 
 import datetime
 import os
+from shutil import copy
 import tempfile
 
 from curibio.sdk import ExcelWellFile
@@ -187,7 +188,7 @@ def test_PlateRecording__creates_a_pipeline_with_no_filter_and_correct_sampling_
     assert actual.tissue_sampling_period == 1666.6
 
 
-def test_write_xlsx__creates_continuous_recording_sheet__with_single_optical_well_data(
+def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_single_optical_well_data(
     generic_excel_well_file_0_1_0,
 ):
     pr = PlateRecording([generic_excel_well_file_0_1_0])
@@ -214,4 +215,27 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_single_optical_wel
         )
 
 
-# test zip
+def test_PlateRecording__can_be_initialized_from_zipped_optical_files():
+    file_name = "zipped_optical_files.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "excel_optical_data", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__can_be_initialized_from_zipped_optical_file_folder():
+    file_name = "zipped_optical_file_folder.zip"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "excel_optical_data", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == (0, 4)
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

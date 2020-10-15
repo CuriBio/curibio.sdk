@@ -80,7 +80,9 @@ class ExcelWellFile(WellFile):
         self._file_name = file_name
         self._file_version = "0.1.1"
         self._raw_tissue_reading: Optional[NDArray[(2, Any), int]] = None
-        self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = None
+        self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = np.zeros(
+            self.get_raw_tissue_reading().shape
+        )
 
     def get_excel_metadata_value(self, metadata_uuid: UUID) -> Optional[str]:
         """Return a user-entered metadata value."""
@@ -175,8 +177,6 @@ class ExcelWellFile(WellFile):
         return self._raw_tissue_reading
 
     def get_raw_reference_reading(self) -> NDArray[(2, Any), float]:
-        if self._raw_ref_reading is None:
-            self._raw_ref_reading = np.zeros(self.get_raw_tissue_reading().shape)
         return self._raw_ref_reading
 
     def get_interpolation_value(self) -> float:

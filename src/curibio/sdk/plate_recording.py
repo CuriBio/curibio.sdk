@@ -60,6 +60,7 @@ from .constants import PEAK_VALLEY_COLUMN_START
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWENTY_FOUR_WELL_PLATE
 from .constants import WAVEFORM_CHART_SHEET_NAME
+from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
 configure_logging(logging_format="notebook")
@@ -151,7 +152,8 @@ def _write_xlsx_metadata(
     metadata_sheet = workbook.add_worksheet(METADATA_EXCEL_SHEET_NAME)
     curr_sheet = metadata_sheet
     _write_xlsx_recording_metadata(curr_sheet, first_well_file)
-    _write_xlsx_device_metadata(curr_sheet, first_well_file)
+    if not isinstance(first_well_file, ExcelWellFile):
+        _write_xlsx_device_metadata(curr_sheet, first_well_file)
     _write_xlsx_output_format_metadata(curr_sheet)
     # Adjust the column widths to be able to see the data
     for iter_column_idx, iter_column_width in ((0, 25), (1, 40), (2, 25)):
@@ -168,6 +170,7 @@ class PlateRecording(FileManagerPlateRecording):
         **kwargs: Dict[str, Any],
     ) -> None:
         super().__init__(*args, **kwargs)
+        self._is_optical_recording = isinstance(self._files[0], ExcelWellFile)
         self._workbook: xlsxwriter.workbook.Workbook
         self._workbook_formats: Dict[str, Format] = dict()
         if pipeline_template is None:
@@ -178,9 +181,14 @@ class PlateRecording(FileManagerPlateRecording):
                 first_well_file.get_tissue_sampling_period_microseconds()
                 / MICROSECONDS_PER_CENTIMILLISECOND
             )
+            noise_filter_uuid = (
+                None
+                if self._is_optical_recording
+                else TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period]
+            )
             pipeline_template = PipelineTemplate(
                 tissue_sampling_period=tissue_sampling_period,
-                noise_filter_uuid=TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period],
+                noise_filter_uuid=noise_filter_uuid,
             )
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]
@@ -223,8 +231,11 @@ class PlateRecording(FileManagerPlateRecording):
             )
             msg = f"Loading tissue and reference data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
+            raw_tissue_reading = well.get_raw_tissue_reading()
+            if self._is_optical_recording:
+                raw_tissue_reading[0] *= CENTIMILLISECONDS_PER_SECOND
             iter_pipeline.load_raw_magnetic_data(
-                well.get_raw_tissue_reading(),
+                raw_tissue_reading,
                 well.get_raw_reference_reading(),
             )
             self._pipelines[iter_well_idx] = iter_pipeline
@@ -340,10 +351,15 @@ class PlateRecording(FileManagerPlateRecording):
             last_time_index = well_pipeline.get_raw_tissue_magnetic_data()[0][-1]
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
+        interpolated_data_period = (
+            int(self._files[0].get_interpolation_value() / 10)
+            if self._is_optical_recording
+            else INTERPOLATED_DATA_PERIOD_CMS
+        )
         interpolated_data_indices = np.arange(
-            INTERPOLATED_DATA_PERIOD_CMS,  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
+            interpolated_data_period,  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
             max_time_index,
-            INTERPOLATED_DATA_PERIOD_CMS,
+            interpolated_data_period,
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(
@@ -360,7 +376,7 @@ class PlateRecording(FileManagerPlateRecording):
             filtered_data = self._pipelines[
                 well_index
             ].get_noise_filtered_magnetic_data()
-            # interpolate data (at 100 Hz) to max valid interpolated data point
+            # interpolate data (at 100 Hz for H5) to max valid interpolated data point
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
@@ -369,10 +385,13 @@ class PlateRecording(FileManagerPlateRecording):
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
             last_index = len(interpolated_data_indices)
+            first_index = 0
             if filtered_data[0][-1] < interpolated_data_indices[-1]:
                 last_index -= 1
+            while filtered_data[0][0] > interpolated_data_indices[first_index]:
+                first_index += 1
             interpolated_data = interpolated_data_function(
-                interpolated_data_indices[:last_index]
+                interpolated_data_indices[first_index:last_index]
             )
             # write to sheet
             for i, data_point in enumerate(interpolated_data):

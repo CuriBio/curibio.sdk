@@ -34,12 +34,12 @@ def _get_col_as_array(
     zero_based_row: int,
     zero_based_col: int,
 ) -> NDArray[(2, Any), float]:
+    col_array = []
     result = _get_cell_value(sheet, zero_based_row, zero_based_col)
-    col_array = [result]
     zero_based_row += 1
     while result:
+        col_array.append(float(result))
         result = _get_cell_value(sheet, zero_based_row, zero_based_col)
-        col_array.append(result)
         zero_based_row += 1
     return np.array(col_array)
 
@@ -77,7 +77,7 @@ class ExcelWellFile(WellFile):
     def __init__(self, file_name: str) -> None:
         self._excel_sheet = _get_single_sheet(file_name)
         self._file_name = file_name
-        self._file_version = "0.1.0"
+        self._file_version = "0.1.1"
         self._raw_tissue_reading: Optional[NDArray[(2, Any), int]] = None
         self._raw_ref_reading: Optional[NDArray[(2, Any), int]] = None
 
@@ -180,5 +180,5 @@ class ExcelWellFile(WellFile):
     def get_interpolation_value(self) -> float:
         result = self.get_excel_metadata_value(INTERPOLATION_VALUE_UUID)
         if result is None:
-            return -1
-        return float(result)
+            return self.get_tissue_sampling_period_microseconds()
+        return float(result) * 1e6

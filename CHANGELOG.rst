@@ -1,6 +1,14 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+
+0.7.0 (2020-10-15)
+------------------
+
+- Added ability to analyze optical data entered in an excel template.
+- Added firmware version to excel metadata sheet.
+
+
 0.6.0 (2020-10-07)
 ------------------
 

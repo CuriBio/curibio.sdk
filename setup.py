@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="curibio.sdk",
-    version="0.6.0",
+    version="0.7.0",
     description="CREATE A DESCRIPTION",
     url="https://github.com/CuriBio/curibio.sdk",
     project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/"},
@@ -22,6 +22,7 @@ setup(
         "numpy>=1.19.0",
         "immutabledict>=1.0",
         "XlsxWriter>=1.3.3",
+        "openpyxl>=3.0.5",
         "matplotlib>=3.3.1",
         "mantarray-file-manager>=0.4.1",
         "stdlib_utils>=0.3.1",

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+import uuid
 
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import ALL_FORMATS
@@ -13,16 +14,25 @@ from curibio.sdk import CHART_WINDOW_NUM_DATA_POINTS
 from curibio.sdk import CHART_WINDOW_NUM_SECONDS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_CELL_WIDTH
+from curibio.sdk import EXCEL_OPTICAL_METADATA_CELLS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
+from curibio.sdk import INTERPOLATION_VALUE_UUID
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import METADATA_UUID_DESCRIPTIONS
 from curibio.sdk import MICROSECONDS_PER_CENTIMILLISECOND
 from curibio.sdk import PEAK_VALLEY_COLUMN_START
 from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
+from curibio.sdk import TWITCHES_POINT_UP_UUID
 from curibio.sdk import WAVEFORM_CHART_SHEET_NAME
+from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
+from mantarray_file_manager import PLATE_BARCODE_UUID
+from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
+from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
+from mantarray_file_manager import WELL_NAME_UUID
 from mantarray_waveform_analysis import AMPLITUDE_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
@@ -89,3 +99,27 @@ def test_charts():
         CHART_WINDOW_NUM_DATA_POINTS
         == CHART_WINDOW_NUM_SECONDS / INTERPOLATED_DATA_PERIOD_SECONDS
     )
+
+
+def test_excel_optical_metadata():
+    assert TWITCHES_POINT_UP_UUID == uuid.UUID("97f69f56-f1c6-4c50-8590-7332570ed3c5")
+    assert INTERPOLATION_VALUE_UUID == uuid.UUID("466d0131-06b7-4f0f-ba1e-062a771cb280")
+
+    assert (
+        METADATA_UUID_DESCRIPTIONS[TWITCHES_POINT_UP_UUID]
+        == "Flag indicating whether or not the twitches in the data point up or not"
+    )
+    assert (
+        METADATA_UUID_DESCRIPTIONS[INTERPOLATION_VALUE_UUID]
+        == "Desired value for optical well data interpolation"
+    )
+
+    assert EXCEL_OPTICAL_METADATA_CELLS == {
+        WELL_NAME_UUID: "E2",
+        UTC_BEGINNING_RECORDING_UUID: "E3",
+        PLATE_BARCODE_UUID: "E4",
+        TISSUE_SAMPLING_PERIOD_UUID: "E5",
+        TWITCHES_POINT_UP_UUID: "E6",
+        MANTARRAY_SERIAL_NUMBER_UUID: "E7",
+        INTERPOLATION_VALUE_UUID: "E8",
+    }

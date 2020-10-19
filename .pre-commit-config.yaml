@@ -67,7 +67,7 @@ repos:
     -   id: check-added-large-files
         name: forbid large files outside tests/h5 and tests/visual-regression-testing
         args: ['--maxkb=123']
-        exclude: (tests/h5)|(tests/visual-regression-testing)|(docs/source/images)
+        exclude: (tests/h5)|(tests/visual-regression-testing)|(docs/source/images)|(tests/zipped_windows_folder)
     -   id: check-added-large-files
         name: forbid very large files inside tests/h5
         args: ['--maxkb=600']

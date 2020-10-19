@@ -2,6 +2,7 @@
 import os
 import tempfile
 
+from curibio.sdk import ExcelWellFile
 from curibio.sdk import PlateRecording
 from curibio.sdk import WellFile
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
@@ -157,3 +158,16 @@ def fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1(
     )
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield pr, tmp_dir
+
+
+@pytest.fixture(scope="function", name="generic_excel_well_file_0_1_0")
+def fixture_generic_excel_well_file_0_1_0():
+    file_name = "optical_data_filled_template.xlsx"
+    ewf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            file_name,
+        )
+    )
+    yield ewf

@@ -195,7 +195,6 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_sin
 
     expected_file_name = "test_optical_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "."
         pr.write_xlsx(
             tmp_dir, file_name=expected_file_name, create_waveform_charts=False
         )

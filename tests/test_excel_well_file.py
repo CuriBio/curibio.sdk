@@ -148,6 +148,19 @@ def test_ExcelWellFile__get_twitches_point_up(generic_excel_well_file_0_1_0):
     assert generic_excel_well_file_0_1_0.get_twitches_point_up() is True
 
 
+def test_ExcelWellFile__get_twitches_point_up__with_capital_Y(
+    generic_excel_well_file_0_1_0, mocker
+):
+    # Tanner (10/20/20): mocking here to avoid having to create a new excel file just for this case.
+    mocker.patch.object(
+        generic_excel_well_file_0_1_0,
+        "get_excel_metadata_value",
+        autospec=True,
+        return_value="Y",
+    )
+    assert generic_excel_well_file_0_1_0.get_twitches_point_up() is True
+
+
 def test_ExcelWellFile__get_raw_tissue_reading(generic_excel_well_file_0_1_0):
     raw_tissue_reading = generic_excel_well_file_0_1_0.get_raw_tissue_reading()
     assert raw_tissue_reading.shape == (2, 1466)
@@ -221,7 +234,6 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_cor
 
     expected_file_name = "test_optical_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "."
         pr.write_xlsx(
             tmp_dir, file_name=expected_file_name, create_waveform_charts=False
         )

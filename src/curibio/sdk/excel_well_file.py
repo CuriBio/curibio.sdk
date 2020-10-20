@@ -164,7 +164,7 @@ class ExcelWellFile(WellFile):
         return 0
 
     def get_twitches_point_up(self) -> bool:
-        return "y" in str(self.get_excel_metadata_value(TWITCHES_POINT_UP_UUID))
+        return "y" in str(self.get_excel_metadata_value(TWITCHES_POINT_UP_UUID)).lower()
 
     def get_raw_tissue_reading(self) -> NDArray[(2, Any), float]:
         if self._raw_tissue_reading is None:

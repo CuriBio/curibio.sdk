@@ -51,6 +51,7 @@ from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_DATA_POINTS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
+from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
 from .constants import METADATA_EXCEL_SHEET_NAME
 from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
@@ -85,16 +86,16 @@ def _write_xlsx_device_metadata(
                 first_well_file.get_mantarray_serial_number(),
             ),
             (
-                MAIN_FIRMWARE_VERSION_UUID,
-                first_well_file.get_h5_attribute(str(MAIN_FIRMWARE_VERSION_UUID)),
-            ),
-            (
                 SOFTWARE_RELEASE_VERSION_UUID,
                 first_well_file.get_h5_attribute(str(SOFTWARE_RELEASE_VERSION_UUID)),
             ),
             (
                 SOFTWARE_BUILD_NUMBER_UUID,
                 first_well_file.get_h5_attribute(str(SOFTWARE_BUILD_NUMBER_UUID)),
+            ),
+            (
+                MAIN_FIRMWARE_VERSION_UUID,
+                first_well_file.get_h5_attribute(str(MAIN_FIRMWARE_VERSION_UUID)),
             ),
         )
     ):
@@ -197,6 +198,7 @@ class PlateRecording(FileManagerPlateRecording):
             )
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]
+        self._interpolated_data_period: float
 
     @classmethod
     def from_directory(cls, dir_to_load_files_from: str) -> "PlateRecording":
@@ -248,7 +250,7 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
                 iter_well_idx
             )
-            msg = f"Loading tissue and reference data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
+            msg = f"Loading tissue and reference data... {int(round(i / num_wells, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
             raw_tissue_reading = well.get_raw_tissue_reading()
             if self._is_optical_recording:
@@ -370,15 +372,18 @@ class PlateRecording(FileManagerPlateRecording):
             last_time_index = well_pipeline.get_raw_tissue_magnetic_data()[0][-1]
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
-        interpolated_data_period = (
-            int(self._files[0].get_interpolation_value() / 10)
+        self._interpolated_data_period = (
+            int(
+                self._files[0].get_interpolation_value()
+                / MICROSECONDS_PER_CENTIMILLISECOND
+            )
             if self._is_optical_recording
             else INTERPOLATED_DATA_PERIOD_CMS
         )
         interpolated_data_indices = np.arange(
-            interpolated_data_period,  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
+            self._interpolated_data_period,  # don't start at time zero, because some wells don't have data at exactly zero (causing interpolation to fail), so just start at the next timepoint
             max_time_index,
-            interpolated_data_period,
+            self._interpolated_data_period,
         )
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(
@@ -415,9 +420,8 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
-            if skip_charts:
-                continue
             self._create_waveform_chart(
+                skip_charts,
                 last_index,
                 well_index,
                 well_name,
@@ -440,6 +444,7 @@ class PlateRecording(FileManagerPlateRecording):
 
     def _create_waveform_chart(
         self,
+        skip_charts: bool,
         num_data_points: int,
         well_index: int,
         well_name: str,
@@ -452,7 +457,8 @@ class PlateRecording(FileManagerPlateRecording):
 
         msg = f"Creating chart of waveform data of well {well_name}"
         logger.info(msg)
-        waveform_chart = self._workbook.add_chart({"type": "line"})
+        if not skip_charts:
+            waveform_chart = self._workbook.add_chart({"type": "line"})
         well_column = xl_col_to_name(well_index + 1)
         first_chart_data_point = (
             2
@@ -464,21 +470,24 @@ class PlateRecording(FileManagerPlateRecording):
             if num_data_points <= CHART_WINDOW_NUM_DATA_POINTS
             else int((num_data_points + CHART_WINDOW_NUM_DATA_POINTS) // 2)
         )
-        waveform_chart.add_series(
-            {
-                "name": "Waveform Data",
-                "categories": f"='continuous-waveforms'!$A${first_chart_data_point}:$A${last_chart_data_point}",
-                "values": f"='continuous-waveforms'!${well_column}${first_chart_data_point}:${well_column}${last_chart_data_point}",
-                "line": {"color": "#1B9E77"},
-            }
-        )
+        if not skip_charts:
+            waveform_chart.add_series(
+                {
+                    "name": "Waveform Data",
+                    "categories": f"='continuous-waveforms'!$A${first_chart_data_point}:$A${last_chart_data_point}",
+                    "values": f"='continuous-waveforms'!${well_column}${first_chart_data_point}:${well_column}${last_chart_data_point}",
+                    "line": {"color": "#1B9E77"},
+                }
+            )
 
         msg = f"Adding peak and valley markers to chart of well {well_name}"
         logger.info(msg)
         peak_indices, valley_indices = self._pipelines[
             well_index
         ].get_peak_detection_results()
-        peak_detection_chart = self._workbook.add_chart({"type": "scatter"})
+        peak_detection_chart = None
+        if not skip_charts:
+            peak_detection_chart = self._workbook.add_chart({"type": "scatter"})
         self._add_peak_detection_chart_series(
             peak_detection_chart,
             "Peak",
@@ -499,27 +508,31 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data_function,
             time_values,
         )
-        waveform_chart.combine(peak_detection_chart)
+        if not skip_charts:
+            waveform_chart.combine(peak_detection_chart)
 
-        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
-            well_index
-        )
-        waveform_chart.set_x_axis({"name": "Time (seconds)", "interval_tick": 100})
-        waveform_chart.set_y_axis(
-            {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
-        )
-        waveform_chart.set_size({"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT})
-        waveform_chart.set_title({"name": f"Well {well_name}"})
+            (
+                well_row,
+                well_col,
+            ) = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(well_index)
+            waveform_chart.set_x_axis({"name": "Time (seconds)", "interval_tick": 100})
+            waveform_chart.set_y_axis(
+                {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
+            )
+            waveform_chart.set_size(
+                {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
+            )
+            waveform_chart.set_title({"name": f"Well {well_name}"})
 
-        waveform_chart_sheet.insert_chart(
-            1 + well_row * (CHART_HEIGHT_CELLS + 1),
-            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
-            waveform_chart,
-        )
+            waveform_chart_sheet.insert_chart(
+                1 + well_row * (CHART_HEIGHT_CELLS + 1),
+                1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+                waveform_chart,
+            )
 
     def _add_peak_detection_chart_series(
         self,
-        peak_detection_chart: xlsxwriter.chart_scatter.ChartScatter,
+        peak_detection_chart: Optional[xlsxwriter.chart_scatter.ChartScatter],
         detector_type: str,
         well_index: int,
         well_name: str,
@@ -534,7 +547,6 @@ class PlateRecording(FileManagerPlateRecording):
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
-
         # index_column = xl_col_to_name(
         #     PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
         # )
@@ -548,28 +560,38 @@ class PlateRecording(FileManagerPlateRecording):
             f"{result_column}1", f"{well_name} {detector_type} Values"
         )
         for idx in indices:
-            interpolated_time_value = round(
+            uninterpolated_time_seconds = round(
                 time_values[idx] / CENTIMILLISECONDS_PER_SECOND, 2
             )
-            continuous_waveform_sheet.write(
-                f"{result_column}{interpolated_time_value * 100 + 1}",
-                interpolated_data_function(
-                    interpolated_time_value * CENTIMILLISECONDS_PER_SECOND
-                ),
+            row = (
+                int(
+                    uninterpolated_time_seconds
+                    * CENTIMILLISECONDS_PER_SECOND
+                    / self._interpolated_data_period
+                )
+                if self._is_optical_recording
+                else uninterpolated_time_seconds
+                * int(1 / INTERPOLATED_DATA_PERIOD_SECONDS)
+                + 1
             )
-        peak_detection_chart.add_series(
-            {
-                "name": label,
-                "categories": "=",
-                "values": f"='continuous-waveforms'!${result_column}${data_start_stop[0]}:${result_column}${data_start_stop[1]}",
-                "marker": {
-                    "type": "circle",
-                    "size": 8,
-                    "border": {"color": marker_color, "width": 1.5},
-                    "fill": {"none": True},
-                },
-            }
-        )
+            value = interpolated_data_function(
+                uninterpolated_time_seconds * CENTIMILLISECONDS_PER_SECOND
+            )
+            continuous_waveform_sheet.write(f"{result_column}{row}", value)
+        if peak_detection_chart is not None:
+            peak_detection_chart.add_series(
+                {
+                    "name": label,
+                    "categories": "=",
+                    "values": f"='continuous-waveforms'!${result_column}${data_start_stop[0]}:${result_column}${data_start_stop[1]}",
+                    "marker": {
+                        "type": "circle",
+                        "size": 8,
+                        "border": {"color": marker_color, "width": 1.5},
+                        "fill": {"none": True},
+                    },
+                }
+            )
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")

@@ -270,9 +270,9 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
     curr_row += 1
     for iter_row, metadata_uuid, expected_value in [
         (0, MANTARRAY_SERIAL_NUMBER_UUID, "M02001900"),
-        (1, MAIN_FIRMWARE_VERSION_UUID, "0.0.0"),
-        (2, SOFTWARE_RELEASE_VERSION_UUID, "0.2.2"),
-        (3, SOFTWARE_BUILD_NUMBER_UUID, "200817143923--820"),
+        (1, SOFTWARE_RELEASE_VERSION_UUID, "0.2.2"),
+        (2, SOFTWARE_BUILD_NUMBER_UUID, "200817143923--820"),
+        (3, MAIN_FIRMWARE_VERSION_UUID, "0.0.0"),
     ]:
         actual_label = get_cell_value(metadata_sheet, curr_row + iter_row, 1)
         actual_value = get_cell_value(metadata_sheet, curr_row + iter_row, 2)

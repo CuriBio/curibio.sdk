@@ -250,7 +250,7 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
                 iter_well_idx
             )
-            msg = f"Loading tissue and reference data... {int(round(i / 24, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
+            msg = f"Loading tissue and reference data... {int(round(i / num_wells, 2) * 100)}% (Well {well_name}, {i + 1} out of {num_wells})"
             logger.info(msg)
             raw_tissue_reading = well.get_raw_tissue_reading()
             if self._is_optical_recording:
@@ -373,7 +373,10 @@ class PlateRecording(FileManagerPlateRecording):
             if last_time_index > max_time_index:
                 max_time_index = last_time_index
         self._interpolated_data_period = (
-            int(self._files[0].get_interpolation_value() / 10)
+            int(
+                self._files[0].get_interpolation_value()
+                / MICROSECONDS_PER_CENTIMILLISECOND
+            )
             if self._is_optical_recording
             else INTERPOLATED_DATA_PERIOD_CMS
         )

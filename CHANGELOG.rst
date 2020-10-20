@@ -2,6 +2,13 @@ Changelog for Curi Bio Software Development Kit
 ===============================================
 
 
+0.7.1 (2020-10-20)
+------------------
+
+- Fixed issue with markers in optical data charts.
+
+
+
 0.7.0 (2020-10-15)
 ------------------
 

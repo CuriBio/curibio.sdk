@@ -270,9 +270,9 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
     curr_row += 1
     for iter_row, metadata_uuid, expected_value in [
         (0, MANTARRAY_SERIAL_NUMBER_UUID, "M02001900"),
-        (1, MAIN_FIRMWARE_VERSION_UUID, "0.0.0"),
-        (2, SOFTWARE_RELEASE_VERSION_UUID, "0.2.2"),
-        (3, SOFTWARE_BUILD_NUMBER_UUID, "200817143923--820"),
+        (1, SOFTWARE_RELEASE_VERSION_UUID, "0.2.2"),
+        (2, SOFTWARE_BUILD_NUMBER_UUID, "200817143923--820"),
+        (3, MAIN_FIRMWARE_VERSION_UUID, "0.0.0"),
     ]:
         actual_label = get_cell_value(metadata_sheet, curr_row + iter_row, 1)
         actual_value = get_cell_value(metadata_sheet, curr_row + iter_row, 2)
@@ -626,7 +626,11 @@ def test_PlateRecording__get_reference_magnetic_data__returns_expected_values_wi
     assert actual[1][-1] == 116599
 
 
-def test_PlateRecording__can_be_initialized_from_zipped_files():
+def test_PlateRecording__can_be_initialized_from_zipped_files__and_logs_process_correctly(
+    mocker,
+):
+    spied_info_logger = mocker.spy(plate_recording.logger, "info")
+
     file_name = "MA20123456__2020_08_17_145752_files.zip"
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_file_path = os.path.join(tmp_dir, file_name)
@@ -638,7 +642,20 @@ def test_PlateRecording__can_be_initialized_from_zipped_files():
         )
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == (0, 4, 8)
+
+        pr.write_xlsx(tmp_dir)
+
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 0% (Well A1, 1 out of 3)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 33% (Well A2, 2 out of 3)"
+    )
+    spied_info_logger.assert_any_call(
+        "Loading tissue and reference data... 67% (Well A3, 3 out of 3)"
+    )
 
 
 def test_PlateRecording__can_be_initialized_from_a_mac_zipped_folder():

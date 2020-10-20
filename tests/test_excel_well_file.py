@@ -241,16 +241,16 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_cor
         actual_sheet = actual_workbook[actual_workbook.sheetnames[1]]
 
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 47, 101), 293.781693313573, 6
+            get_cell_value(actual_sheet, 47, 100), 293.781693313573, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 1938, 101), 390.9615827, 6
+            get_cell_value(actual_sheet, 1938, 100), 390.9615827, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 115, 100), -0.792794065, 6
+            get_cell_value(actual_sheet, 115, 101), -0.792794065, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 1882, 100), 100.2838749, 6
+            get_cell_value(actual_sheet, 1882, 101), 100.2838749, 6
         )
 
 

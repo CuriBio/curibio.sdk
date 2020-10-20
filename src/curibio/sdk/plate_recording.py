@@ -192,9 +192,13 @@ class PlateRecording(FileManagerPlateRecording):
                 if self._is_optical_recording
                 else TSP_TO_DEFAULT_FILTER_UUID[tissue_sampling_period]
             )
+            twitches_point_up = False
+            if self._is_optical_recording:
+                twitches_point_up = first_well_file.get_twitches_point_up()
             pipeline_template = PipelineTemplate(
                 tissue_sampling_period=tissue_sampling_period,
                 noise_filter_uuid=noise_filter_uuid,
+                magnetic_twitches_point_up=twitches_point_up,
             )
         self._pipeline_template = pipeline_template
         self._pipelines: Dict[int, Pipeline]

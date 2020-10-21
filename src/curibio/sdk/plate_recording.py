@@ -48,7 +48,7 @@ from .constants import CHART_FIXED_WIDTH
 from .constants import CHART_FIXED_WIDTH_CELLS
 from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
-from .constants import CHART_WINDOW_NUM_DATA_POINTS
+from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -462,24 +462,27 @@ class PlateRecording(FileManagerPlateRecording):
         msg = f"Creating chart of waveform data of well {well_name}"
         logger.info(msg)
         if not skip_charts:
-            waveform_chart = self._workbook.add_chart({"type": "line"})
+            waveform_chart = self._workbook.add_chart(
+                {"type": "scatter", "subtype": "straight"}
+            )
         well_column = xl_col_to_name(well_index + 1)
-        first_chart_data_point = (
-            2
-            if num_data_points <= CHART_WINDOW_NUM_DATA_POINTS
-            else int((num_data_points - CHART_WINDOW_NUM_DATA_POINTS) // 2)
+        recording_stop_time = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
+        lower_x_bound = (
+            0
+            if recording_stop_time <= CHART_WINDOW_NUM_SECONDS
+            else int((recording_stop_time - CHART_WINDOW_NUM_SECONDS) // 2)
         )
-        last_chart_data_point = (
-            num_data_points + 1
-            if num_data_points <= CHART_WINDOW_NUM_DATA_POINTS
-            else int((num_data_points + CHART_WINDOW_NUM_DATA_POINTS) // 2)
+        upper_x_bound = (
+            recording_stop_time
+            if recording_stop_time <= CHART_WINDOW_NUM_SECONDS
+            else int((recording_stop_time + CHART_WINDOW_NUM_SECONDS) // 2)
         )
         if not skip_charts:
             waveform_chart.add_series(
                 {
                     "name": "Waveform Data",
-                    "categories": f"='continuous-waveforms'!$A${first_chart_data_point}:$A${last_chart_data_point}",
-                    "values": f"='continuous-waveforms'!${well_column}${first_chart_data_point}:${well_column}${last_chart_data_point}",
+                    "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points}",
+                    "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points}",
                     "line": {"color": "#1B9E77"},
                 }
             )
@@ -489,37 +492,41 @@ class PlateRecording(FileManagerPlateRecording):
         peak_indices, valley_indices = self._pipelines[
             well_index
         ].get_peak_detection_results()
-        peak_detection_chart = None
-        if not skip_charts:
-            peak_detection_chart = self._workbook.add_chart({"type": "scatter"})
-        self._add_peak_detection_chart_series(
-            peak_detection_chart,
+        self._add_peak_detection_series(
+            skip_charts,
+            waveform_chart,
             "Peak",
             well_index,
             well_name,
-            (first_chart_data_point, last_chart_data_point),
+            num_data_points,
             peak_indices,
             interpolated_data_function,
             time_values,
         )
-        self._add_peak_detection_chart_series(
-            peak_detection_chart,
+        self._add_peak_detection_series(
+            skip_charts,
+            waveform_chart,
             "Valley",
             well_index,
             well_name,
-            (first_chart_data_point, last_chart_data_point),
+            num_data_points,
             valley_indices,
             interpolated_data_function,
             time_values,
         )
         if not skip_charts:
-            waveform_chart.combine(peak_detection_chart)
-
             (
                 well_row,
                 well_col,
             ) = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(well_index)
-            waveform_chart.set_x_axis({"name": "Time (seconds)", "interval_tick": 100})
+            waveform_chart.set_x_axis(
+                {
+                    "name": "Time (seconds)",
+                    "interval_tick": 100,
+                    "min": lower_x_bound,
+                    "max": upper_x_bound,
+                }
+            )
             waveform_chart.set_y_axis(
                 {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
             )
@@ -534,13 +541,14 @@ class PlateRecording(FileManagerPlateRecording):
                 waveform_chart,
             )
 
-    def _add_peak_detection_chart_series(
+    def _add_peak_detection_series(
         self,
-        peak_detection_chart: Optional[xlsxwriter.chart_scatter.ChartScatter],
+        skip_charts: bool,
+        waveform_chart: xlsxwriter.chart_scatter.ChartScatter,
         detector_type: str,
         well_index: int,
         well_name: str,
-        data_start_stop: Tuple[int, int],
+        upper_x_bound_cell: int,
         indices: NDArray[(1, Any), int],
         interpolated_data_function: interpolate.interpolate.interp1d,
         time_values: NDArray[(2, Any), int],
@@ -582,18 +590,19 @@ class PlateRecording(FileManagerPlateRecording):
                 uninterpolated_time_seconds * CENTIMILLISECONDS_PER_SECOND
             )
             continuous_waveform_sheet.write(f"{result_column}{row}", value)
-        if peak_detection_chart is not None:
-            peak_detection_chart.add_series(
+        if not skip_charts:
+            waveform_chart.add_series(
                 {
                     "name": label,
-                    "categories": "=",
-                    "values": f"='continuous-waveforms'!${result_column}${data_start_stop[0]}:${result_column}${data_start_stop[1]}",
+                    "categories": f"='continuous-waveforms'!$A$2:$A${upper_x_bound_cell}",
+                    "values": f"='continuous-waveforms'!${result_column}$2:${result_column}${upper_x_bound_cell}",
                     "marker": {
                         "type": "circle",
                         "size": 8,
                         "border": {"color": marker_color, "width": 1.5},
                         "fill": {"none": True},
                     },
+                    "line": {"none": True},
                 }
             )
 

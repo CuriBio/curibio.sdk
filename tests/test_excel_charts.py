@@ -62,57 +62,57 @@ NS = {
 @pytest.mark.parametrize(
     "pr,expected_A1_attrs,expected_B2_attrs,test_description",
     [
-        (
-            PlateRecording(
-                [
-                    os.path.join(
-                        PATH_OF_CURRENT_FILE,
-                        "h5",
-                        "v0.3.1",
-                        "MA20123456__2020_08_17_145752__A1.h5",
-                    ),
-                    os.path.join(
-                        PATH_OF_CURRENT_FILE,
-                        "h5",
-                        "v0.3.1",
-                        "MA20123456__2020_08_17_145752__B2.h5",
-                    ),
-                ]
-            ),
-            {
-                "chart_num": 1,
-                "well_name": "A1",
-                "x_range": "$A$2:$A$355",
-                "y_range_w": "$B$2:$B$355",
-                "y_range_c": "$CW$2:$CW$355",
-                "y_range_r": "$CX$2:$CX$355",
-                "from_col": 1,
-                "from_row": 1,
-                "to_col": 9,
-                "to_row": 16,
-                "first_c_idx": 107,
-                "first_c_y": -156924.17,
-                "first_r_idx": 56,
-                "first_r_y": 156838.0,
-            },
-            {
-                "chart_num": 2,
-                "well_name": "B2",
-                "x_range": "$A$2:$A$356",
-                "y_range_w": "$G$2:$G$356",
-                "y_range_c": "$DG$2:$DG$356",
-                "y_range_r": "$DH$2:$DH$356",
-                "from_col": 10,
-                "from_row": 17,
-                "to_col": 18,
-                "to_row": 32,
-                "first_c_idx": 107,
-                "first_c_y": -942203.25,
-                "first_r_idx": 56,
-                "first_r_y": 943009.0,
-            },
-            "creates chart correctly with data shorter than chart window",
-        ),
+        # (
+        #     PlateRecording(
+        #         [
+        #             os.path.join(
+        #                 PATH_OF_CURRENT_FILE,
+        #                 "h5",
+        #                 "v0.3.1",
+        #                 "MA20123456__2020_08_17_145752__A1.h5",
+        #             ),
+        #             os.path.join(
+        #                 PATH_OF_CURRENT_FILE,
+        #                 "h5",
+        #                 "v0.3.1",
+        #                 "MA20123456__2020_08_17_145752__B2.h5",
+        #             ),
+        #         ]
+        #     ),
+        #     {
+        #         "chart_num": 1,
+        #         "well_name": "A1",
+        #         "x_range": "$A$2:$A$355",
+        #         "y_range_w": "$B$2:$B$355",
+        #         "y_range_c": "$CW$2:$CW$355",
+        #         "y_range_r": "$CX$2:$CX$355",
+        #         "from_col": 1,
+        #         "from_row": 1,
+        #         "to_col": 9,
+        #         "to_row": 16,
+        #         "first_c_idx": 107,
+        #         "first_c_y": -156924.17,
+        #         "first_r_idx": 56,
+        #         "first_r_y": 156838.0,
+        #     },
+        #     {
+        #         "chart_num": 2,
+        #         "well_name": "B2",
+        #         "x_range": "$A$2:$A$356",
+        #         "y_range_w": "$G$2:$G$356",
+        #         "y_range_c": "$DG$2:$DG$356",
+        #         "y_range_r": "$DH$2:$DH$356",
+        #         "from_col": 10,
+        #         "from_row": 17,
+        #         "to_col": 18,
+        #         "to_row": 32,
+        #         "first_c_idx": 107,
+        #         "first_c_y": -942203.25,
+        #         "first_r_idx": 56,
+        #         "first_r_y": 943009.0,
+        #     },
+        #     "creates chart correctly with data shorter than chart window",
+        # ),
         (
             PlateRecording(
                 [
@@ -171,7 +171,7 @@ NS = {
 def test_write_xlsx__creates_two_snapshot_charts_correctly(
     pr, expected_A1_attrs, expected_B2_attrs, test_description
 ):
-    test_file_name = "test_file.xlsx"
+    test_file_name = "test_chart.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
         # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)

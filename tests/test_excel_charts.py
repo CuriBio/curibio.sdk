@@ -9,6 +9,7 @@ from curibio.sdk import PlateRecording
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 
+from .fixtures import fixture_generic_excel_well_file_0_1_0
 from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
 from .fixtures import fixture_generic_well_file_0_3_2
@@ -18,6 +19,7 @@ from .fixtures import fixture_plate_recording_in_tmp_dir_for_generic_well_file_0
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 from .fixtures import fixture_real_3min_well_file_0_3_1
+
 
 __fixtures__ = (
     fixture_generic_well_file_0_3_1,
@@ -29,6 +31,7 @@ __fixtures__ = (
     fixture_plate_recording_in_tmp_dir_for_24_wells_0_3_2,
     fixture_generic_well_file_0_3_1__2,
     fixture_real_3min_well_file_0_3_1,
+    fixture_generic_excel_well_file_0_1_0,
 )
 
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
@@ -62,57 +65,57 @@ NS = {
 @pytest.mark.parametrize(
     "pr,expected_A1_attrs,expected_B2_attrs,test_description",
     [
-        # (
-        #     PlateRecording(
-        #         [
-        #             os.path.join(
-        #                 PATH_OF_CURRENT_FILE,
-        #                 "h5",
-        #                 "v0.3.1",
-        #                 "MA20123456__2020_08_17_145752__A1.h5",
-        #             ),
-        #             os.path.join(
-        #                 PATH_OF_CURRENT_FILE,
-        #                 "h5",
-        #                 "v0.3.1",
-        #                 "MA20123456__2020_08_17_145752__B2.h5",
-        #             ),
-        #         ]
-        #     ),
-        #     {
-        #         "chart_num": 1,
-        #         "well_name": "A1",
-        #         "x_range": "$A$2:$A$355",
-        #         "y_range_w": "$B$2:$B$355",
-        #         "y_range_c": "$CW$2:$CW$355",
-        #         "y_range_r": "$CX$2:$CX$355",
-        #         "from_col": 1,
-        #         "from_row": 1,
-        #         "to_col": 9,
-        #         "to_row": 16,
-        #         "first_c_idx": 107,
-        #         "first_c_y": -156924.17,
-        #         "first_r_idx": 56,
-        #         "first_r_y": 156838.0,
-        #     },
-        #     {
-        #         "chart_num": 2,
-        #         "well_name": "B2",
-        #         "x_range": "$A$2:$A$356",
-        #         "y_range_w": "$G$2:$G$356",
-        #         "y_range_c": "$DG$2:$DG$356",
-        #         "y_range_r": "$DH$2:$DH$356",
-        #         "from_col": 10,
-        #         "from_row": 17,
-        #         "to_col": 18,
-        #         "to_row": 32,
-        #         "first_c_idx": 107,
-        #         "first_c_y": -942203.25,
-        #         "first_r_idx": 56,
-        #         "first_r_y": 943009.0,
-        #     },
-        #     "creates chart correctly with data shorter than chart window",
-        # ),
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__B2.h5",
+                    ),
+                ]
+            ),
+            {
+                "chart_num": 1,
+                "well_name": "A1",
+                "x_range": "$A$2:$A$355",
+                "y_range_w": "$B$2:$B$355",
+                "y_range_c": "$CW$2:$CW$355",
+                "y_range_r": "$CX$2:$CX$355",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+                "first_c_idx": 107,
+                "first_c_y": -156924.17,
+                "first_r_idx": 56,
+                "first_r_y": 156838.0,
+            },
+            {
+                "chart_num": 2,
+                "well_name": "B2",
+                "x_range": "$A$2:$A$356",
+                "y_range_w": "$G$2:$G$356",
+                "y_range_c": "$DG$2:$DG$356",
+                "y_range_r": "$DH$2:$DH$356",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+                "first_c_idx": 107,
+                "first_c_y": -942203.25,
+                "first_r_idx": 56,
+                "first_r_y": 943009.0,
+            },
+            "creates chart correctly with data shorter than chart window",
+        ),
         (
             PlateRecording(
                 [
@@ -343,3 +346,23 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 chart_name,
                 0,
             )
+
+
+def test_write_xlsx__uses_correct_axis_names_for_optical_data(
+    generic_excel_well_file_0_1_0,
+):
+    test_file_name = "test_file.xlsx"
+    pr = PlateRecording([generic_excel_well_file_0_1_0])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
+        with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
+            zip_ref.extractall(tmp_dir)
+        chart_root = ET.parse(
+            os.path.join(tmp_dir, "xl", "charts", "chart1.xml")
+        ).getroot()
+        for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+            axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+            if node.find("c:axId", NS).attrib["val"] == "50010002":
+                assert axis_label.text == "Post Displacement (microns)"
+            else:
+                assert axis_label.text == "Time (seconds)"

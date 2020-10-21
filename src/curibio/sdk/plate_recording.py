@@ -527,8 +527,13 @@ class PlateRecording(FileManagerPlateRecording):
                     "max": upper_x_bound,
                 }
             )
+            y_axis_label = (
+                "Post Displacement (microns)"
+                if self._is_optical_recording
+                else "Magnetic Sensor Data"
+            )
             waveform_chart.set_y_axis(
-                {"name": "Magnetic Sensor Data", "major_gridlines": {"visible": 0}}
+                {"name": y_axis_label, "major_gridlines": {"visible": 0}}
             )
             waveform_chart.set_size(
                 {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}

@@ -461,6 +461,7 @@ class PlateRecording(FileManagerPlateRecording):
 
         msg = f"Creating chart of waveform data of well {well_name}"
         logger.info(msg)
+        waveform_chart = None
         if not skip_charts:
             waveform_chart = self._workbook.add_chart(
                 {"type": "scatter", "subtype": "straight"}
@@ -477,7 +478,7 @@ class PlateRecording(FileManagerPlateRecording):
             if recording_stop_time <= CHART_WINDOW_NUM_SECONDS
             else int((recording_stop_time + CHART_WINDOW_NUM_SECONDS) // 2)
         )
-        if not skip_charts:
+        if waveform_chart is not None:
             waveform_chart.add_series(
                 {
                     "name": "Waveform Data",
@@ -493,7 +494,6 @@ class PlateRecording(FileManagerPlateRecording):
             well_index
         ].get_peak_detection_results()
         self._add_peak_detection_series(
-            skip_charts,
             waveform_chart,
             "Peak",
             well_index,
@@ -504,7 +504,6 @@ class PlateRecording(FileManagerPlateRecording):
             time_values,
         )
         self._add_peak_detection_series(
-            skip_charts,
             waveform_chart,
             "Valley",
             well_index,
@@ -514,7 +513,7 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data_function,
             time_values,
         )
-        if not skip_charts:
+        if waveform_chart is not None:
             (
                 well_row,
                 well_col,
@@ -548,7 +547,6 @@ class PlateRecording(FileManagerPlateRecording):
 
     def _add_peak_detection_series(
         self,
-        skip_charts: bool,
         waveform_chart: xlsxwriter.chart_scatter.ChartScatter,
         detector_type: str,
         well_index: int,
@@ -595,7 +593,7 @@ class PlateRecording(FileManagerPlateRecording):
                 uninterpolated_time_seconds * CENTIMILLISECONDS_PER_SECOND
             )
             continuous_waveform_sheet.write(f"{result_column}{row}", value)
-        if not skip_charts:
+        if waveform_chart is not None:
             waveform_chart.add_series(
                 {
                     "name": label,

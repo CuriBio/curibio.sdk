@@ -128,7 +128,7 @@ def test_ExcelWellFile__get_tissue_sampling_period_microseconds(
 ):
     assert (
         generic_excel_well_file_0_1_0.get_tissue_sampling_period_microseconds()
-        == 0.016666e6
+        == 0.016667e6
     )
 
 
@@ -183,7 +183,7 @@ def test_ExcelWellFile__get_interpolation_value__returns_data_period_if_no_value
             "optical_data_missing_well_name.xlsx",
         )
     )
-    assert wf.get_interpolation_value() == 0.016666e6
+    assert wf.get_interpolation_value() == 0.016667e6
 
 
 def test_ExcelWellFile__get_interpolation_value__returns_correct_value_when_given(
@@ -198,7 +198,7 @@ def test_PlateRecording__creates_a_pipeline_with_no_filter_and_correct_sampling_
     pr = PlateRecording([generic_excel_well_file_0_1_0])
     actual = pr.get_pipeline_template()
     assert actual.noise_filter_uuid is None
-    assert actual.tissue_sampling_period == 1666.6
+    assert actual.tissue_sampling_period == 1666.7
 
 
 def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_single_optical_well_data(

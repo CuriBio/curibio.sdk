@@ -154,7 +154,7 @@ class ExcelWellFile(WellFile):
             raise NotImplementedError(
                 "Tissue Sampling Period should never be None here. A MetadataNotFoundError should have been raised by get_excel_metadata_value"
             )
-        sampling_period_seconds = float(value)
+        sampling_period_seconds = 1 / float(value)
         return int(round(sampling_period_seconds, 6) * 1e6)
 
     def get_reference_sampling_period_microseconds(self) -> int:

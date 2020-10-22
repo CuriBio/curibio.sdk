@@ -521,7 +521,7 @@ class PlateRecording(FileManagerPlateRecording):
             waveform_chart.set_x_axis(
                 {
                     "name": "Time (seconds)",
-                    "interval_tick": 100,
+                    # "interval_tick": 100,
                     "min": lower_x_bound,
                     "max": upper_x_bound,
                 }
@@ -538,7 +538,6 @@ class PlateRecording(FileManagerPlateRecording):
                 {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
             )
             waveform_chart.set_title({"name": f"Well {well_name}"})
-
             waveform_chart_sheet.insert_chart(
                 1 + well_row * (CHART_HEIGHT_CELLS + 1),
                 1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),

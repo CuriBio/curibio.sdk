@@ -195,7 +195,6 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_sin
 
     expected_file_name = "test_optical_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "."
         pr.write_xlsx(
             tmp_dir, file_name=expected_file_name, create_waveform_charts=False
         )
@@ -212,6 +211,34 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_sin
         )
         np.testing.assert_almost_equal(
             get_cell_value(actual_sheet, 10, 1), 0.1535264502266848, 6
+        )
+
+
+def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_correct_peaks_and_valleys_for_optical_data(
+    generic_excel_well_file_0_1_0,
+):
+    pr = PlateRecording([generic_excel_well_file_0_1_0])
+
+    expected_file_name = "test_optical_file.xlsx"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_dir = "."
+        pr.write_xlsx(
+            tmp_dir, file_name=expected_file_name, create_waveform_charts=False
+        )
+        actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+        actual_sheet = actual_workbook[actual_workbook.sheetnames[1]]
+
+        np.testing.assert_almost_equal(
+            get_cell_value(actual_sheet, 47, 101), 293.781693313573, 6
+        )
+        np.testing.assert_almost_equal(
+            get_cell_value(actual_sheet, 1938, 101), 390.9615827, 6
+        )
+        np.testing.assert_almost_equal(
+            get_cell_value(actual_sheet, 115, 100), -0.792794065, 6
+        )
+        np.testing.assert_almost_equal(
+            get_cell_value(actual_sheet, 1882, 100), 100.2838749, 6
         )
 
 

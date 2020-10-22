@@ -9,6 +9,7 @@ Changelog for Curi Bio Software Development Kit
   case sensitivity issue ('y' and 'Y' both work now).
 - Fixed issue causing change of chart bounds to be tedious.
 - Fixed Y axis label for optical data (now 'Post Displacement (microns)').
+- Changed Sampling / Frame Rate from period in seconds to a rate in Hz.
 
 
 0.7.1 (2020-10-20)

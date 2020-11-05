@@ -72,7 +72,7 @@ repos:
         name: forbid very large files inside tests/h5
         args: ['--maxkb=600']
         files: 'tests/h5'
-        exclude: tests/h5/peak_detection_errors
+        exclude: (tests/h5/peak_detection_errors)|(tests/h5/interpolation_error)
     -   id: check-added-large-files
         name: forbid very large files for visual regression testing
         args: ['--maxkb=1000']

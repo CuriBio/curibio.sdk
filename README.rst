@@ -30,4 +30,4 @@ Software development kit for utilizing Curi Bio data files and online databases
 Launch an online Jupyter notebook
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/curibio/curibio.sdk/master?filepath=intro.ipynb
+   :target: https://mybinder.org/v2/gh/curibio/curibio.sdk/main?filepath=intro.ipynb

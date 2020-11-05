@@ -13,6 +13,7 @@ Changelog for Curi Bio Software Development Kit
   detected incorrectly.
 - Fixed interpolation bugs.
 - Changed Sampling / Frame Rate from period in seconds to a rate in Hz.
+- Fixed documentation issues.
 
 
 0.7.1 (2020-10-20)

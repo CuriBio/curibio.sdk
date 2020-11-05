@@ -2,11 +2,14 @@
 .idea/
 .~c9*
 
+# CI caches
+.npm_cache/
+.precommit_cache/
+.pipenv_cache/
+
 # Python
 *.py[cod]
 __pycache__/
-build/
-dist/
 
 # Venv
 .venv/
@@ -26,6 +29,9 @@ tests/**/snapshots/*_diff.png
 tests/**/visual-regression-testing/*-actual.png
 tests/**/visual-regression-testing/*-diff.png
 
+dist/
+build/
+
 # test coverage
 tests/__coverage__
 test/__coverage__
@@ -38,7 +44,6 @@ coverage.xml
 
 # test profiling
 prof/
-
 
 # Local files
 downloads/

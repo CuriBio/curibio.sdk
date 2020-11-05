@@ -2,7 +2,7 @@ Changelog for Curi Bio Software Development Kit
 ===============================================
 
 
-0.7.2 (2020-11-04)
+0.7.2 (2020-11-05)
 ------------------
 
 - Fixed issue with twitches point up field for optical data. Also fixed

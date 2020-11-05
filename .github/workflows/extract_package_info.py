@@ -30,7 +30,7 @@ def _extract_info(regex: Pattern[str]) -> str:
 
 
 def package_name() -> str:
-    regex = re.compile(r"    name=\"(\w+)\"")
+    regex = re.compile(r"    name=\"(.+)\"")
     return _extract_info(regex)
 
 

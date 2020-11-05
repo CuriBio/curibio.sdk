@@ -2,11 +2,24 @@ Changelog for Curi Bio Software Development Kit
 ===============================================
 
 
+0.7.2 (2020-11-04)
+------------------
+
+- Fixed issue with twitches point up field for optical data. Also fixed
+  case sensitivity issue ('y' and 'Y' both work now).
+- Fixed issue causing change of chart bounds to be tedious.
+- Fixed Y axis label for optical data (now 'Post Displacement (microns)').
+- Fixed many of the issues causing two consecutive relaxations to be
+  detected incorrectly.
+- Fixed interpolation bugs.
+- Changed Sampling / Frame Rate from period in seconds to a rate in Hz.
+- Fixed documentation issues.
+
+
 0.7.1 (2020-10-20)
 ------------------
 
 - Fixed issue with markers in optical data charts.
-
 
 
 0.7.0 (2020-10-15)

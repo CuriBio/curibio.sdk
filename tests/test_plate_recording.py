@@ -682,3 +682,24 @@ def test_PlateRecording__can_be_initialized_from_a_windows_zipped_folder():
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == tuple(range(24))
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+@pytest.mark.slow
+def test_PlateRecording__can_be_initialized_from_data_having_iterpolation_issue():
+    file_name = "MA 22 Plate 3_2020_08_25_164108.zip"
+    expected_excel_file = "test_file"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_file_path = os.path.join(tmp_dir, file_name)
+        copy(
+            os.path.join(PATH_OF_CURRENT_FILE, "h5", "interpolation_error", file_name),
+            tmp_file_path,
+        )
+        pr = PlateRecording.from_directory(tmp_dir)
+        assert pr.get_well_indices() == tuple(range(24))
+
+        pr.write_xlsx(
+            tmp_dir, file_name=expected_excel_file, create_waveform_charts=False
+        )
+        assert expected_excel_file in os.listdir(tmp_dir)
+
+        del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

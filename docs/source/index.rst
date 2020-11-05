@@ -19,9 +19,19 @@ If you haven't already, :ref:`install curibio.sdk first <gettingstarted>` and th
 
    gettingstarted
 
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Changelog
+=========
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog

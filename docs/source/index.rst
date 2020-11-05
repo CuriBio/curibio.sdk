@@ -3,9 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: images/curi_logo.png
+    :width: 600
+
 Welcome to curibio.sdk's documentation!
 =================================================
-
 
 Welcome to Curi Bio's Software Development Kit! This tool will allow you to take
 the data you have obtained from the Mantarray system and quickly view the data

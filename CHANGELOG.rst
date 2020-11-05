@@ -18,8 +18,8 @@ Changelog for Curi Bio Software Development Kit
 - Fixed many of the issues causing two consecutive relaxations to be
   detected incorrectly.
 - Fixed interpolation bugs.
-- Changed Sampling / Frame Rate from period in seconds to a rate in Hz.
 - Fixed documentation issues.
+- Changed Sampling / Frame Rate from period in seconds to a rate in Hz.
 
 
 0.7.1 (2020-10-20)

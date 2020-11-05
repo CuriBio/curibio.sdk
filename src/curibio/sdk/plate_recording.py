@@ -521,7 +521,6 @@ class PlateRecording(FileManagerPlateRecording):
             waveform_chart.set_x_axis(
                 {
                     "name": "Time (seconds)",
-                    # "interval_tick": 100,
                     "min": lower_x_bound,
                     "max": upper_x_bound,
                 }

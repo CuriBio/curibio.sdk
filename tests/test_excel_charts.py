@@ -362,7 +362,9 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
         chart_root = ET.parse(
             os.path.join(tmp_dir, "xl", "charts", "chart1.xml")
         ).getroot()
-        for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+        valAxs = list(chart_root.findall("c:chart/c:plotArea/c:valAx", NS))
+        assert len(valAxs) == 2
+        for node in valAxs:
             axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             if node.find("c:axId", NS).attrib["val"] == "50010002":
                 assert axis_label.text == "Post Displacement (microns)"

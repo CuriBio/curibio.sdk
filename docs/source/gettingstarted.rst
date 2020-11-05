@@ -39,8 +39,8 @@ When a cell completes execution, the star will become a number:
     :width: 100
 
 This number corresponds to the order the cells are run in. For this example,
-there are only 3 cells and none will need to be re-run. If a cell is re-run,
-the number will change.
+there are only 3 cells, so if all they are all ran in order the last cell should
+Have a 3 next to it. If a cell is re-run, the number will change.
 
 
 Working With the SDK
@@ -69,7 +69,7 @@ You should now be on this page listing all the folders and files currently in th
 .. image:: images/my_data.png
     :width: 600
 
-3. Click on the upload button in the top right and select the files you wish to upload.
+3. Click on the upload button near the top right and select the files you wish to upload.
    You may see an upload button next to each file you selected to upload.
    If this happens, just click the new upload button next to each file to complete the process.
 
@@ -82,8 +82,9 @@ When the uploads complete, the page should look like this:
     :width: 600
 
 Alternatively, you can upload multiple files as a ``zip`` file to speed up the
-upload process. To do so, just select the files you wish to zip. Right click
-on the selection, and choose ``Send to`` -> ``Compressed (zipped) folder``:
+upload process. To do so on Windows, just select the local files you wish to zip.
+Then, right click on the selection, and choose ``Send to`` ->
+``Compressed (zipped) folder``:
 
 .. image:: images/zip_menu.png
     :width: 600
@@ -106,7 +107,8 @@ back to the main files page:
 Exporting Data to an Excel File and Downloading
 -----------------------------------------------
 
-1. Navigate back to the notebook page by clicking on ``intro.ipynb``.
+1. Starting from the main files page, navigate back to the notebook
+   page by clicking on ``intro.ipynb``.
 
 2. Before running any code cells, you will need to update the file location.
    Change the line::

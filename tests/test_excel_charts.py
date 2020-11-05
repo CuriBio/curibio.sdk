@@ -9,6 +9,7 @@ from curibio.sdk import PlateRecording
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 
+from .fixtures import fixture_generic_excel_well_file_0_1_0
 from .fixtures import fixture_generic_well_file_0_3_1
 from .fixtures import fixture_generic_well_file_0_3_1__2
 from .fixtures import fixture_generic_well_file_0_3_2
@@ -18,6 +19,7 @@ from .fixtures import fixture_plate_recording_in_tmp_dir_for_generic_well_file_0
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
 from .fixtures import fixture_plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 from .fixtures import fixture_real_3min_well_file_0_3_1
+
 
 __fixtures__ = (
     fixture_generic_well_file_0_3_1,
@@ -29,6 +31,7 @@ __fixtures__ = (
     fixture_plate_recording_in_tmp_dir_for_24_wells_0_3_2,
     fixture_generic_well_file_0_3_1__2,
     fixture_real_3min_well_file_0_3_1,
+    fixture_generic_excel_well_file_0_1_0,
 )
 
 PATH_OF_CURRENT_FILE = get_current_file_abs_directory()
@@ -82,10 +85,10 @@ NS = {
             {
                 "chart_num": 1,
                 "well_name": "A1",
-                "x_range": "$A$2:$A$355",
-                "y_range_w": "$B$2:$B$355",
-                "y_range_c": "$CW$2:$CW$355",
-                "y_range_r": "$CX$2:$CX$355",
+                "x_range": "$A$2:$A$354",
+                "y_range_w": "$B$2:$B$354",
+                "y_range_c": "$CW$2:$CW$354",
+                "y_range_r": "$CX$2:$CX$354",
                 "from_col": 1,
                 "from_row": 1,
                 "to_col": 9,
@@ -98,10 +101,10 @@ NS = {
             {
                 "chart_num": 2,
                 "well_name": "B2",
-                "x_range": "$A$2:$A$356",
-                "y_range_w": "$G$2:$G$356",
-                "y_range_c": "$DG$2:$DG$356",
-                "y_range_r": "$DH$2:$DH$356",
+                "x_range": "$A$2:$A$355",
+                "y_range_w": "$G$2:$G$355",
+                "y_range_c": "$DG$2:$DG$355",
+                "y_range_r": "$DH$2:$DH$355",
                 "from_col": 10,
                 "from_row": 17,
                 "to_col": 18,
@@ -135,10 +138,10 @@ NS = {
             {
                 "chart_num": 1,
                 "well_name": "A1",
-                "x_range": "$A$10543:$A$11543",
-                "y_range_w": "$B$10543:$B$11543",
-                "y_range_c": "$CW$10543:$CW$11543",
-                "y_range_r": "$CX$10543:$CX$11543",
+                "x_range": "$A$2:$A$22087",
+                "y_range_w": "$B$2:$B$22087",
+                "y_range_c": "$CW$2:$CW$22087",
+                "y_range_r": "$CX$2:$CX$22087",
                 "from_col": 1,
                 "from_row": 1,
                 "to_col": 9,
@@ -151,10 +154,10 @@ NS = {
             {
                 "chart_num": 2,
                 "well_name": "B2",
-                "x_range": "$A$10543:$A$11543",
-                "y_range_w": "$G$10543:$G$11543",
-                "y_range_c": "$DG$10543:$DG$11543",
-                "y_range_r": "$DH$10543:$DH$11543",
+                "x_range": "$A$2:$A$22087",
+                "y_range_w": "$G$2:$G$22087",
+                "y_range_c": "$DG$2:$DG$22087",
+                "y_range_r": "$DH$2:$DH$22087",
                 "from_col": 10,
                 "from_row": 17,
                 "to_col": 18,
@@ -171,7 +174,7 @@ NS = {
 def test_write_xlsx__creates_two_snapshot_charts_correctly(
     pr, expected_A1_attrs, expected_B2_attrs, test_description
 ):
-    test_file_name = "test_file.xlsx"
+    test_file_name = "test_chart.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
         # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
@@ -187,35 +190,27 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
             ).getroot()
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_well_name}"
-            assert (
-                int(
-                    chart_root.find(
-                        "c:chart/c:plotArea/c:catAx/c:tickMarkSkip", NS
-                    ).attrib["val"]
-                ),
-                expected_well_name,
-            ) == (100, expected_well_name)
-            x_axis_label = chart_root.find(
-                "c:chart/c:plotArea/c:catAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
-            )
-            assert (x_axis_label.text, expected_well_name) == (
-                "Time (seconds)",
-                expected_well_name,
-            )
-            y_axis_label = chart_root.find(
-                "c:chart/c:plotArea/c:valAx/c:title/c:tx/c:rich/a:p/a:r/a:t", NS
-            )
-            assert (y_axis_label.text, expected_well_name) == (
-                "Magnetic Sensor Data",
-                expected_well_name,
-            )
+            for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+                axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+                if node.find("c:axId", NS).attrib["val"] == "50010001":
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text == "Time (seconds)"
+                    )
+                elif node.find("c:axId", NS).attrib["val"] == "50010002":
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text == "Magnetic Sensor Data"
+                    )
             assert (expected_well_name == expected_attrs["well_name"]) and (
                 chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
                 is None
             )
-            waveform_series_node = chart_root.find(
-                "c:chart/c:plotArea/c:lineChart/c:ser", NS
-            )
+            waveform_series_node = None
+            for node in chart_root.findall(
+                "c:chart/c:plotArea/c:scatterChart/c:ser", NS
+            ):
+                if node.find("c:idx", NS).attrib["val"] == "0":
+                    waveform_series_node = node
+                    break
             assert (
                 waveform_series_node.find("c:tx/c:v", NS).text,
                 expected_well_name,
@@ -227,22 +222,32 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 expected_well_name,
             ) == ("1B9E77", expected_well_name)
             assert (
-                waveform_series_node.find("c:cat/c:numRef/c:f", NS).text
+                waveform_series_node.find("c:xVal/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['x_range']}"
             )
             assert (
-                waveform_series_node.find("c:val/c:numRef/c:f", NS).text
+                waveform_series_node.find("c:yVal/c:numRef/c:f", NS).text
                 == f"'continuous-waveforms'!{expected_attrs['y_range_w']}"
             )
             for ser_node in chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
             ):
-                assert (
-                    expected_well_name == expected_attrs["well_name"]
-                ) and ser_node.find("c:xVal/c:numRef/c:f", NS).text is None
-                assert (
-                    expected_well_name == expected_attrs["well_name"]
-                ) and ser_node.find("c:marker/c:spPr/a:noFill", NS).text is None
+                if node.find("c:idx", NS).attrib["val"] == "0":
+                    continue
+                assert (expected_well_name == expected_attrs["well_name"]) and (
+                    ser_node.find("c:xVal/c:numRef/c:f", NS).text
+                    == f"'continuous-waveforms'!{expected_attrs['x_range']}"
+                )
+                no_fill_node = ser_node.find("c:marker/c:spPr/a:noFill", NS)
+                if no_fill_node is not None:
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        no_fill_node.text is None
+                    )
+                fill_node = ser_node.find("c:marker/c:spPr/a:noFill", NS)
+                if fill_node is not None:
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        fill_node.text is None
+                    )
                 assert (
                     ser_node.find("c:marker/c:symbol", NS).attrib["val"],
                     expected_well_name,
@@ -343,3 +348,25 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
                 chart_name,
                 0,
             )
+
+
+def test_write_xlsx__uses_correct_axis_names_for_optical_data(
+    generic_excel_well_file_0_1_0,
+):
+    test_file_name = "test_file.xlsx"
+    pr = PlateRecording([generic_excel_well_file_0_1_0])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
+        with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
+            zip_ref.extractall(tmp_dir)
+        chart_root = ET.parse(
+            os.path.join(tmp_dir, "xl", "charts", "chart1.xml")
+        ).getroot()
+        valAxs = list(chart_root.findall("c:chart/c:plotArea/c:valAx", NS))
+        assert len(valAxs) == 2
+        for node in valAxs:
+            axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+            if node.find("c:axId", NS).attrib["val"] == "50010002":
+                assert axis_label.text == "Post Displacement (microns)"
+            else:
+                assert axis_label.text == "Time (seconds)"

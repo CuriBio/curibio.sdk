@@ -128,7 +128,7 @@ def test_ExcelWellFile__get_tissue_sampling_period_microseconds(
 ):
     assert (
         generic_excel_well_file_0_1_0.get_tissue_sampling_period_microseconds()
-        == 0.016666e6
+        == 0.016667e6
     )
 
 
@@ -145,6 +145,19 @@ def test_ExcelWellFile__get_recording_start_index(generic_excel_well_file_0_1_0)
 
 
 def test_ExcelWellFile__get_twitches_point_up(generic_excel_well_file_0_1_0):
+    assert generic_excel_well_file_0_1_0.get_twitches_point_up() is True
+
+
+def test_ExcelWellFile__get_twitches_point_up__with_capital_Y(
+    generic_excel_well_file_0_1_0, mocker
+):
+    # Tanner (10/20/20): mocking here to avoid having to create a new excel file just for this case.
+    mocker.patch.object(
+        generic_excel_well_file_0_1_0,
+        "get_excel_metadata_value",
+        autospec=True,
+        return_value="Y",
+    )
     assert generic_excel_well_file_0_1_0.get_twitches_point_up() is True
 
 
@@ -170,7 +183,7 @@ def test_ExcelWellFile__get_interpolation_value__returns_data_period_if_no_value
             "optical_data_missing_well_name.xlsx",
         )
     )
-    assert wf.get_interpolation_value() == 0.016666e6
+    assert wf.get_interpolation_value() == 0.016667e6
 
 
 def test_ExcelWellFile__get_interpolation_value__returns_correct_value_when_given(
@@ -185,7 +198,7 @@ def test_PlateRecording__creates_a_pipeline_with_no_filter_and_correct_sampling_
     pr = PlateRecording([generic_excel_well_file_0_1_0])
     actual = pr.get_pipeline_template()
     assert actual.noise_filter_uuid is None
-    assert actual.tissue_sampling_period == 1666.6
+    assert actual.tissue_sampling_period == 1666.7
 
 
 def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_single_optical_well_data(
@@ -221,7 +234,6 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_cor
 
     expected_file_name = "test_optical_file.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "."
         pr.write_xlsx(
             tmp_dir, file_name=expected_file_name, create_waveform_charts=False
         )
@@ -229,16 +241,16 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_cor
         actual_sheet = actual_workbook[actual_workbook.sheetnames[1]]
 
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 47, 101), 293.781693313573, 6
+            get_cell_value(actual_sheet, 47, 100), 293.781693313573, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 1938, 101), 390.9615827, 6
+            get_cell_value(actual_sheet, 1938, 100), 390.9615827, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 115, 100), -0.792794065, 6
+            get_cell_value(actual_sheet, 115, 101), -0.792794065, 6
         )
         np.testing.assert_almost_equal(
-            get_cell_value(actual_sheet, 1882, 100), 100.2838749, 6
+            get_cell_value(actual_sheet, 1882, 101), 100.2838749, 6
         )
 
 

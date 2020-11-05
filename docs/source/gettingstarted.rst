@@ -15,7 +15,7 @@ notebook.
 
 .. |mybinder_link| raw:: html
 
-   <a href="https://mybinder.org/v2/gh/curibio/curibio.sdk/master?filepath=intro.ipynb" target="_blank">here</a>
+   <a href="https://mybinder.org/v2/gh/curibio/curibio.sdk/main?filepath=intro.ipynb" target="_blank">here</a>
 
 You should land on a page that looks like this:
 

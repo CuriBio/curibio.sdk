@@ -26,7 +26,7 @@ setup(
         "matplotlib>=3.3.1",
         "mantarray-file-manager>=0.4.1",
         "stdlib_utils>=0.3.1",
-        "mantarray-waveform-analysis>=0.5.4",
+        "mantarray-waveform-analysis>=0.5.6",
         "labware-domain-models>=0.2",
         'importlib-metadata ~= 1.0 ; python_version < "3.8"',
     ],

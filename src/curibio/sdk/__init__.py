@@ -16,6 +16,7 @@ from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
+from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
 from .constants import INTERPOLATION_VALUE_UUID
@@ -27,9 +28,10 @@ from .constants import METADATA_UUID_DESCRIPTIONS
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION as __version__
 from .constants import PEAK_VALLEY_COLUMN_START
+from .constants import SECONDS_PER_CELL
+from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWITCHES_POINT_UP_UUID
-from .constants import WAVEFORM_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 from .exceptions import MetadataNotFoundError
 from .plate_recording import PlateRecording
@@ -51,7 +53,7 @@ __all__ = [
     "AGGREGATE_METRICS_SHEET_NAME",
     "ALL_FORMATS",
     "__version__",
-    "WAVEFORM_CHART_SHEET_NAME",
+    "SNAPSHOT_CHART_SHEET_NAME",
     "CHART_HEIGHT",
     "CHART_BASE_WIDTH",
     "CHART_HEIGHT_CELLS",
@@ -67,4 +69,6 @@ __all__ = [
     "METADATA_UUID_DESCRIPTIONS",
     "MetadataNotFoundError",
     "INTERPOLATION_VALUE_UUID",
+    "FULL_CHART_SHEET_NAME",
+    "SECONDS_PER_CELL",
 ]

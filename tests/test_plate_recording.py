@@ -131,7 +131,7 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
+    assert actual_workbook.sheetnames[4] == AGGREGATE_METRICS_SHEET_NAME
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     curr_row = 0
     assert get_cell_value(aggregate_metrics_sheet, curr_row, 2) == "A1"
@@ -175,7 +175,7 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
     pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
     expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[3] == AGGREGATE_METRICS_SHEET_NAME
+    assert actual_workbook.sheetnames[4] == AGGREGATE_METRICS_SHEET_NAME
     actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
     well_idx = real_3min_well_file_0_3_1.get_well_index()
     curr_row = 2
@@ -674,6 +674,7 @@ def test_PlateRecording__can_be_initialized_from_a_mac_zipped_folder():
 def test_PlateRecording__can_be_initialized_from_a_windows_zipped_folder():
     file_name = "MA 20 PEI Test Plate 2 - 2020_08_13_153638-20201007T210515Z-001.zip"
     with tempfile.TemporaryDirectory() as tmp_dir:
+        # tmp_dir = "New Folder"
         tmp_file_path = os.path.join(tmp_dir, file_name)
         copy(
             os.path.join(PATH_OF_CURRENT_FILE, "zipped_windows_folder", file_name),
@@ -681,6 +682,8 @@ def test_PlateRecording__can_be_initialized_from_a_windows_zipped_folder():
         )
         pr = PlateRecording.from_directory(tmp_dir)
         assert pr.get_well_indices() == tuple(range(24))
+        # pr.write_xlsx(tmp_dir, file_name="test_full.xlsx")
+
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
 
 

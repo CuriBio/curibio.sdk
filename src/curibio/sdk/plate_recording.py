@@ -50,6 +50,8 @@ from .constants import CHART_HEIGHT
 from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
+from .constants import DEFAULT_CELL_WIDTH
+from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
 from .constants import METADATA_EXCEL_SHEET_NAME
@@ -59,9 +61,10 @@ from .constants import METADATA_RECORDING_ROW_START
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
 from .constants import PACKAGE_VERSION
 from .constants import PEAK_VALLEY_COLUMN_START
+from .constants import SECONDS_PER_CELL
+from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWENTY_FOUR_WELL_PLATE
-from .constants import WAVEFORM_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
@@ -353,7 +356,8 @@ class PlateRecording(FileManagerPlateRecording):
         continuous_waveform_sheet = self._workbook.add_worksheet(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
-        self._workbook.add_worksheet(WAVEFORM_CHART_SHEET_NAME)
+        self._workbook.add_worksheet(SNAPSHOT_CHART_SHEET_NAME)
+        self._workbook.add_worksheet(FULL_CHART_SHEET_NAME)
         if skip_content:
             return
         logger.info("Creating waveform data sheet")
@@ -424,7 +428,7 @@ class PlateRecording(FileManagerPlateRecording):
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
-            self._create_waveform_chart(
+            self._create_waveform_charts(
                 skip_charts,
                 last_index,
                 well_index,
@@ -446,7 +450,7 @@ class PlateRecording(FileManagerPlateRecording):
             )
         curr_sheet.freeze_panes(1, 1)
 
-    def _create_waveform_chart(
+    def _create_waveform_charts(
         self,
         skip_charts: bool,
         num_data_points: int,
@@ -455,15 +459,20 @@ class PlateRecording(FileManagerPlateRecording):
         time_values: NDArray[(2, Any), int],
         interpolated_data_function: interpolate.interpolate.interp1d,
     ) -> None:
-        waveform_chart_sheet = self._workbook.get_worksheet_by_name(
-            WAVEFORM_CHART_SHEET_NAME
+        snapshot_chart_sheet = self._workbook.get_worksheet_by_name(
+            SNAPSHOT_CHART_SHEET_NAME
         )
+        full_chart_sheet = self._workbook.get_worksheet_by_name(FULL_CHART_SHEET_NAME)
 
         msg = f"Creating chart of waveform data of well {well_name}"
         logger.info(msg)
-        waveform_chart = None
+        snapshot_chart = None
+        full_chart = None
         if not skip_charts:
-            waveform_chart = self._workbook.add_chart(
+            snapshot_chart = self._workbook.add_chart(
+                {"type": "scatter", "subtype": "straight"}
+            )
+            full_chart = self._workbook.add_chart(
                 {"type": "scatter", "subtype": "straight"}
             )
         well_column = xl_col_to_name(well_index + 1)
@@ -478,70 +487,96 @@ class PlateRecording(FileManagerPlateRecording):
             if recording_stop_time <= CHART_WINDOW_NUM_SECONDS
             else int((recording_stop_time + CHART_WINDOW_NUM_SECONDS) // 2)
         )
-        if waveform_chart is not None:
-            waveform_chart.add_series(
-                {
-                    "name": "Waveform Data",
-                    "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points}",
-                    "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points}",
-                    "line": {"color": "#1B9E77"},
-                }
-            )
-
         msg = f"Adding peak and valley markers to chart of well {well_name}"
         logger.info(msg)
-        peak_indices, valley_indices = self._pipelines[
-            well_index
-        ].get_peak_detection_results()
-        self._add_peak_detection_series(
-            waveform_chart,
-            "Peak",
-            well_index,
-            well_name,
-            num_data_points,
-            peak_indices,
-            interpolated_data_function,
-            time_values,
-        )
-        self._add_peak_detection_series(
-            waveform_chart,
-            "Valley",
-            well_index,
-            well_name,
-            num_data_points,
-            valley_indices,
-            interpolated_data_function,
-            time_values,
-        )
-        if waveform_chart is not None:
+        for chart in (snapshot_chart, full_chart):
+            chart_sheet = (
+                snapshot_chart_sheet if chart == snapshot_chart else full_chart_sheet
+            )
+
+            if chart is not None:
+                chart.add_series(
+                    {
+                        "name": "Waveform Data",
+                        "categories": f"='continuous-waveforms'!$A$2:$A${num_data_points}",
+                        "values": f"='continuous-waveforms'!${well_column}$2:${well_column}${num_data_points}",
+                        "line": {"color": "#1B9E77"},
+                    }
+                )
+
+            peak_indices, valley_indices = self._pipelines[
+                well_index
+            ].get_peak_detection_results()
+            self._add_peak_detection_series(
+                chart,
+                "Peak",
+                well_index,
+                well_name,
+                num_data_points,
+                peak_indices,
+                interpolated_data_function,
+                time_values,
+            )
+            self._add_peak_detection_series(
+                chart,
+                "Valley",
+                well_index,
+                well_name,
+                num_data_points,
+                valley_indices,
+                interpolated_data_function,
+                time_values,
+            )
+
+            if chart is None:
+                continue
+
             (
                 well_row,
                 well_col,
             ) = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(well_index)
-            waveform_chart.set_x_axis(
-                {
-                    "name": "Time (seconds)",
-                    "min": lower_x_bound,
-                    "max": upper_x_bound,
-                }
-            )
+            if chart == snapshot_chart:
+                chart.set_x_axis(
+                    {
+                        "name": "Time (seconds)",
+                        "min": lower_x_bound,
+                        "max": upper_x_bound,
+                    }
+                )
+            else:
+                chart.set_x_axis(
+                    {
+                        "name": "Time (seconds)",
+                        "min": 0,
+                        "max": recording_stop_time,
+                    }
+                )
             y_axis_label = (
                 "Post Displacement (microns)"
                 if self._is_optical_recording
                 else "Magnetic Sensor Data"
             )
-            waveform_chart.set_y_axis(
-                {"name": y_axis_label, "major_gridlines": {"visible": 0}}
+            chart.set_y_axis({"name": y_axis_label, "major_gridlines": {"visible": 0}})
+            width = (
+                CHART_FIXED_WIDTH
+                if chart == snapshot_chart
+                else CHART_FIXED_WIDTH // 2
+                + (DEFAULT_CELL_WIDTH * int(recording_stop_time / SECONDS_PER_CELL))
             )
-            waveform_chart.set_size(
-                {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
-            )
-            waveform_chart.set_title({"name": f"Well {well_name}"})
-            waveform_chart_sheet.insert_chart(
-                1 + well_row * (CHART_HEIGHT_CELLS + 1),
-                1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
-                waveform_chart,
-            )
+            chart.set_size({"width": width, "height": CHART_HEIGHT})
+            chart.set_title({"name": f"Well {well_name}"})
+            if chart == snapshot_chart:
+                chart_sheet.insert_chart(
+                    1 + well_row * (CHART_HEIGHT_CELLS + 1),
+                    1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+                    chart,
+                )
+            else:
+                chart_sheet.insert_chart(
+                    1 + well_index * (CHART_HEIGHT_CELLS + 1),
+                    1,
+                    chart,
+                )
 
     def _add_peak_detection_series(
         self,

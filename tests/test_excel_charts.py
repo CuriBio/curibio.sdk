@@ -356,7 +356,6 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
     test_file_name = "test_file.xlsx"
     pr = PlateRecording([generic_excel_well_file_0_1_0])
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)

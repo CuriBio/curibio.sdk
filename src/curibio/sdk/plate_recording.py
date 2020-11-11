@@ -491,12 +491,13 @@ class PlateRecording(FileManagerPlateRecording):
         )
         msg = f"Adding peak and valley markers to chart of well {well_name}"
         logger.info(msg)
-        for chart in (snapshot_chart, full_chart):
-            chart_sheet = (
-                snapshot_chart_sheet if chart == snapshot_chart else full_chart_sheet
-            )
-
-            if chart is not None:
+        for chart, chart_sheet in (
+            (snapshot_chart, snapshot_chart_sheet),
+            (full_chart, full_chart_sheet),
+        ):
+            if (
+                chart is not None
+            ):  # Tanner (11/11/20): chart is None when skipping chart creation
                 chart.add_series(
                     {
                         "name": "Waveform Data",
@@ -530,29 +531,23 @@ class PlateRecording(FileManagerPlateRecording):
                 time_values,
             )
 
-            if chart is None:
+            if (
+                chart is None
+            ):  # Tanner (11/11/20): chart is None when skipping chart creation
                 continue
 
             (
                 well_row,
                 well_col,
             ) = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(well_index)
+            x_axis_settings: Dict[str, Any] = {"name": "Time (seconds)"}
             if chart == snapshot_chart:
-                chart.set_x_axis(
-                    {
-                        "name": "Time (seconds)",
-                        "min": lower_x_bound,
-                        "max": upper_x_bound,
-                    }
-                )
+                x_axis_settings["min"] = lower_x_bound
+                x_axis_settings["max"] = upper_x_bound
             else:
-                chart.set_x_axis(
-                    {
-                        "name": "Time (seconds)",
-                        "min": 0,
-                        "max": recording_stop_time,
-                    }
-                )
+                x_axis_settings["min"] = 0
+                x_axis_settings["max"] = recording_stop_time
+            chart.set_x_axis(x_axis_settings)
             y_axis_label = (
                 "Post Displacement (microns)"
                 if self._is_optical_recording
@@ -597,15 +592,9 @@ class PlateRecording(FileManagerPlateRecording):
         continuous_waveform_sheet = self._workbook.get_worksheet_by_name(
             CONTINUOUS_WAVEFORM_SHEET_NAME
         )
-        # index_column = xl_col_to_name(
-        #     PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
-        # )
         result_column = xl_col_to_name(
             PEAK_VALLEY_COLUMN_START + (well_index * 2) + offset
         )
-        # continuous_waveform_sheet.write(
-        #     f"{index_column}1", f"{well_name} {detector_type} Timepoints"
-        # )
         continuous_waveform_sheet.write(
             f"{result_column}1", f"{well_name} {detector_type} Values"
         )
@@ -628,7 +617,9 @@ class PlateRecording(FileManagerPlateRecording):
                 uninterpolated_time_seconds * CENTIMILLISECONDS_PER_SECOND
             )
             continuous_waveform_sheet.write(f"{result_column}{row}", value)
-        if waveform_chart is not None:
+        if (
+            waveform_chart is not None
+        ):  # Tanner (11/11/20): chart is None when skipping chart creation
             waveform_chart.add_series(
                 {
                     "name": label,

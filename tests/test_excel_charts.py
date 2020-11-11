@@ -176,7 +176,6 @@ def test_write_xlsx__creates_two_snapshot_charts_correctly(
 ):
     test_file_name = "test_chart.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)
@@ -437,7 +436,6 @@ def test_write_xlsx__creates_two_full_charts_correctly(
 ):
     test_file_name = "test_full.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)

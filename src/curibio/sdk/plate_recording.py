@@ -451,6 +451,7 @@ class PlateRecording(FileManagerPlateRecording):
             )
         curr_sheet.freeze_panes(1, 1)
 
+    # pylint: disable=too-many-locals
     def _create_waveform_charts(
         self,
         skip_charts: bool,

@@ -356,7 +356,7 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
     test_file_name = "test_file.xlsx"
     pr = PlateRecording([generic_excel_well_file_0_1_0])
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = "New Folder"
+        # tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)
@@ -385,57 +385,6 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
                         PATH_OF_CURRENT_FILE,
                         "h5",
                         "v0.3.1",
-                        "MA20123456__2020_08_17_145752__A1.h5",
-                    ),
-                    os.path.join(
-                        PATH_OF_CURRENT_FILE,
-                        "h5",
-                        "v0.3.1",
-                        "MA20123456__2020_08_17_145752__B2.h5",
-                    ),
-                ]
-            ),
-            {
-                "chart_num": 1,
-                "well_name": "A1",
-                "x_range": "$A$2:$A$354",
-                "y_range_w": "$B$2:$B$354",
-                "y_range_c": "$CW$2:$CW$354",
-                "y_range_r": "$CX$2:$CX$354",
-                "from_col": 1,
-                "from_row": 1,
-                "to_col": 9,
-                "to_row": 16,
-                "first_c_idx": 107,
-                "first_c_y": -156924.17,
-                "first_r_idx": 56,
-                "first_r_y": 156838.0,
-            },
-            {
-                "chart_num": 2,
-                "well_name": "B2",
-                "x_range": "$A$2:$A$355",
-                "y_range_w": "$G$2:$G$355",
-                "y_range_c": "$DG$2:$DG$355",
-                "y_range_r": "$DH$2:$DH$355",
-                "from_col": 10,
-                "from_row": 17,
-                "to_col": 18,
-                "to_row": 32,
-                "first_c_idx": 107,
-                "first_c_y": -942203.25,
-                "first_r_idx": 56,
-                "first_r_y": 943009.0,
-            },
-            "creates chart correctly with data shorter than chart window",
-        ),
-        (
-            PlateRecording(
-                [
-                    os.path.join(
-                        PATH_OF_CURRENT_FILE,
-                        "h5",
-                        "v0.3.1",
                         "MA201110001__2020_09_03_213024",
                         "MA201110001__2020_09_03_213024__A1.h5",
                     ),
@@ -457,7 +406,7 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
                 "y_range_r": "$CX$2:$CX$22087",
                 "from_col": 1,
                 "from_row": 1,
-                "to_col": 9,
+                "to_col": 93,
                 "to_row": 16,
                 "first_c_idx": 71,
                 "first_c_y": -95944.38,
@@ -471,16 +420,16 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
                 "y_range_w": "$G$2:$G$22087",
                 "y_range_c": "$DG$2:$DG$22087",
                 "y_range_r": "$DH$2:$DH$22087",
-                "from_col": 10,
-                "from_row": 17,
-                "to_col": 18,
-                "to_row": 32,
+                "from_col": 1,
+                "from_row": 81,
+                "to_col": 93,
+                "to_row": 96,
                 "first_c_idx": 34,
                 "first_c_y": -127349.83,
                 "first_r_idx": 8,
                 "first_r_y": -50245.47,
             },
-            "creates chart correctly with data longer than chart window",
+            "creates 2 full length charts correctly",
         ),
     ],
 )
@@ -627,7 +576,7 @@ def test_write_xlsx__creates_two_full_charts_correctly(
                     ) == (expected_attrs["first_r_y"], expected_well_name, ser_node)
 
         drawing_root = ET.parse(
-            os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
+            os.path.join(tmp_dir, "xl", "drawings", "drawing2.xml")
         ).getroot()
         for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
             chart_name = chart_node.find(

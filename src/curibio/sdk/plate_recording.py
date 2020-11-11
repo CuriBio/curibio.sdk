@@ -430,6 +430,7 @@ class PlateRecording(FileManagerPlateRecording):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
             self._create_waveform_charts(
                 skip_charts,
+                iter_well_idx,
                 last_index,
                 well_index,
                 well_name,
@@ -453,6 +454,7 @@ class PlateRecording(FileManagerPlateRecording):
     def _create_waveform_charts(
         self,
         skip_charts: bool,
+        iter_well_idx: int,
         num_data_points: int,
         well_index: int,
         well_name: str,
@@ -573,7 +575,7 @@ class PlateRecording(FileManagerPlateRecording):
                 )
             else:
                 chart_sheet.insert_chart(
-                    1 + well_index * (CHART_HEIGHT_CELLS + 1),
+                    1 + iter_well_idx * (CHART_HEIGHT_CELLS + 1),
                     1,
                     chart,
                 )

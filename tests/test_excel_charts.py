@@ -420,9 +420,9 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
                 "y_range_c": "$DG$2:$DG$22087",
                 "y_range_r": "$DH$2:$DH$22087",
                 "from_col": 1,
-                "from_row": 81,
+                "from_row": 17,
                 "to_col": 93,
-                "to_row": 96,
+                "to_row": 32,
                 "first_c_idx": 34,
                 "first_c_y": -127349.83,
                 "first_r_idx": 8,
@@ -435,9 +435,9 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
 def test_write_xlsx__creates_two_full_charts_correctly(
     pr, expected_A1_attrs, expected_B2_attrs, test_description
 ):
-    test_file_name = "test_chart.xlsx"
+    test_file_name = "test_full.xlsx"
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = "New Folder"
+        tmp_dir = "New Folder"
         pr.write_xlsx(tmp_dir, file_name=test_file_name)
         with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
             zip_ref.extractall(tmp_dir)

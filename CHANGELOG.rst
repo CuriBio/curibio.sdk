@@ -1,6 +1,12 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.8.0 (2020-11-11)
+------------------
+
+- Added excel sheet for full length charts.
+- Fixed issue with pure noise files causing errors.
+
 
 0.7.3 (2020-11-05)
 ------------------

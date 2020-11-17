@@ -26,7 +26,7 @@ setup(
         "matplotlib>=3.3.1",
         "mantarray-file-manager>=0.4.2",
         "stdlib_utils>=0.3.1",
-        "mantarray-waveform-analysis>=0.5.8",
+        "mantarray-waveform-analysis>=0.5.10",
         "labware-domain-models>=0.2",
         'importlib-metadata ~= 1.0 ; python_version < "3.8"',
     ],
@@ -40,6 +40,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering",
     ],
 )

@@ -39,8 +39,8 @@ When a cell completes execution, the star will become a number:
     :width: 100
 
 This number corresponds to the order the cells are run in. For this example,
-there are only 3 cells, so if all they are all ran in order the last cell should
-Have a 3 next to it. If a cell is re-run, the number will change.
+there are only 3 cells, so if they are all ran in order the last cell should
+have a 3 next to it. If a cell is re-run, the number will change.
 
 
 Working With the SDK

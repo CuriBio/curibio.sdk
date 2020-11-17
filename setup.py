@@ -24,7 +24,7 @@ setup(
         "XlsxWriter>=1.3.3",
         "openpyxl>=3.0.5",
         "matplotlib>=3.3.1",
-        "mantarray-file-manager>=0.4.1",
+        "mantarray-file-manager>=0.4.2",
         "stdlib_utils>=0.3.1",
         "mantarray-waveform-analysis>=0.5.8",
         "labware-domain-models>=0.2",

@@ -371,7 +371,7 @@ def test_write_xlsx__uses_correct_axis_names_for_optical_data(
                 assert axis_label.text == "Time (seconds)"
 
 
-# # pylint: disable=too-many-locals
+# pylint: disable=too-many-locals
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "pr,expected_A1_attrs,expected_B2_attrs,test_description",

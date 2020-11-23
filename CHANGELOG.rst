@@ -1,7 +1,7 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.810 (unreleased)
+0.8.1 (unreleased)
 ------------------
 
 - Added Python 3.9 support

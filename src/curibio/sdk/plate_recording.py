@@ -59,8 +59,10 @@ from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
+from .constants import NUMBER_OF_PER_TWITCH_METRICS
 from .constants import PACKAGE_VERSION
 from .constants import PEAK_VALLEY_COLUMN_START
+from .constants import PER_TWITCH_METRICS_SHEET_NAME
 from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
@@ -344,6 +346,7 @@ class PlateRecording(FileManagerPlateRecording):
             skip_charts=(not create_waveform_charts),
         )
         self._write_xlsx_aggregate_metrics()
+        self._write_xlsx_per_twitch_metrics()
         logger.info("Saving .xlsx file")
         self._workbook.close()  # This is actually when the file gets written to d
         logger.info("Done writing to .xlsx")
@@ -636,13 +639,58 @@ class PlateRecording(FileManagerPlateRecording):
                 }
             )
 
+    def _write_xlsx_per_twitch_metrics(self) -> None:
+        logger.info("Creating per-twitch metrics sheet")
+        curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
+        curr_row = 0
+        for iter_well_idx in range(
+            TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
+        ):
+            curr_sheet.write(
+                curr_row,
+                0,
+                TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
+            )
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Timepoint of Twitch Contraction",
+            )
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Twitch Period (seconds)",
+            )
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Twitch Frequency (Hz)",
+            )
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Twitch Amplitude",
+            )
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Twitch Width 50 (FWHM) (seconds)",
+            )
+            curr_row += 1
+
+            curr_row += (
+                NUMBER_OF_PER_TWITCH_METRICS + 1 - 5
+            )  # include a single row gap in between the data for each well
+
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")
-        aggregate_metrics_sheet = self._workbook.add_worksheet(
-            AGGREGATE_METRICS_SHEET_NAME
-        )
+        curr_sheet = self._workbook.add_worksheet(AGGREGATE_METRICS_SHEET_NAME)
         curr_row = 0
-        curr_sheet = aggregate_metrics_sheet
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):

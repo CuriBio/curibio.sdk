@@ -21,6 +21,8 @@ from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
+from curibio.sdk import PER_TWITCH_METRICS_SHEET_NAME
 from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
 from freezegun import freeze_time
@@ -121,6 +123,37 @@ def test_write_xlsx__creates_file_at_supplied_path_with_auto_generated_name(
     pr.write_xlsx(tmp_dir)
     expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
     assert os.path.exists(os.path.join(tmp_dir, expected_file_name)) is True
+
+
+def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
+
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
+    expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
+    curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
+    curr_row = 0
+    assert get_cell_value(curr_sheet, curr_row, 0) == "A1"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Timepoint of Twitch Contraction"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Period (seconds)"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Frequency (Hz)"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Amplitude"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Width 50 (FWHM) (seconds)"
+    curr_row += 1
+
+    curr_row += (
+        NUMBER_OF_PER_TWITCH_METRICS - 5
+    )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
+    curr_row += 1  # gap between data for the different wells
+    assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

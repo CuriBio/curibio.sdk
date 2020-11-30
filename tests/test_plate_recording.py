@@ -4,6 +4,9 @@
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
+
+python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.2','MA20223322__2020_09_02_173919','MA20223322__2020_09_02_173919__A2.h5')]).write_xlsx('.',file_name='temp.xlsx')"
+os.path.join(PATH_OF_CURRENT_FILE,"h5","v0.3.2","MA20223322__2020_09_02_173919","MA20223322__2020_09_02_173919__A2.h5",)
 """
 import datetime
 import os
@@ -137,9 +140,7 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
     curr_row = 0
     assert get_cell_value(curr_sheet, curr_row, 0) == "A1"
-    assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
-    assert get_cell_value(curr_sheet, curr_row, 2) == "Twitch 2"
-    assert get_cell_value(curr_sheet, curr_row, 3) == "Twitch 3"
+    assert get_cell_value(curr_sheet, curr_row, 1) is None
 
     curr_row += 1
 
@@ -159,7 +160,9 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
     curr_row += 1  # gap between data for the different wells
     assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
+    curr_row = 80  # A2 row number
     assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
+    assert get_cell_value(curr_sheet, curr_row, 11) == "Twitch 11"
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

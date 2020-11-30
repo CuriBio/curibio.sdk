@@ -138,6 +138,7 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     curr_row = 0
     assert get_cell_value(curr_sheet, curr_row, 0) == "A1"
     curr_row += 1
+
     assert get_cell_value(curr_sheet, curr_row, 0) == "Timepoint of Twitch Contraction"
     curr_row += 1
     assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Period (seconds)"

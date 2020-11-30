@@ -658,30 +658,14 @@ class PlateRecording(FileManagerPlateRecording):
                 "Timepoint of Twitch Contraction",
             )
             curr_row += 1
-            curr_sheet.write(
-                curr_row,
-                0,
-                "Twitch Period (seconds)",
-            )
-            curr_row += 1
-            curr_sheet.write(
-                curr_row,
-                0,
-                "Twitch Frequency (Hz)",
-            )
-            curr_row += 1
-            curr_sheet.write(
-                curr_row,
-                0,
-                "Twitch Amplitude",
-            )
-            curr_row += 1
-            curr_sheet.write(
-                curr_row,
-                0,
-                "Twitch Width 50 (FWHM) (seconds)",
-            )
-            curr_row += 1
+            for (
+                _,
+                iter_metric_name,
+            ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+                if isinstance(iter_metric_name, tuple):
+                    _, iter_metric_name = iter_metric_name
+                curr_sheet.write(curr_row, 0, iter_metric_name)
+                curr_row += 1
 
             curr_row += (
                 NUMBER_OF_PER_TWITCH_METRICS + 1 - 5

@@ -137,6 +137,10 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
     curr_row = 0
     assert get_cell_value(curr_sheet, curr_row, 0) == "A1"
+    assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
+    assert get_cell_value(curr_sheet, curr_row, 2) == "Twitch 2"
+    assert get_cell_value(curr_sheet, curr_row, 3) == "Twitch 3"
+
     curr_row += 1
 
     assert get_cell_value(curr_sheet, curr_row, 0) == "Timepoint of Twitch Contraction"
@@ -155,6 +159,7 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
     curr_row += 1  # gap between data for the different wells
     assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
+    assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

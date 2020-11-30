@@ -643,6 +643,8 @@ class PlateRecording(FileManagerPlateRecording):
         logger.info("Creating per-twitch metrics sheet")
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
         curr_row = 0
+        well_indices = self.get_well_indices()
+
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):
@@ -651,6 +653,30 @@ class PlateRecording(FileManagerPlateRecording):
                 0,
                 TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
             )
+            if iter_well_idx in well_indices:
+                iter_pipeline = self._pipelines[iter_well_idx]
+                error_msg = ""
+                try:
+                    (
+                        _,
+                        aggregate_metrics_dict,
+                    ) = iter_pipeline.get_magnetic_data_metrics()
+                except PeakDetectionError as e:
+                    error_msg = "Error: "
+                    if isinstance(e, TwoPeaksInARowError):
+                        error_msg += "Two Contractions in a Row Detected"
+                    elif isinstance(e, TwoValleysInARowError):
+                        error_msg += "Two Relaxations in a Row Detected"
+                    elif isinstance(e, TooFewPeaksDetectedError):
+                        error_msg += "Not Enough Twitches Detected"
+                    else:
+                        raise NotImplementedError("Unknown PeakDetectionError") from e
+                    curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")
+                    curr_sheet.write(curr_row + 1, 2 + iter_well_idx, error_msg)
+                else:
+                    number_twitches = aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
+                    for twitch in range(number_twitches):
+                        curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
             curr_row += 1
             curr_sheet.write(
                 curr_row,

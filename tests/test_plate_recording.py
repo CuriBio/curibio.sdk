@@ -165,6 +165,18 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     assert get_cell_value(curr_sheet, curr_row, 11) == "Twitch 11"
 
 
+def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
+    plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1, real_3min_well_file_0_3_1
+):
+
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
+
+    pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
+    expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
+
+
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
 ):

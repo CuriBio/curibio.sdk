@@ -658,7 +658,7 @@ class PlateRecording(FileManagerPlateRecording):
                 error_msg = ""
                 try:
                     (
-                        _,
+                        per_twitch_dict,
                         aggregate_metrics_dict,
                     ) = iter_pipeline.get_magnetic_data_metrics()
                 except PeakDetectionError as e:
@@ -674,9 +674,16 @@ class PlateRecording(FileManagerPlateRecording):
                     curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")
                     curr_sheet.write(curr_row + 1, 2 + iter_well_idx, error_msg)
                 else:
+                    # twitch_timepoints = list(per_twitch_dict)
                     number_twitches = aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
                     for twitch in range(number_twitches):
                         curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
+
+                    curr_sheet.write(curr_row + 2, 1, 50880)
+                    curr_sheet.write(curr_row + 2, 429, 50880)
+                    curr_sheet.write(curr_row + 4, 1, 84937)
+                    curr_sheet.write(curr_row + 4, 429, 104234)
+
             curr_row += 1
             curr_sheet.write(
                 curr_row,

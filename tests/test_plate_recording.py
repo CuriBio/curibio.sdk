@@ -175,6 +175,18 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
     expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
+    curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
+    curr_row = 0
+    curr_row += 8 * 20
+    assert get_cell_value(curr_sheet, curr_row, 429) == "Twitch 429"
+    curr_row += 1
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 1) == 50880
+    assert get_cell_value(curr_sheet, curr_row, 429) == 50880
+    curr_row += 1
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 1) == 84937
+    assert get_cell_value(curr_sheet, curr_row, 429) == 104234
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

@@ -177,16 +177,35 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
     assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
     curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
     curr_row = 0
-    curr_row += 8 * 20
+    curr_row += 8 * (NUMBER_OF_PER_TWITCH_METRICS + 2)
     assert get_cell_value(curr_sheet, curr_row, 429) == "Twitch 429"
     curr_row += 1
+    assert ("timepoint", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "timepoint",
+        66185 / CENTIMILLISECONDS_PER_SECOND,
+    )
     curr_row += 1
-    assert get_cell_value(curr_sheet, curr_row, 1) == 50880
-    assert get_cell_value(curr_sheet, curr_row, 429) == 50880
+    assert ("period", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "period",
+        50880 / CENTIMILLISECONDS_PER_SECOND,
+    )
+    assert ("period", get_cell_value(curr_sheet, curr_row, 429)) == (
+        "period",
+        50880 / CENTIMILLISECONDS_PER_SECOND,
+    )
     curr_row += 1
     curr_row += 1
-    assert get_cell_value(curr_sheet, curr_row, 1) == 84937
-    assert get_cell_value(curr_sheet, curr_row, 429) == 104234
+    assert ("amplitude", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "amplitude",
+        84937,
+    )
+    assert ("amplitude", get_cell_value(curr_sheet, curr_row, 429)) == (
+        "amplitude",
+        104234,
+    )
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 1) is not None
+    assert get_cell_value(curr_sheet, curr_row, 429) is not None
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

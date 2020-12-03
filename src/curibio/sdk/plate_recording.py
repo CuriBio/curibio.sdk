@@ -29,6 +29,7 @@ from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import TwoPeaksInARowError
 from mantarray_waveform_analysis import TwoValleysInARowError
 from mantarray_waveform_analysis import WIDTH_UUID
+from mantarray_waveform_analysis import WIDTH_VALUE_UUID
 from mantarray_waveform_analysis.exceptions import PeakDetectionError
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -674,15 +675,44 @@ class PlateRecording(FileManagerPlateRecording):
                     curr_sheet.write(curr_row, 2 + iter_well_idx, "N/A")
                     curr_sheet.write(curr_row + 1, 2 + iter_well_idx, error_msg)
                 else:
-                    # twitch_timepoints = list(per_twitch_dict)
+
                     number_twitches = aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
                     for twitch in range(number_twitches):
                         curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
 
-                    curr_sheet.write(curr_row + 2, 1, 50880)
-                    curr_sheet.write(curr_row + 2, 429, 50880)
-                    curr_sheet.write(curr_row + 4, 1, 84937)
-                    curr_sheet.write(curr_row + 4, 429, 104234)
+                    twitch_timepoints = list(per_twitch_dict)
+
+                    curr_row += 1
+                    for twitch in range(len(twitch_timepoints)):
+                        curr_sheet.write(
+                            curr_row,
+                            twitch + 1,
+                            twitch_timepoints[twitch] / CENTIMILLISECONDS_PER_SECOND,
+                        )
+
+                    curr_row += 1
+                    for (
+                        iter_metric_uuid,
+                        iter_metric_name,
+                    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+                        if isinstance(iter_metric_name, tuple):
+                            iter_width_percent, iter_metric_name = iter_metric_name
+                        for twitch in range(len(twitch_timepoints)):
+                            timepoint = twitch_timepoints[twitch]
+                            value_to_write = per_twitch_dict[timepoint][
+                                iter_metric_uuid
+                            ]
+                            if iter_metric_uuid == WIDTH_UUID:
+                                value_to_write = (
+                                    value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
+                                    / CENTIMILLISECONDS_PER_SECOND
+                                )
+                            if iter_metric_uuid == TWITCH_PERIOD_UUID:
+                                value_to_write /= CENTIMILLISECONDS_PER_SECOND
+                            curr_sheet.write(curr_row, twitch + 1, value_to_write)
+
+                        curr_row += 1
+                    curr_row -= 6  # revert back to initial row
 
             curr_row += 1
             curr_sheet.write(

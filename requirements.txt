@@ -9,5 +9,5 @@ XlsxWriter==1.3.7
 matplotlib==3.3.3
 mantarray-file-manager==0.4.3
 mantarray-waveform-analysis==0.5.10
-stdlib_utils==0.3.7
+stdlib_utils==0.3.8
 openpyxl==3.0.5

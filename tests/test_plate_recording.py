@@ -5,10 +5,6 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.2','MA20223322__2020_09_02_173919','MA20223322__2020_09_02_173919__A2.h5')]).write_xlsx('.',file_name='temp.xlsx')"
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__B3.h5',)
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5',)]).write_xlsx('.',file_name='temp.xlsx')"
-
 """
 import datetime
 import os
@@ -162,6 +158,7 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
     curr_row += 1  # gap between data for the different wells
     assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
+    assert get_cell_value(curr_sheet, curr_row, 1) is None
     curr_row += (NUMBER_OF_PER_TWITCH_METRICS + 2) * 3  # A2 row number
     assert get_cell_value(curr_sheet, curr_row, 0) == "A2"
     assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
@@ -181,7 +178,8 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
     curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
     curr_row = 0
     curr_row += 8 * (NUMBER_OF_PER_TWITCH_METRICS + 2)
-    assert get_cell_value(curr_sheet, curr_row, 429) == "Twitch 429"
+    number_twitches = 429
+    assert get_cell_value(curr_sheet, curr_row, number_twitches) == "Twitch 429"
     curr_row += 1
     assert ("timepoint", get_cell_value(curr_sheet, curr_row, 1)) == (
         "timepoint",
@@ -192,7 +190,7 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "period",
         50880 / CENTIMILLISECONDS_PER_SECOND,
     )
-    assert ("period", get_cell_value(curr_sheet, curr_row, 429)) == (
+    assert ("period", get_cell_value(curr_sheet, curr_row, number_twitches)) == (
         "period",
         50880 / CENTIMILLISECONDS_PER_SECOND,
     )
@@ -202,13 +200,19 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "amplitude",
         84937,
     )
-    assert ("amplitude", get_cell_value(curr_sheet, curr_row, 429)) == (
+    assert ("amplitude", get_cell_value(curr_sheet, curr_row, number_twitches)) == (
         "amplitude",
         104234,
     )
     curr_row += 1
-    assert get_cell_value(curr_sheet, curr_row, 1) == 0.25007
-    assert get_cell_value(curr_sheet, curr_row, 429) == 0.25806
+    assert ("twitch width 50", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "twitch width 50",
+        0.25007,
+    )
+    assert (
+        "twitch width 50",
+        get_cell_value(curr_sheet, curr_row, number_twitches),
+    ) == ("twitch width 50", 0.25806)
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

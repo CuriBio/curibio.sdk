@@ -172,6 +172,79 @@ def _write_xlsx_metadata(
         curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
 
 
+def _write_per_twitch_metric_labels(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+) -> int:
+    for (
+        _,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            _, iter_metric_name = iter_metric_name
+        curr_sheet.write(curr_row, 0, iter_metric_name)
+        curr_row += 1
+    return curr_row
+
+
+def _write_per_twitch_metric_values(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+    per_twitch_dict: Dict[
+        int,
+        Dict[
+            UUID,
+            Union[
+                Dict[int, Dict[UUID, Union[Tuple[int, int], int]]],
+                Union[float, int],
+            ],
+        ],
+    ],
+    number_twitches: int,
+) -> int:
+
+    for twitch in range(number_twitches):
+        curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
+
+    curr_row += 1
+
+    twitch_timepoints = list(per_twitch_dict)
+
+    for twitch in range(number_twitches):
+        curr_sheet.write(
+            curr_row,
+            twitch + 1,
+            twitch_timepoints[twitch] / CENTIMILLISECONDS_PER_SECOND,
+        )
+
+    curr_row += 1
+    for (
+        iter_metric_uuid,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            iter_width_percent, iter_metric_name = iter_metric_name
+        for twitch in range(number_twitches):
+            timepoint = twitch_timepoints[twitch]
+            value_to_write = per_twitch_dict[timepoint][iter_metric_uuid]
+            if iter_metric_uuid == WIDTH_UUID:
+                if not isinstance(value_to_write, dict):
+                    raise NotImplementedError(
+                        f"The width value under key {WIDTH_VALUE_UUID} must be a dictionary."
+                    )
+                value_to_write = (
+                    value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
+                    / CENTIMILLISECONDS_PER_SECOND
+                )
+            if iter_metric_uuid == TWITCH_PERIOD_UUID:
+                value_to_write /= CENTIMILLISECONDS_PER_SECOND
+            curr_sheet.write(curr_row, twitch + 1, value_to_write)
+
+        curr_row += 1
+    curr_row -= 6  # revert back to initial row
+    return curr_row
+
+
 class PlateRecording(FileManagerPlateRecording):
     """Manages aspects of analyzing a plate recording session."""
 
@@ -677,7 +750,7 @@ class PlateRecording(FileManagerPlateRecording):
                 else:
                     number_twitches = aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
 
-                    curr_row = self._write_per_twitch_metric_values(
+                    curr_row = _write_per_twitch_metric_values(
                         curr_sheet, curr_row, per_twitch_dict, number_twitches
                     )
 
@@ -688,84 +761,11 @@ class PlateRecording(FileManagerPlateRecording):
                 "Timepoint of Twitch Contraction",
             )
             curr_row += 1
-            curr_row = self._write_per_twitch_metric_labels(curr_sheet, curr_row)
+            curr_row = _write_per_twitch_metric_labels(curr_sheet, curr_row)
 
             curr_row += (
                 NUMBER_OF_PER_TWITCH_METRICS + 1 - 5
             )  # include a single row gap in between the data for each well
-
-    def _write_per_twitch_metric_labels(
-        self,
-        curr_sheet: xlsxwriter.worksheet.Worksheet,
-        curr_row: int,
-    ) -> int:
-        for (
-            _,
-            iter_metric_name,
-        ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
-            if isinstance(iter_metric_name, tuple):
-                _, iter_metric_name = iter_metric_name
-            curr_sheet.write(curr_row, 0, iter_metric_name)
-            curr_row += 1
-        return curr_row
-
-    def _write_per_twitch_metric_values(
-        self,
-        curr_sheet: xlsxwriter.worksheet.Worksheet,
-        curr_row: int,
-        per_twitch_dict: Dict[
-            int,
-            Dict[
-                UUID,
-                Union[
-                    Dict[int, Dict[UUID, Union[Tuple[int, int], int]]],
-                    Union[float, int],
-                ],
-            ],
-        ],
-        number_twitches: int,
-    ) -> int:
-
-        for twitch in range(number_twitches):
-            curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
-
-        curr_row += 1
-
-        twitch_timepoints = list(per_twitch_dict)
-
-        for twitch in range(number_twitches):
-            curr_sheet.write(
-                curr_row,
-                twitch + 1,
-                twitch_timepoints[twitch] / CENTIMILLISECONDS_PER_SECOND,
-            )
-
-        curr_row += 1
-        for (
-            iter_metric_uuid,
-            iter_metric_name,
-        ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
-            if isinstance(iter_metric_name, tuple):
-                iter_width_percent, iter_metric_name = iter_metric_name
-            for twitch in range(number_twitches):
-                timepoint = twitch_timepoints[twitch]
-                value_to_write = per_twitch_dict[timepoint][iter_metric_uuid]
-                if iter_metric_uuid == WIDTH_UUID:
-                    if not isinstance(value_to_write, dict):
-                        raise NotImplementedError(
-                            f"The width value under key {WIDTH_VALUE_UUID} must be a dictionary."
-                        )
-                    value_to_write = (
-                        value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
-                        / CENTIMILLISECONDS_PER_SECOND
-                    )
-                if iter_metric_uuid == TWITCH_PERIOD_UUID:
-                    value_to_write /= CENTIMILLISECONDS_PER_SECOND
-                curr_sheet.write(curr_row, twitch + 1, value_to_write)
-
-            curr_row += 1
-        curr_row -= 6  # revert back to initial row
-        return curr_row
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")

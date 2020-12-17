@@ -26,8 +26,10 @@ from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import METADATA_UUID_DESCRIPTIONS
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
+from .constants import NUMBER_OF_PER_TWITCH_METRICS
 from .constants import PACKAGE_VERSION as __version__
 from .constants import PEAK_VALLEY_COLUMN_START
+from .constants import PER_TWITCH_METRICS_SHEET_NAME
 from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
@@ -71,4 +73,6 @@ __all__ = [
     "INTERPOLATION_VALUE_UUID",
     "FULL_CHART_SHEET_NAME",
     "SECONDS_PER_CELL",
+    "PER_TWITCH_METRICS_SHEET_NAME",
+    "NUMBER_OF_PER_TWITCH_METRICS",
 ]

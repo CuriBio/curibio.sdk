@@ -39,6 +39,8 @@ METADATA_OUTPUT_FILE_ROW_START = METADATA_INSTRUMENT_ROW_START + 6
 
 CONTINUOUS_WAVEFORM_SHEET_NAME = "continuous-waveforms"
 AGGREGATE_METRICS_SHEET_NAME = "aggregate-metrics"
+PER_TWITCH_METRICS_SHEET_NAME = "per-twitch-metrics"
+NUMBER_OF_PER_TWITCH_METRICS = 18
 SNAPSHOT_CHART_SHEET_NAME = "continuous-waveform-snapshots"
 FULL_CHART_SHEET_NAME = "full-continuous-waveform-plots"
 

@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Optional
 from typing import Tuple
 from typing import Union
+import uuid
 from uuid import UUID
 import zipfile
 
@@ -72,6 +73,80 @@ from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
 configure_logging(logging_format="notebook")
+
+
+def _write_per_twitch_metric_labels(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+) -> int:
+    for (
+        _,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            _, iter_metric_name = iter_metric_name
+        curr_sheet.write(curr_row, 0, iter_metric_name)
+        curr_row += 1
+    return curr_row
+
+
+def _write_per_twitch_metric_values(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+    per_twitch_dict: Dict[
+        int,
+        Dict[
+            UUID,
+            Union[
+                Dict[int, Dict[UUID, Union[Tuple[int, int], int]]],
+                Union[float, int],
+            ],
+        ],
+    ],
+    number_twitches: int,
+) -> int:
+    for iter_twitch_index in range(number_twitches):
+        curr_sheet.write(
+            curr_row, iter_twitch_index + 1, f"Twitch {iter_twitch_index + 1}"
+        )
+
+    curr_row += 1
+
+    twitch_timepoints = list(per_twitch_dict)
+
+    for iter_twitch_index in range(number_twitches):
+        curr_sheet.write(
+            curr_row,
+            iter_twitch_index + 1,
+            twitch_timepoints[iter_twitch_index] / CENTIMILLISECONDS_PER_SECOND,
+        )
+
+    curr_row += 1
+    for (
+        iter_metric_uuid,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            iter_width_percent, iter_metric_name = iter_metric_name
+        for iter_twitch_index in range(number_twitches):
+            timepoint = twitch_timepoints[iter_twitch_index]
+            value_to_write = per_twitch_dict[timepoint][iter_metric_uuid]
+            if iter_metric_uuid == WIDTH_UUID:
+                if not isinstance(value_to_write, dict):
+                    raise NotImplementedError(
+                        f"The width value under key {WIDTH_VALUE_UUID} must be a dictionary."
+                    )
+                value_to_write = (
+                    value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
+                    / CENTIMILLISECONDS_PER_SECOND
+                )
+            if iter_metric_uuid == TWITCH_PERIOD_UUID:
+                value_to_write /= CENTIMILLISECONDS_PER_SECOND
+            curr_sheet.write(curr_row, iter_twitch_index + 1, value_to_write)
+
+        curr_row += 1
+    curr_row -= 6  # revert back to initial row
+    return curr_row
 
 
 def _write_xlsx_device_metadata(
@@ -170,79 +245,6 @@ def _write_xlsx_metadata(
     # Adjust the column widths to be able to see the data
     for iter_column_idx, iter_column_width in ((0, 25), (1, 40), (2, 25)):
         curr_sheet.set_column(iter_column_idx, iter_column_idx, iter_column_width)
-
-
-def _write_per_twitch_metric_labels(
-    curr_sheet: xlsxwriter.worksheet.Worksheet,
-    curr_row: int,
-) -> int:
-    for (
-        _,
-        iter_metric_name,
-    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
-        if isinstance(iter_metric_name, tuple):
-            _, iter_metric_name = iter_metric_name
-        curr_sheet.write(curr_row, 0, iter_metric_name)
-        curr_row += 1
-    return curr_row
-
-
-def _write_per_twitch_metric_values(
-    curr_sheet: xlsxwriter.worksheet.Worksheet,
-    curr_row: int,
-    per_twitch_dict: Dict[
-        int,
-        Dict[
-            UUID,
-            Union[
-                Dict[int, Dict[UUID, Union[Tuple[int, int], int]]],
-                Union[float, int],
-            ],
-        ],
-    ],
-    number_twitches: int,
-) -> int:
-
-    for twitch in range(number_twitches):
-        curr_sheet.write(curr_row, twitch + 1, f"Twitch {twitch + 1}")
-
-    curr_row += 1
-
-    twitch_timepoints = list(per_twitch_dict)
-
-    for twitch in range(number_twitches):
-        curr_sheet.write(
-            curr_row,
-            twitch + 1,
-            twitch_timepoints[twitch] / CENTIMILLISECONDS_PER_SECOND,
-        )
-
-    curr_row += 1
-    for (
-        iter_metric_uuid,
-        iter_metric_name,
-    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
-        if isinstance(iter_metric_name, tuple):
-            iter_width_percent, iter_metric_name = iter_metric_name
-        for twitch in range(number_twitches):
-            timepoint = twitch_timepoints[twitch]
-            value_to_write = per_twitch_dict[timepoint][iter_metric_uuid]
-            if iter_metric_uuid == WIDTH_UUID:
-                if not isinstance(value_to_write, dict):
-                    raise NotImplementedError(
-                        f"The width value under key {WIDTH_VALUE_UUID} must be a dictionary."
-                    )
-                value_to_write = (
-                    value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
-                    / CENTIMILLISECONDS_PER_SECOND
-                )
-            if iter_metric_uuid == TWITCH_PERIOD_UUID:
-                value_to_write /= CENTIMILLISECONDS_PER_SECOND
-            curr_sheet.write(curr_row, twitch + 1, value_to_write)
-
-        curr_row += 1
-    curr_row -= 6  # revert back to initial row
-    return curr_row
 
 
 class PlateRecording(FileManagerPlateRecording):
@@ -841,7 +843,7 @@ class PlateRecording(FileManagerPlateRecording):
         self,
         curr_sheet: xlsxwriter.worksheet.Worksheet,
         curr_row: int,
-        iter_metric_uuid: UUID,
+        iter_metric_uuid: uuid.UUID,
         iter_metric_name: Union[str, Tuple[int, str]],
     ) -> int:
         submetrics = ("Mean", "StDev", "CoV", "SEM")

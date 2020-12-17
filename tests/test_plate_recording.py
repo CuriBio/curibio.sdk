@@ -178,8 +178,11 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
     curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
     curr_row = 0
     curr_row += 8 * (NUMBER_OF_PER_TWITCH_METRICS + 2)
-    number_twitches = 429
-    assert get_cell_value(curr_sheet, curr_row, number_twitches) == "Twitch 429"
+    expected_number_twitches = 429
+    assert (
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches)
+        == f"Twitch {expected_number_twitches}"
+    )
     curr_row += 1
     assert ("timepoint", get_cell_value(curr_sheet, curr_row, 1)) == (
         "timepoint",
@@ -190,7 +193,10 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "period",
         50880 / CENTIMILLISECONDS_PER_SECOND,
     )
-    assert ("period", get_cell_value(curr_sheet, curr_row, number_twitches)) == (
+    assert (
+        "period",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == (
         "period",
         50880 / CENTIMILLISECONDS_PER_SECOND,
     )
@@ -200,7 +206,10 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "amplitude",
         84937,
     )
-    assert ("amplitude", get_cell_value(curr_sheet, curr_row, number_twitches)) == (
+    assert (
+        "amplitude",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == (
         "amplitude",
         104234,
     )
@@ -211,7 +220,7 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
     )
     assert (
         "twitch width 50",
-        get_cell_value(curr_sheet, curr_row, number_twitches),
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
     ) == ("twitch width 50", 0.25806)
 
 

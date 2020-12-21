@@ -45,7 +45,9 @@ def _get_col_as_array(
 
 
 def _get_well_index_from_well_name(well_name: str) -> int:
-    return (ord(well_name[0]) - ord("A")) * 4 + int(well_name[1]) - 1
+    column = int(well_name[1:]) - 1
+    row = ord(well_name[0]) - ord("A")
+    return row + (column * 4)
 
 
 def _get_single_sheet(file_name: str) -> Any:

@@ -66,8 +66,9 @@ def test_ExcelWellFile__get_unique_recording_key(generic_excel_well_file_0_1_0):
     )
 
 
-def test_ExcelWellFile__get_well_name(generic_excel_well_file_0_1_0):
+def test_ExcelWellFile__get_well_name_A1(generic_excel_well_file_0_1_0):
     assert generic_excel_well_file_0_1_0.get_well_name() == "A1"
+    assert generic_excel_well_file_0_1_0.get_well_index() == 0
 
 
 def test_ExcelWellFile__get_well_name_B1():

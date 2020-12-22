@@ -104,6 +104,23 @@ back to the main files page:
 .. image:: images/folder_icon.png
     :width: 50
 
+
+Note about uploading zip files
+------------------------------
+
+Only one zip file can be in the ``my-data`` folder at a time.
+If you need to analyze multiple zip files:
+
+1. Follow the steps in the next section to export the data from the first zip file.
+
+2. Navigate back to the ``my-data`` folder and remove the first zip file.
+
+3. Upload the next zip file.
+
+This process can be repeated for any number of zip files. Alternatively, you can open
+a new notebook for each other zip file you want to analyze.
+
+
 Exporting Data to an Excel File and Downloading
 -----------------------------------------------
 

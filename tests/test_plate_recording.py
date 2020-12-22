@@ -5,13 +5,6 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 
-<<<<<<< HEAD
-=======
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__B1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
-
->>>>>>> passing pylint tests
 """
 import datetime
 import os

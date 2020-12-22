@@ -12,6 +12,7 @@ from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
 from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
 from mantarray_file_manager import METADATA_UUID_DESCRIPTIONS
 from mantarray_file_manager import WELL_NAME_UUID
+from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 import numpy as np
 from openpyxl import load_workbook
 import pytest
@@ -249,6 +250,35 @@ def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_sin
         )
         np.testing.assert_almost_equal(
             get_cell_value(actual_sheet, 10, 1), 0.1535264502266848, 6
+        )
+
+
+def test_PlateRecording_write_xlsx__creates_continuous_recording_sheet__with_correct_interpolation_values():
+    ewf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "Data_MA26_Plate2_B6_2020.10.20.xlsx",
+        )
+    )
+    pr = PlateRecording([ewf])
+
+    expected_file_name = "test_optical_file.xlsx"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(
+            tmp_dir, file_name=expected_file_name, create_waveform_charts=False
+        )
+        actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+        actual_sheet = actual_workbook[actual_workbook.sheetnames[1]]
+
+        assert get_cell_value(actual_sheet, 0, 0) == "Time (seconds)"
+        assert (
+            get_cell_value(actual_sheet, 1, 0)
+            == ewf.get_interpolation_value() / CENTIMILLISECONDS_PER_SECOND
+        )
+        assert (
+            get_cell_value(actual_sheet, 10, 0)
+            == 10 * ewf.get_interpolation_value() / CENTIMILLISECONDS_PER_SECOND
         )
 
 

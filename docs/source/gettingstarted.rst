@@ -7,6 +7,9 @@ Jupyter is the environment that CuriBio SDK is designed to be used in. It allows
 of Python Notebooks which consist of Code Cells (also referred to as just 'cells') that contain Python code,
 each of which can be executed independently of others.
 
+.. image:: images/figure2.png
+    :width: 600
+
 Getting Started with Jupyter
 ----------------------------
 

@@ -162,3 +162,11 @@ near the top left.
 
 .. image:: images/download_screen.png
     :width: 600
+
+When navigating away from the page you may see the following pop-up dialog:
+
+.. image:: images/leave_page.png
+    :width: 600
+
+If all analysis is done and all files have been downloaded,
+then it is OK to press ``leave``.

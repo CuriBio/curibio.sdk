@@ -4,7 +4,8 @@ Changelog for Curi Bio Software Development Kit
 0.8.1 (unreleased)
 ------------------
 
-- Added Python 3.9 support
+- Added Python 3.9 support.
+- Added steps to documentation explaining how to analyze multiple zip files.
 
 
 0.8.0 (2020-11-11)

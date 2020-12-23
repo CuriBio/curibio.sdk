@@ -5,6 +5,7 @@ from typing import Any
 from typing import Optional
 from uuid import UUID
 
+from labware_domain_models import get_row_and_column_from_well_name
 from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
 from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -45,9 +46,8 @@ def _get_col_as_array(
 
 
 def _get_well_index_from_well_name(well_name: str) -> int:
-    column = int(well_name[1:]) - 1
-    row = ord(well_name[0]) - ord("A")
-    return row + (column * 4)
+    row, column = get_row_and_column_from_well_name(well_name)
+    return int(row + (column * 4))
 
 
 def _get_single_sheet(file_name: str) -> Any:

@@ -1,10 +1,14 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.8.1 (unreleased)
+0.8.1 (2020-23-20)
 ------------------
 
-- Added Python 3.9 support
+- Added Python 3.9 support.
+- Added steps to documentation explaining how to analyze multiple zip files.
+- Changed formatting of .xlsx output file names to match input the formatting
+  of the input file names. A discrepancy still exists between the input and
+  output file names, however.
 
 
 0.8.0 (2020-11-11)

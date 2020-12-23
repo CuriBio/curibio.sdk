@@ -406,7 +406,7 @@ class PlateRecording(FileManagerPlateRecording):
         logger.info("Loading data from H5 file(s)")
         self._init_pipelines()
         if file_name is None:
-            file_name = f"{first_well_file.get_plate_barcode()}-{first_well_file.get_begin_recording().strftime('%Y-%m-%d-%H-%M-%S')}.xlsx"
+            file_name = f"{first_well_file.get_plate_barcode()}__{first_well_file.get_begin_recording().strftime('%Y_%m_%d_%H%M%S')}.xlsx"
         file_path = os.path.join(file_dir, file_name)
         logger.info("Opening .xlsx file")
         self._workbook = Workbook(

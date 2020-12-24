@@ -5,7 +5,7 @@ from typing import Any
 from typing import Optional
 from uuid import UUID
 
-from labware_domain_models import get_row_and_column_from_well_name
+from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import CURI_BIO_ACCOUNT_UUID
 from mantarray_file_manager import CURI_BIO_USER_ACCOUNT_ID
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
@@ -43,11 +43,6 @@ def _get_col_as_array(
         result = _get_cell_value(sheet, zero_based_row, zero_based_col)
         zero_based_row += 1
     return np.array(col_array)
-
-
-def _get_well_index_from_well_name(well_name: str) -> int:
-    row, column = get_row_and_column_from_well_name(well_name)
-    return int(row + (column * 4))
 
 
 def _get_single_sheet(file_name: str) -> Any:
@@ -114,7 +109,8 @@ class ExcelWellFile(WellFile):
         return str(self.get_excel_metadata_value(WELL_NAME_UUID))
 
     def get_well_index(self) -> int:
-        return _get_well_index_from_well_name(self.get_well_name())
+        twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+        return int(twenty_four_well.get_well_index_from_well_name(self.get_well_name()))
 
     def get_plate_barcode(self) -> str:
         return str(self.get_excel_metadata_value(PLATE_BARCODE_UUID))

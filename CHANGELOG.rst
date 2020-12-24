@@ -1,6 +1,12 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.8.2 (2020-12-24)
+------------------
+
+- Fixed issue with getting the incorrect well index from the well name for optical data.
+
+
 0.8.1 (2020-23-20)
 ------------------
 

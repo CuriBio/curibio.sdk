@@ -27,7 +27,7 @@ setup(
         "mantarray-file-manager>=0.4.2",
         "stdlib_utils>=0.3.1",
         "mantarray-waveform-analysis>=0.5.10",
-        "labware-domain-models>=0.2",
+        "labware-domain-models>=0.3.1",
         'importlib-metadata ~= 1.0 ; python_version < "3.8"',
     ],
     zip_safe=False,

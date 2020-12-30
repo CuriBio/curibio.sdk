@@ -1,6 +1,22 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.8.2 (2020-12-29)
+------------------
+
+- Fixed issue with getting the incorrect well index from the well name for optical data.
+
+
+0.8.1 (2020-12-20)
+------------------
+
+- Added Python 3.9 support.
+- Added steps to documentation explaining how to analyze multiple zip files.
+- Changed formatting of .xlsx output file names to match input the formatting
+  of the input file names. A discrepancy still exists between the input and
+  output file names, however.
+
+
 0.8.0 (2020-11-11)
 ------------------
 

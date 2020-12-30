@@ -66,8 +66,33 @@ def test_ExcelWellFile__get_unique_recording_key(generic_excel_well_file_0_1_0):
     )
 
 
-def test_ExcelWellFile__get_well_name(generic_excel_well_file_0_1_0):
+def test_ExcelWellFile__get_well_name_A1(generic_excel_well_file_0_1_0):
     assert generic_excel_well_file_0_1_0.get_well_name() == "A1"
+    assert generic_excel_well_file_0_1_0.get_well_index() == 0
+
+
+def test_ExcelWellFile__get_well_name_B1():
+    ewf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "optical_data_filled_template_well_B1.xlsx",
+        )
+    )
+    assert ewf.get_well_name() == "B1"
+    assert ewf.get_well_index() == 1
+
+
+def test_ExcelWellFile__get_well_name_D6():
+    ewf = ExcelWellFile(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "optical_data_filled_template_well_D6.xlsx",
+        )
+    )
+    assert ewf.get_well_name() == "D6"
+    assert ewf.get_well_index() == 23
 
 
 def test_ExcelWellFile__get_well_index(generic_excel_well_file_0_1_0):
@@ -263,7 +288,7 @@ def test_PlateRecording__can_be_initialized_from_zipped_optical_files():
             tmp_file_path,
         )
         pr = PlateRecording.from_directory(tmp_dir)
-        assert pr.get_well_indices() == (0, 4)
+        assert pr.get_well_indices() == (0, 1)
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
 
 
@@ -276,5 +301,5 @@ def test_PlateRecording__can_be_initialized_from_zipped_optical_file_folder():
             tmp_file_path,
         )
         pr = PlateRecording.from_directory(tmp_dir)
-        assert pr.get_well_indices() == (0, 4)
+        assert pr.get_well_indices() == (0, 1)
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open

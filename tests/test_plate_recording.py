@@ -4,6 +4,7 @@
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA20123456__2020_08_17_145752__A1.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
+
 """
 import datetime
 import os
@@ -21,6 +22,8 @@ from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
 from curibio.sdk import METADATA_OUTPUT_FILE_ROW_START
 from curibio.sdk import METADATA_RECORDING_ROW_START
+from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
+from curibio.sdk import PER_TWITCH_METRICS_SHEET_NAME
 from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
 from freezegun import freeze_time
@@ -119,8 +122,106 @@ def test_write_xlsx__creates_file_at_supplied_path_with_auto_generated_name(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
     pr.write_xlsx(tmp_dir)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    expected_file_name = "MA20123456__2020_08_17_145810.xlsx"
     assert os.path.exists(os.path.join(tmp_dir, expected_file_name)) is True
+
+
+def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
+
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
+    expected_file_name = "MA20223322__2020_09_02_173943.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
+    curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
+    curr_row = 0
+    assert get_cell_value(curr_sheet, curr_row, 0) == "A1"
+    assert get_cell_value(curr_sheet, curr_row, 1) is None
+
+    curr_row += 1
+
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Timepoint of Twitch Contraction"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Period (seconds)"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Frequency (Hz)"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Amplitude"
+    curr_row += 1
+    assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Width 50 (FWHM) (seconds)"
+    curr_row += 1
+
+    curr_row += (
+        NUMBER_OF_PER_TWITCH_METRICS - 5
+    )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
+    curr_row += 1  # gap between data for the different wells
+    assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
+    assert get_cell_value(curr_sheet, curr_row, 1) is None
+    curr_row += (NUMBER_OF_PER_TWITCH_METRICS + 2) * 3  # A2 row number
+    assert get_cell_value(curr_sheet, curr_row, 0) == "A2"
+    assert get_cell_value(curr_sheet, curr_row, 1) == "Twitch 1"
+    assert get_cell_value(curr_sheet, curr_row, 11) == "Twitch 11"
+
+
+def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
+    plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1, real_3min_well_file_0_3_1
+):
+
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
+
+    pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
+    expected_file_name = "MA201110001__2020_09_03_213044.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[5] == PER_TWITCH_METRICS_SHEET_NAME
+    curr_sheet = actual_workbook[PER_TWITCH_METRICS_SHEET_NAME]
+    curr_row = 0
+    curr_row += 8 * (NUMBER_OF_PER_TWITCH_METRICS + 2)
+    expected_number_twitches = 429
+    assert (
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches)
+        == f"Twitch {expected_number_twitches}"
+    )
+    curr_row += 1
+    assert ("timepoint", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "timepoint",
+        66185 / CENTIMILLISECONDS_PER_SECOND,
+    )
+    curr_row += 1
+    assert ("period", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "period",
+        50880 / CENTIMILLISECONDS_PER_SECOND,
+    )
+    assert (
+        "period",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == (
+        "period",
+        50880 / CENTIMILLISECONDS_PER_SECOND,
+    )
+    curr_row += 1
+    curr_row += 1
+    assert ("amplitude", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "amplitude",
+        84937,
+    )
+    assert (
+        "amplitude",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == (
+        "amplitude",
+        104234,
+    )
+    curr_row += 1
+    assert ("twitch width 50", get_cell_value(curr_sheet, curr_row, 1)) == (
+        "twitch width 50",
+        0.25007,
+    )
+    assert (
+        "twitch width 50",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == ("twitch width 50", 0.25806)
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
@@ -129,7 +230,7 @@ def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
 
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
-    expected_file_name = "MA20223322-2020-09-02-17-39-43.xlsx"
+    expected_file_name = "MA20223322__2020_09_02_173943.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[4] == AGGREGATE_METRICS_SHEET_NAME
     aggregate_metrics_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
@@ -173,7 +274,7 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_real_3min_well_file_0_3_1
 
     pr.write_xlsx(tmp_dir, create_continuous_waveforms=False)
-    expected_file_name = "MA201110001-2020-09-03-21-30-44.xlsx"
+    expected_file_name = "MA201110001__2020_09_03_213044.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[4] == AGGREGATE_METRICS_SHEET_NAME
     actual_sheet = actual_workbook[AGGREGATE_METRICS_SHEET_NAME]
@@ -220,7 +321,7 @@ def test_write_xlsx__creates_metadata_sheet_with_recording_info(
     file_dir = tmp_dir
 
     pr.write_xlsx(file_dir, create_waveform_charts=False)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    expected_file_name = "MA20123456__2020_08_17_145810.xlsx"
     actual_workbook = load_workbook(os.path.join(file_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
 
@@ -257,7 +358,7 @@ def test_write_xlsx__creates_metadata_sheet_with_mantarray_info(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    expected_file_name = "MA20123456__2020_08_17_145810.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
 
@@ -291,7 +392,7 @@ def test_write_xlsx__creates_metadata_sheet_with_output_format_info(
     pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_1
 
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    expected_file_name = "MA20123456__2020_08_17_145810.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[0] == METADATA_EXCEL_SHEET_NAME
 
@@ -316,7 +417,7 @@ def test_write_xlsx__creates_continuous_recording_sheet__with_multiple_well_data
     pr, tmp_dir = plate_recording_in_tmp_dir_for_multiple_well_files_0_3_1
 
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
-    expected_file_name = "MA20123456-2020-08-17-14-58-10.xlsx"
+    expected_file_name = "MA20123456__2020_08_17_145810.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     expected_sheet_name = CONTINUOUS_WAVEFORM_SHEET_NAME
     assert actual_workbook.sheetnames[1] == expected_sheet_name
@@ -587,7 +688,7 @@ def test_PlateRecording__can_write_file_of_v0_1_1_to_xlsx():
     with tempfile.TemporaryDirectory() as tmp_dir:
         pr.write_xlsx(tmp_dir, create_waveform_charts=False)
 
-        expected_file_name = "MA20001123-2020-08-20-17-06-00.xlsx"
+        expected_file_name = "MA20001123__2020_08_20_170600.xlsx"
         actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
 
         metadata_sheet = actual_workbook[METADATA_EXCEL_SHEET_NAME]

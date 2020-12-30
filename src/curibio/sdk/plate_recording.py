@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 import uuid
+from uuid import UUID
 import zipfile
 
 from mantarray_file_manager import MAIN_FIRMWARE_VERSION_UUID
@@ -29,6 +30,7 @@ from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import TwoPeaksInARowError
 from mantarray_waveform_analysis import TwoValleysInARowError
 from mantarray_waveform_analysis import WIDTH_UUID
+from mantarray_waveform_analysis import WIDTH_VALUE_UUID
 from mantarray_waveform_analysis.exceptions import PeakDetectionError
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -59,8 +61,10 @@ from .constants import METADATA_INSTRUMENT_ROW_START
 from .constants import METADATA_OUTPUT_FILE_ROW_START
 from .constants import METADATA_RECORDING_ROW_START
 from .constants import MICROSECONDS_PER_CENTIMILLISECOND
+from .constants import NUMBER_OF_PER_TWITCH_METRICS
 from .constants import PACKAGE_VERSION
 from .constants import PEAK_VALLEY_COLUMN_START
+from .constants import PER_TWITCH_METRICS_SHEET_NAME
 from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
@@ -69,6 +73,80 @@ from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
 configure_logging(logging_format="notebook")
+
+
+def _write_per_twitch_metric_labels(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+) -> int:
+    for (
+        _,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            _, iter_metric_name = iter_metric_name
+        curr_sheet.write(curr_row, 0, iter_metric_name)
+        curr_row += 1
+    return curr_row
+
+
+def _write_per_twitch_metric_values(
+    curr_sheet: xlsxwriter.worksheet.Worksheet,
+    curr_row: int,
+    per_twitch_dict: Dict[
+        int,
+        Dict[
+            UUID,
+            Union[
+                Dict[int, Dict[UUID, Union[Tuple[int, int], int]]],
+                Union[float, int],
+            ],
+        ],
+    ],
+    number_twitches: int,
+) -> int:
+    for iter_twitch_index in range(number_twitches):
+        curr_sheet.write(
+            curr_row, iter_twitch_index + 1, f"Twitch {iter_twitch_index + 1}"
+        )
+
+    curr_row += 1
+
+    twitch_timepoints = list(per_twitch_dict)
+
+    for iter_twitch_index in range(number_twitches):
+        curr_sheet.write(
+            curr_row,
+            iter_twitch_index + 1,
+            twitch_timepoints[iter_twitch_index] / CENTIMILLISECONDS_PER_SECOND,
+        )
+
+    curr_row += 1
+    for (
+        iter_metric_uuid,
+        iter_metric_name,
+    ) in CALCULATED_METRIC_DISPLAY_NAMES.items():
+        if isinstance(iter_metric_name, tuple):
+            iter_width_percent, iter_metric_name = iter_metric_name
+        for iter_twitch_index in range(number_twitches):
+            timepoint = twitch_timepoints[iter_twitch_index]
+            value_to_write = per_twitch_dict[timepoint][iter_metric_uuid]
+            if iter_metric_uuid == WIDTH_UUID:
+                if not isinstance(value_to_write, dict):
+                    raise NotImplementedError(
+                        f"The width value under key {WIDTH_VALUE_UUID} must be a dictionary."
+                    )
+                value_to_write = (
+                    value_to_write[iter_width_percent][WIDTH_VALUE_UUID]
+                    / CENTIMILLISECONDS_PER_SECOND
+                )
+            if iter_metric_uuid == TWITCH_PERIOD_UUID:
+                value_to_write /= CENTIMILLISECONDS_PER_SECOND
+            curr_sheet.write(curr_row, iter_twitch_index + 1, value_to_write)
+
+        curr_row += 1
+    curr_row -= 6  # revert back to initial row
+    return curr_row
 
 
 def _write_xlsx_device_metadata(
@@ -328,7 +406,7 @@ class PlateRecording(FileManagerPlateRecording):
         logger.info("Loading data from H5 file(s)")
         self._init_pipelines()
         if file_name is None:
-            file_name = f"{first_well_file.get_plate_barcode()}-{first_well_file.get_begin_recording().strftime('%Y-%m-%d-%H-%M-%S')}.xlsx"
+            file_name = f"{first_well_file.get_plate_barcode()}__{first_well_file.get_begin_recording().strftime('%Y_%m_%d_%H%M%S')}.xlsx"
         file_path = os.path.join(file_dir, file_name)
         logger.info("Opening .xlsx file")
         self._workbook = Workbook(
@@ -344,6 +422,7 @@ class PlateRecording(FileManagerPlateRecording):
             skip_charts=(not create_waveform_charts),
         )
         self._write_xlsx_aggregate_metrics()
+        self._write_xlsx_per_twitch_metrics()
         logger.info("Saving .xlsx file")
         self._workbook.close()  # This is actually when the file gets written to d
         logger.info("Done writing to .xlsx")
@@ -636,13 +715,64 @@ class PlateRecording(FileManagerPlateRecording):
                 }
             )
 
+    def _write_xlsx_per_twitch_metrics(self) -> None:
+        logger.info("Creating per-twitch metrics sheet")
+        curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
+        curr_row = 0
+        well_indices = self.get_well_indices()
+
+        for iter_well_idx in range(
+            TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
+        ):
+            curr_sheet.write(
+                curr_row,
+                0,
+                TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
+            )
+            if iter_well_idx in well_indices:
+                iter_pipeline = self._pipelines[iter_well_idx]
+                error_msg = ""
+                try:
+                    (
+                        per_twitch_dict,
+                        aggregate_metrics_dict,
+                    ) = iter_pipeline.get_magnetic_data_metrics()
+                except PeakDetectionError as e:
+                    error_msg = "Error: "
+                    if isinstance(e, TwoPeaksInARowError):
+                        error_msg += "Two Contractions in a Row Detected"
+                    elif isinstance(e, TwoValleysInARowError):
+                        error_msg += "Two Relaxations in a Row Detected"
+                    elif isinstance(e, TooFewPeaksDetectedError):
+                        error_msg += "Not Enough Twitches Detected"
+                    else:
+                        raise NotImplementedError("Unknown PeakDetectionError") from e
+                    curr_sheet.write(curr_row, 1, "N/A")
+                    curr_sheet.write(curr_row + 1, 1, error_msg)
+                else:
+                    number_twitches = aggregate_metrics_dict[AMPLITUDE_UUID]["n"]
+
+                    curr_row = _write_per_twitch_metric_values(
+                        curr_sheet, curr_row, per_twitch_dict, number_twitches
+                    )
+
+            curr_row += 1
+            curr_sheet.write(
+                curr_row,
+                0,
+                "Timepoint of Twitch Contraction",
+            )
+            curr_row += 1
+            curr_row = _write_per_twitch_metric_labels(curr_sheet, curr_row)
+
+            curr_row += (
+                NUMBER_OF_PER_TWITCH_METRICS + 1 - 5
+            )  # include a single row gap in between the data for each well
+
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")
-        aggregate_metrics_sheet = self._workbook.add_worksheet(
-            AGGREGATE_METRICS_SHEET_NAME
-        )
+        curr_sheet = self._workbook.add_worksheet(AGGREGATE_METRICS_SHEET_NAME)
         curr_row = 0
-        curr_sheet = aggregate_metrics_sheet
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):

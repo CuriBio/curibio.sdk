@@ -7,6 +7,9 @@ Jupyter is the environment that CuriBio SDK is designed to be used in. It allows
 of Python Notebooks which consist of Code Cells (also referred to as just 'cells') that contain Python code,
 each of which can be executed independently of others.
 
+.. image:: images/twitch_metrics_diagram.png
+    :width: 600
+
 Getting Started with Jupyter
 ----------------------------
 
@@ -104,6 +107,23 @@ back to the main files page:
 .. image:: images/folder_icon.png
     :width: 50
 
+
+Note about uploading zip files
+------------------------------
+
+Only one zip file can be in the ``my-data`` folder at a time.
+If you need to analyze multiple zip files:
+
+1. Follow the steps in the next section to export the data from the first zip file.
+
+2. Navigate back to the ``my-data`` folder and remove all the items in it.
+
+3. Upload the next zip file.
+
+This process can be repeated for any number of zip files. Alternatively, you can open
+a new notebook for each other zip file you want to analyze.
+
+
 Exporting Data to an Excel File and Downloading
 -----------------------------------------------
 
@@ -142,3 +162,11 @@ near the top left.
 
 .. image:: images/download_screen.png
     :width: 600
+
+When navigating away from the page you may see the following pop-up dialog:
+
+.. image:: images/leave_page.png
+    :width: 600
+
+If all analysis is done and all files have been downloaded,
+then it is OK to press ``leave``.

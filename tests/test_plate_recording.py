@@ -5,6 +5,10 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> replicating interpolation error
 """
 import datetime
 import os
@@ -805,3 +809,14 @@ def test_PlateRecording__can_be_initialized_from_data_having_iterpolation_issue(
         assert expected_excel_file in os.listdir(tmp_dir)
 
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__creates_output_file_without_interpolation_error():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "Data_MA26_Plate2_ZIP_2020-2",
+        )
+    )
+    pr.write_xlsx(".")

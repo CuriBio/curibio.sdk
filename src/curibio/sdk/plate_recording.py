@@ -472,6 +472,8 @@ class PlateRecording(FileManagerPlateRecording):
             max_time_index,
             self._interpolated_data_period,
         )
+        np.set_printoptions(threshold=np.inf)
+
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(
                 i + 1,
@@ -491,16 +493,20 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
-
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(well_index)
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
-            last_index = len(interpolated_data_indices)
+            last_index = len(interpolated_data_indices) - 1
             first_index = 0
-            if filtered_data[0][-1] < interpolated_data_indices[-1]:
+
+            while filtered_data[0][-1] < interpolated_data_indices[last_index]:
                 last_index -= 1
+
+            last_index += 1
+
             while filtered_data[0][0] > interpolated_data_indices[first_index]:
                 first_index += 1
+
             interpolated_data = interpolated_data_function(
                 interpolated_data_indices[first_index:last_index]
             )

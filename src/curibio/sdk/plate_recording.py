@@ -87,8 +87,6 @@ def _write_per_twitch_metric_labels(
             _, iter_metric_name = iter_metric_name
         curr_sheet.write(curr_row, 0, iter_metric_name)
         curr_row += 1
-    # curr_sheet.write(curr_row, 0, "Twitch Area Under the Curve (AUC)")
-    # curr_row += 1
     return curr_row
 
 
@@ -148,7 +146,7 @@ def _write_per_twitch_metric_values(
 
         curr_row += 1
 
-    curr_row -= 6  # revert back to initial row (number of metrics + 1)
+    curr_row -= 7  # revert back to initial row (number of metrics + 1)
     return curr_row
 
 

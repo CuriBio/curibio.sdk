@@ -5,8 +5,6 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 
-
-python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.2','MA20223322__2020_09_02_173919','MA20223322__2020_09_02_173919__A2.h5',)]).write_xlsx('.',file_name='temp.xlsx')"
 """
 import datetime
 import os
@@ -228,6 +226,15 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "twitch width 50",
         get_cell_value(curr_sheet, curr_row, expected_number_twitches),
     ) == ("twitch width 50", 0.25806)
+    curr_row += 1
+    assert (
+        "twitch AUC",
+        get_cell_value(curr_sheet, curr_row, 1),
+    ) == ("twitch AUC", 1764794746)
+    assert (
+        "twitch AUC",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == ("twitch AUC", 2232509984)
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(

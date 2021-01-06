@@ -38,6 +38,7 @@ from mantarray_file_manager import TISSUE_SAMPLING_PERIOD_UUID
 from mantarray_file_manager import UTC_BEGINNING_RECORDING_UUID
 from mantarray_file_manager import WELL_NAME_UUID
 from mantarray_waveform_analysis import AMPLITUDE_UUID
+from mantarray_waveform_analysis import AUC_UUID
 from mantarray_waveform_analysis import BESSEL_LOWPASS_10_UUID
 from mantarray_waveform_analysis import BUTTERWORTH_LOWPASS_30_UUID
 from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
@@ -58,6 +59,7 @@ def test_misc():
             (TWITCH_FREQUENCY_UUID, "Twitch Frequency (Hz)"),
             (AMPLITUDE_UUID, "Twitch Amplitude"),
             (WIDTH_UUID, (50, "Twitch Width 50 (FWHM) (seconds)")),
+            (AUC_UUID, "Twitch Area Under the Curve (AUC)"),
         ]
     )
 

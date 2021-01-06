@@ -87,6 +87,8 @@ def _write_per_twitch_metric_labels(
             _, iter_metric_name = iter_metric_name
         curr_sheet.write(curr_row, 0, iter_metric_name)
         curr_row += 1
+    # curr_sheet.write(curr_row, 0, "Twitch Area Under the Curve (AUC)")
+    # curr_row += 1
     return curr_row
 
 
@@ -145,7 +147,8 @@ def _write_per_twitch_metric_values(
             curr_sheet.write(curr_row, iter_twitch_index + 1, value_to_write)
 
         curr_row += 1
-    curr_row -= 6  # revert back to initial row
+
+    curr_row -= 6  # revert back to initial row (number of metrics + 1)
     return curr_row
 
 
@@ -776,7 +779,7 @@ class PlateRecording(FileManagerPlateRecording):
             curr_row = _write_per_twitch_metric_labels(curr_sheet, curr_row)
 
             curr_row += (
-                NUMBER_OF_PER_TWITCH_METRICS + 1 - 5
+                NUMBER_OF_PER_TWITCH_METRICS + 1 - 6
             )  # include a single row gap in between the data for each well
 
     def _write_xlsx_aggregate_metrics(self) -> None:

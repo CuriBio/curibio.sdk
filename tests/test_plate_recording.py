@@ -5,6 +5,8 @@ To create a file to look at: python3 -c "import os; from curibio.sdk import Plat
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.1','MA201110001__2020_09_03_213024__A3.h5')]).write_xlsx('.',file_name='temp.xlsx')"
 To create a file to look at: python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording.from_directory(os.path.join('tests','h5','v0.3.1')).write_xlsx('.',file_name='temp.xlsx')"
 
+
+python3 -c "import os; from curibio.sdk import PlateRecording; PlateRecording([os.path.join('tests','h5','v0.3.2','MA20223322__2020_09_02_173919','MA20223322__2020_09_02_173919__A2.h5',)]).write_xlsx('.',file_name='temp.xlsx')"
 """
 import datetime
 import os
@@ -152,9 +154,13 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     curr_row += 1
     assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Width 50 (FWHM) (seconds)"
     curr_row += 1
+    assert (
+        get_cell_value(curr_sheet, curr_row, 0) == "Twitch Area Under the Curve (AUC)"
+    )
+    curr_row += 1
 
     curr_row += (
-        NUMBER_OF_PER_TWITCH_METRICS - 5
+        NUMBER_OF_PER_TWITCH_METRICS - 6
     )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
     curr_row += 1  # gap between data for the different wells
     assert get_cell_value(curr_sheet, curr_row, 0) == "B1"

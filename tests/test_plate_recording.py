@@ -326,6 +326,22 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
     actual_sem = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
     assert actual_sem == approx(expected_stdev / 429 ** 0.5)
 
+    # Twitch AUC
+    curr_row += 2
+    expected_stdev = 144609460
+    expected_mean = 2047868404
+    actual_mean = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_mean == approx(expected_mean)
+    curr_row += 1
+    actual_stdev = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_stdev == approx(expected_stdev)
+    curr_row += 1
+    actual_cov = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_cov == approx(expected_stdev / expected_mean)
+    curr_row += 1
+    actual_sem = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_sem == approx(expected_stdev / 429 ** 0.5)
+
 
 def test_write_xlsx__creates_metadata_sheet_with_recording_info(
     plate_recording_in_tmp_dir_for_generic_well_file_0_3_1,

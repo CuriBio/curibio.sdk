@@ -472,7 +472,6 @@ class PlateRecording(FileManagerPlateRecording):
             max_time_index,
             self._interpolated_data_period,
         )
-        np.set_printoptions(threshold=np.inf)
 
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(

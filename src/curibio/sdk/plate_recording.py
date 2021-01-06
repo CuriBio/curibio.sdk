@@ -145,7 +145,8 @@ def _write_per_twitch_metric_values(
             curr_sheet.write(curr_row, iter_twitch_index + 1, value_to_write)
 
         curr_row += 1
-    curr_row -= 6  # revert back to initial row
+
+    curr_row -= 7  # revert back to initial row (number of metrics + 1)
     return curr_row
 
 
@@ -472,6 +473,7 @@ class PlateRecording(FileManagerPlateRecording):
             max_time_index,
             self._interpolated_data_period,
         )
+
         for i, data_index in enumerate(interpolated_data_indices):
             curr_sheet.write(
                 i + 1,
@@ -491,19 +493,28 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data_function = interpolate.interp1d(
                 filtered_data[0], filtered_data[1]
             )
-
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(well_index)
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
-            last_index = len(interpolated_data_indices)
+
+            # finding last index in interpolated data indices
+            last_index = len(interpolated_data_indices) - 1
             first_index = 0
-            if filtered_data[0][-1] < interpolated_data_indices[-1]:
+
+            # decrementing the last index marker until the last time point in filtered_data is greater than the value of interpolated_data_indices at the last index
+            while filtered_data[0][-1] < interpolated_data_indices[last_index]:
                 last_index -= 1
+
+            # incrementing last_index so the previously found index value less than the last filtered_data timepoint is included in the interpolate function and represnts the correct number of data points
+            last_index += 1
+
             while filtered_data[0][0] > interpolated_data_indices[first_index]:
                 first_index += 1
+
             interpolated_data = interpolated_data_function(
                 interpolated_data_indices[first_index:last_index]
             )
+
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)
@@ -766,7 +777,7 @@ class PlateRecording(FileManagerPlateRecording):
             curr_row = _write_per_twitch_metric_labels(curr_sheet, curr_row)
 
             curr_row += (
-                NUMBER_OF_PER_TWITCH_METRICS + 1 - 5
+                NUMBER_OF_PER_TWITCH_METRICS + 1 - 6
             )  # include a single row gap in between the data for each well
 
     def _write_xlsx_aggregate_metrics(self) -> None:

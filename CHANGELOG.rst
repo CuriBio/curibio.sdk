@@ -1,6 +1,12 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.9.0 (2021-01-06)
+------------------
+- Added Area Under the Curve metric to per twitch metrics sheet and aggregate metrics sheet
+- Fixed issue with interpolation values outside of the given boundaries for optical data.
+
+
 0.8.2 (2020-12-29)
 ------------------
 
@@ -15,6 +21,7 @@ Changelog for Curi Bio Software Development Kit
 - Changed formatting of .xlsx output file names to match input the formatting
   of the input file names. A discrepancy still exists between the input and
   output file names, however.
+- Added excel sheet for per twitch metrics.
 
 
 0.8.0 (2020-11-11)

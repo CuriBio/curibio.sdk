@@ -1,19 +1,18 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.8.4 (2021-01-05)
+0.8.3 (unreleased)
 ------------------
-
 - Fixed issue with interpolation values outside of the given boundaries for optical data.
 
 
-0.8.3 (2020-12-29)
+0.8.2 (2020-12-29)
 ------------------
 
 - Fixed issue with getting the incorrect well index from the well name for optical data.
 
 
-0.8.2 (2020-12-20)
+0.8.1 (2020-12-20)
 ------------------
 
 - Added Python 3.9 support.
@@ -21,11 +20,6 @@ Changelog for Curi Bio Software Development Kit
 - Changed formatting of .xlsx output file names to match input the formatting
   of the input file names. A discrepancy still exists between the input and
   output file names, however.
-
-
-0.8.1 (2020-12-17)
-------------------
-
 - Added excel sheet for per twitch metrics.
 
 

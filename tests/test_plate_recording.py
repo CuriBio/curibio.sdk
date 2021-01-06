@@ -152,9 +152,13 @@ def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(
     curr_row += 1
     assert get_cell_value(curr_sheet, curr_row, 0) == "Twitch Width 50 (FWHM) (seconds)"
     curr_row += 1
+    assert (
+        get_cell_value(curr_sheet, curr_row, 0) == "Twitch Area Under the Curve (AUC)"
+    )
+    curr_row += 1
 
     curr_row += (
-        NUMBER_OF_PER_TWITCH_METRICS - 5
+        NUMBER_OF_PER_TWITCH_METRICS - 6
     )  # subtract the amount of the metrics that we already wrote assert statements for and increment the curr_row
     curr_row += 1  # gap between data for the different wells
     assert get_cell_value(curr_sheet, curr_row, 0) == "B1"
@@ -222,6 +226,15 @@ def test_write_xlsx__writes_in_per_twitch_metrics_sheet_for_single_well(
         "twitch width 50",
         get_cell_value(curr_sheet, curr_row, expected_number_twitches),
     ) == ("twitch width 50", 0.25806)
+    curr_row += 1
+    assert (
+        "twitch AUC",
+        get_cell_value(curr_sheet, curr_row, 1),
+    ) == ("twitch AUC", 1764794746)
+    assert (
+        "twitch AUC",
+        get_cell_value(curr_sheet, curr_row, expected_number_twitches),
+    ) == ("twitch AUC", 2232509984)
 
 
 def test_write_xlsx__creates_aggregate_metrics_sheet_labels(
@@ -301,6 +314,22 @@ def test_write_xlsx__writes_in_aggregate_metrics_for_single_well(
     curr_row += 2 + 5 + 5
     expected_stdev = 0.00254
     expected_mean = 0.25524
+    actual_mean = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_mean == approx(expected_mean)
+    curr_row += 1
+    actual_stdev = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_stdev == approx(expected_stdev)
+    curr_row += 1
+    actual_cov = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_cov == approx(expected_stdev / expected_mean)
+    curr_row += 1
+    actual_sem = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
+    assert actual_sem == approx(expected_stdev / 429 ** 0.5)
+
+    # Twitch AUC
+    curr_row += 2
+    expected_stdev = 144609460
+    expected_mean = 2047868404
     actual_mean = get_cell_value(actual_sheet, curr_row, 2 + well_idx)
     assert actual_mean == approx(expected_mean)
     curr_row += 1
@@ -805,3 +834,14 @@ def test_PlateRecording__can_be_initialized_from_data_having_iterpolation_issue(
         assert expected_excel_file in os.listdir(tmp_dir)
 
         del pr  # Tanner (10/06/20): Resolve windows error with closing file when it is still open
+
+
+def test_PlateRecording__creates_output_file_without_interpolation_error():
+    pr = PlateRecording.from_directory(
+        os.path.join(
+            PATH_OF_CURRENT_FILE,
+            "excel_optical_data",
+            "Data_MA26_Plate2_ZIP_2020-2",
+        )
+    )
+    pr.write_xlsx(".")

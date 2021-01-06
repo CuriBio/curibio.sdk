@@ -495,12 +495,16 @@ class PlateRecording(FileManagerPlateRecording):
             well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(well_index)
             msg = f"Writing waveform data of well {well_name} ({iter_well_idx + 1} out of {num_wells})"
             logger.info(msg)
+
+            # finding last index in interpolated data indices
             last_index = len(interpolated_data_indices) - 1
             first_index = 0
 
+            # decrementing the last index marker until the last time point in filtered_data is greater than the value of interpolated_data_indices at the last index
             while filtered_data[0][-1] < interpolated_data_indices[last_index]:
                 last_index -= 1
 
+            # incrementing last_index so the previously found index value less than the last filtered_data timepoint is included in the interpolate function and represnts the correct number of data points
             last_index += 1
 
             while filtered_data[0][0] > interpolated_data_indices[first_index]:
@@ -509,6 +513,7 @@ class PlateRecording(FileManagerPlateRecording):
             interpolated_data = interpolated_data_function(
                 interpolated_data_indices[first_index:last_index]
             )
+
             # write to sheet
             for i, data_point in enumerate(interpolated_data):
                 curr_sheet.write(i + 1, well_index + 1, data_point)

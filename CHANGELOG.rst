@@ -1,8 +1,9 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
-0.8.3 (unreleased)
+0.9.0 (2021-01-06)
 ------------------
+- Added Area Under the Curve metric to per twitch metrics sheet and aggregate metrics sheet
 - Fixed issue with interpolation values outside of the given boundaries for optical data.
 
 

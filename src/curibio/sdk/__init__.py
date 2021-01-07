@@ -16,6 +16,7 @@ from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
+from .constants import FREQUENCY_VS_TIME_SHEET_NAME
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -75,4 +76,5 @@ __all__ = [
     "SECONDS_PER_CELL",
     "PER_TWITCH_METRICS_SHEET_NAME",
     "NUMBER_OF_PER_TWITCH_METRICS",
+    "FREQUENCY_VS_TIME_SHEET_NAME",
 ]

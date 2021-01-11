@@ -83,6 +83,113 @@ NS = {
                 ]
             ),
             {
+                "chart_num": 5,
+                "well_name": "A1",
+                "x_range": "$A$2:$A$354",
+                "y_range_w": "$B$2:$B$354",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+            },
+            {
+                "chart_num": 6,
+                "well_name": "B2",
+                "x_range": "$A$2:$A$355",
+                "y_range_w": "$G$2:$G$355",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+            },
+            "creates chart correctly with data shorter than chart window",
+        ),
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__B2.h5",
+                    ),
+                ]
+            ),
+            {
+                "chart_num": 5,
+                "well_name": "A1",
+                "x_range": "$A$2:$A$22087",
+                "y_range_w": "$B$2:$B$22087",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+            },
+            {
+                "chart_num": 6,
+                "well_name": "B2",
+                "x_range": "$A$2:$A$22087",
+                "y_range_w": "$G$2:$G$22087",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+            },
+            "creates chart correctly with data longer than chart window",
+        ),
+    ],
+)
+def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
+    pr, expected_A1_attrs, expected_B2_attrs, test_description
+):
+    test_file_name = "test_chart.xlsx"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
+        with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
+            zip_ref.extractall(tmp_dir)
+
+        for expected_attrs in (expected_A1_attrs, expected_B2_attrs):
+            expected_well_name = expected_attrs["well_name"]
+            chart_root = ET.parse(
+                os.path.join(
+                    tmp_dir, "xl", "charts", f"chart{expected_attrs['chart_num']}.xml"
+                )
+            ).getroot()
+            chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+            assert chart_title.text == f"Well {expected_well_name}"
+
+
+# pylint: disable=too-many-locals
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "pr,expected_A1_attrs,expected_B2_attrs,test_description",
+    [
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA20123456__2020_08_17_145752__B2.h5",
+                    ),
+                ]
+            ),
+            {
                 "chart_num": 3,
                 "well_name": "A1",
                 "x_range": "$A$2:$A$354",

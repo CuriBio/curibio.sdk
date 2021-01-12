@@ -814,7 +814,7 @@ class PlateRecording(FileManagerPlateRecording):
             {"type": "scatter", "subtype": "straight"}
         )
 
-        well_row = (well_index * 20) + 1
+        well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
         last_column = xl_col_to_name(num_data_points)
         lower_x_bound = 0
         upper_x_bound = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
@@ -822,8 +822,8 @@ class PlateRecording(FileManagerPlateRecording):
         frequency_chart.add_series(
             {
                 "name": "Frequency Data",
-                "categories": f"='per-twitch-metrics'!$B${well_row + 1}:${last_column}${well_row + 1}",
-                "values": f"='per-twitch-metrics'!$B${well_row + 3}:${last_column}${well_row + 3}",
+                "categories": f"='per-twitch-metrics'!$B${well_row + 2}:${last_column}${well_row + 2}",
+                "values": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
                 "line": {"color": "#1B9E77"},
             }
         )

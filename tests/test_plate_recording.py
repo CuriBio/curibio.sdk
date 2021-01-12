@@ -23,7 +23,6 @@ from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
-from curibio.sdk import FREQUENCY_VS_TIME_SHEET_NAME
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
@@ -33,6 +32,7 @@ from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
 from curibio.sdk import PER_TWITCH_METRICS_SHEET_NAME
 from curibio.sdk import plate_recording
 from curibio.sdk import PlateRecording
+from curibio.sdk import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from freezegun import freeze_time
 from labware_domain_models import LabwareDefinition
 from mantarray_file_manager import MAIN_FIRMWARE_VERSION_UUID
@@ -141,7 +141,7 @@ def test_write_xlsx__creates_frequency_vs_time_sheet(
     pr.write_xlsx(tmp_dir, create_waveform_charts=False)
     expected_file_name = "MA20223322__2020_09_02_173943.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
-    assert actual_workbook.sheetnames[6] == FREQUENCY_VS_TIME_SHEET_NAME
+    assert actual_workbook.sheetnames[6] == TWITCH_FREQUENCIES_CHART_SHEET_NAME
 
 
 def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(

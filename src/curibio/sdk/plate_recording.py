@@ -53,7 +53,6 @@ from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
-from .constants import FREQUENCY_VS_TIME_SHEET_NAME
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -70,6 +69,7 @@ from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWENTY_FOUR_WELL_PLATE
+from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
@@ -731,7 +731,7 @@ class PlateRecording(FileManagerPlateRecording):
         logger.info("Creating per-twitch metrics sheet")
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
 
-        self._workbook.add_worksheet(FREQUENCY_VS_TIME_SHEET_NAME)
+        self._workbook.add_worksheet(TWITCH_FREQUENCIES_CHART_SHEET_NAME)
 
         curr_row = 0
         well_indices = self.get_well_indices()
@@ -804,7 +804,7 @@ class PlateRecording(FileManagerPlateRecording):
         time_values: NDArray[(1, Any), int],
     ) -> None:
         frequency_chart_sheet = self._workbook.get_worksheet_by_name(
-            FREQUENCY_VS_TIME_SHEET_NAME
+            TWITCH_FREQUENCIES_CHART_SHEET_NAME
         )
 
         msg = f"Creating chart of frequency data of well {well_name}"

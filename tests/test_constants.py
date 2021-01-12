@@ -15,7 +15,6 @@ from curibio.sdk import CHART_WINDOW_NUM_SECONDS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_CELL_WIDTH
 from curibio.sdk import EXCEL_OPTICAL_METADATA_CELLS
-from curibio.sdk import FREQUENCY_VS_TIME_SHEET_NAME
 from curibio.sdk import FULL_CHART_SHEET_NAME
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -32,6 +31,7 @@ from curibio.sdk import PER_TWITCH_METRICS_SHEET_NAME
 from curibio.sdk import SECONDS_PER_CELL
 from curibio.sdk import SNAPSHOT_CHART_SHEET_NAME
 from curibio.sdk import TSP_TO_DEFAULT_FILTER_UUID
+from curibio.sdk import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from curibio.sdk import TWITCHES_POINT_UP_UUID
 from mantarray_file_manager import MANTARRAY_SERIAL_NUMBER_UUID
 from mantarray_file_manager import PLATE_BARCODE_UUID
@@ -72,7 +72,7 @@ def test_excel_sheet_names():
     assert PER_TWITCH_METRICS_SHEET_NAME == "per-twitch-metrics"
     assert SNAPSHOT_CHART_SHEET_NAME == "continuous-waveform-snapshots"
     assert FULL_CHART_SHEET_NAME == "full-continuous-waveform-plots"
-    assert FREQUENCY_VS_TIME_SHEET_NAME == "frequency-vs-time-plots"
+    assert TWITCH_FREQUENCIES_CHART_SHEET_NAME == "twitch-frequencies-plots"
 
 
 def test_excel_sheet_rows():

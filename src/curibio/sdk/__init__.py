@@ -16,7 +16,6 @@ from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
 from .constants import EXCEL_OPTICAL_METADATA_CELLS
-from .constants import FREQUENCY_VS_TIME_SHEET_NAME
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -34,6 +33,7 @@ from .constants import PER_TWITCH_METRICS_SHEET_NAME
 from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
+from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .constants import TWITCHES_POINT_UP_UUID
 from .excel_well_file import ExcelWellFile
 from .exceptions import MetadataNotFoundError
@@ -76,5 +76,5 @@ __all__ = [
     "SECONDS_PER_CELL",
     "PER_TWITCH_METRICS_SHEET_NAME",
     "NUMBER_OF_PER_TWITCH_METRICS",
-    "FREQUENCY_VS_TIME_SHEET_NAME",
+    "TWITCH_FREQUENCIES_CHART_SHEET_NAME",
 ]

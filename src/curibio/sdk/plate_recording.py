@@ -807,7 +807,7 @@ class PlateRecording(FileManagerPlateRecording):
             FREQUENCY_VS_TIME_SHEET_NAME
         )
 
-        msg = f"Creating chart of waveform data of well {well_name}"
+        msg = f"Creating chart of frequency data of well {well_name}"
         logger.info(msg)
 
         frequency_chart = self._workbook.add_chart(

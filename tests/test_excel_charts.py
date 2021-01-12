@@ -85,8 +85,8 @@ NS = {
             {
                 "chart_num": 5,
                 "well_name": "A1",
-                "x_range": "$A$2:$A$354",
-                "y_range_w": "$B$2:$B$354",
+                "x_range": "$B$2:$C$2",
+                "y_range": "$B$4:$C$4",
                 "from_col": 1,
                 "from_row": 1,
                 "to_col": 9,
@@ -95,8 +95,8 @@ NS = {
             {
                 "chart_num": 6,
                 "well_name": "B2",
-                "x_range": "$A$2:$A$355",
-                "y_range_w": "$G$2:$G$355",
+                "x_range": "$B$102:$C$102",
+                "y_range": "$B$104:$C$104",
                 "from_col": 10,
                 "from_row": 17,
                 "to_col": 18,
@@ -126,8 +126,8 @@ NS = {
             {
                 "chart_num": 5,
                 "well_name": "A1",
-                "x_range": "$A$2:$A$22087",
-                "y_range_w": "$B$2:$B$22087",
+                "x_range": "$B$2:$II$2",
+                "y_range": "$B$4:$II$4",
                 "from_col": 1,
                 "from_row": 1,
                 "to_col": 9,
@@ -136,8 +136,8 @@ NS = {
             {
                 "chart_num": 6,
                 "well_name": "B2",
-                "x_range": "$A$2:$A$22087",
-                "y_range_w": "$G$2:$G$22087",
+                "x_range": "$B$102:$PN$102",
+                "y_range": "$B$104:$PN$104",
                 "from_col": 10,
                 "from_row": 17,
                 "to_col": 18,
@@ -165,6 +165,89 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             ).getroot()
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_well_name}"
+
+            for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+                axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+                if node.find("c:axId", NS).attrib["val"] == "50010001":
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text == "Time (seconds)"
+                    )
+                elif node.find("c:axId", NS).attrib["val"] == "50010002":
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text == "Twitch Frequency (Hz)"
+                    )
+            assert (expected_well_name == expected_attrs["well_name"]) and (
+                chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
+                is None
+            )
+
+            # testing frequency series
+            frequency_series_node = None
+            for node in chart_root.findall(
+                "c:chart/c:plotArea/c:scatterChart/c:ser", NS
+            ):
+                if node.find("c:idx", NS).attrib["val"] == "0":
+                    frequency_series_node = node
+                    break
+            # name of series
+            assert (
+                frequency_series_node.find("c:tx/c:v", NS).text,
+                expected_well_name,
+            ) == ("Frequency Data", expected_well_name)
+            # line color
+            assert (
+                frequency_series_node.find(
+                    "c:spPr/a:ln/a:solidFill/a:srgbClr", NS
+                ).attrib["val"],
+                expected_well_name,
+            ) == ("1B9E77", expected_well_name)
+            # x - range
+            assert (
+                frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
+                == f"'per-twitch-metrics'!{expected_attrs['x_range']}"
+            )
+            # y - range
+            assert (
+                frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
+                == f"'per-twitch-metrics'!{expected_attrs['y_range']}"
+            )
+
+        # testing formatting of charts on sheet
+        drawing_root = ET.parse(
+            os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
+        ).getroot()
+        for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
+            chart_name = chart_node.find(
+                "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
+            ).attrib["name"]
+            expected_attrs = (
+                expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
+            )
+            from_node = chart_node.find("xdr:from", NS)
+            assert (int(from_node.find("xdr:col", NS).text), chart_name) == (
+                expected_attrs["from_col"],
+                chart_name,
+            )
+            assert (chart_name, int(from_node.find("xdr:colOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+            assert int(from_node.find("xdr:row", NS).text) == expected_attrs["from_row"]
+            assert (chart_name, int(from_node.find("xdr:rowOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+            to_node = chart_node.find("xdr:to", NS)
+            assert int(to_node.find("xdr:col", NS).text) == expected_attrs["to_col"]
+            assert (chart_name, int(to_node.find("xdr:colOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+            assert int(to_node.find("xdr:row", NS).text) == expected_attrs["to_row"]
+            assert (chart_name, int(to_node.find("xdr:rowOff", NS).text)) == (
+                chart_name,
+                0,
+            )
 
 
 # pylint: disable=too-many-locals

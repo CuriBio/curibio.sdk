@@ -816,8 +816,6 @@ class PlateRecording(FileManagerPlateRecording):
 
         well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
         last_column = xl_col_to_name(num_data_points)
-        lower_x_bound = 0
-        upper_x_bound = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
 
         frequency_chart.add_series(
             {
@@ -828,24 +826,24 @@ class PlateRecording(FileManagerPlateRecording):
             }
         )
 
-        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
-            well_index
-        )
-
         x_axis_settings: Dict[str, Any] = {"name": "Time (seconds)"}
-        x_axis_settings["min"] = lower_x_bound
-        x_axis_settings["max"] = upper_x_bound
+        x_axis_settings["min"] = 0
+        x_axis_settings["max"] = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
 
         frequency_chart.set_x_axis(x_axis_settings)
+
         y_axis_label = "Twitch Frequency (Hz)"
 
         frequency_chart.set_y_axis(
             {"name": y_axis_label, "min": 0, "major_gridlines": {"visible": 0}}
         )
-        width = CHART_FIXED_WIDTH
 
-        frequency_chart.set_size({"width": width, "height": CHART_HEIGHT})
+        frequency_chart.set_size({"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT})
         frequency_chart.set_title({"name": f"Well {well_name}"})
+
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
+            well_index
+        )
 
         frequency_chart_sheet.insert_chart(
             1 + well_row * (CHART_HEIGHT_CELLS + 1),

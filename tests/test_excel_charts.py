@@ -5,9 +5,12 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
+from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
 from curibio.sdk import PlateRecording
+from labware_domain_models import LabwareDefinition
 import pytest
 from stdlib_utils import get_current_file_abs_directory
+from xlsxwriter.utility import xl_col_to_name
 
 from .fixtures import fixture_generic_excel_well_file_0_1_0
 from .fixtures import fixture_generic_well_file_0_3_1
@@ -91,6 +94,7 @@ NS = {
                 "from_row": 1,
                 "to_col": 9,
                 "to_row": 16,
+                "num_twitches": 2,
             },
             {
                 "chart_num": 6,
@@ -101,6 +105,7 @@ NS = {
                 "from_row": 17,
                 "to_col": 18,
                 "to_row": 32,
+                "num_twitches": 2,
             },
             "creates chart correctly with data shorter than chart window",
         ),
@@ -126,22 +131,20 @@ NS = {
             {
                 "chart_num": 5,
                 "well_name": "A1",
-                "x_range": "$B$2:$II$2",
-                "y_range": "$B$4:$II$4",
                 "from_col": 1,
                 "from_row": 1,
                 "to_col": 9,
                 "to_row": 16,
+                "num_twitches": 242,
             },
             {
                 "chart_num": 6,
                 "well_name": "B2",
-                "x_range": "$B$102:$PN$102",
-                "y_range": "$B$104:$PN$104",
                 "from_col": 10,
                 "from_row": 17,
                 "to_col": 18,
                 "to_row": 32,
+                "num_twitches": 429,
             },
             "creates chart correctly with data longer than chart window",
         ),
@@ -201,15 +204,28 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                 ).attrib["val"],
                 expected_well_name,
             ) == ("1B9E77", expected_well_name)
+
+            twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
+            well_index = twenty_four_well.get_well_index_from_well_name(
+                expected_attrs["well_name"]
+            )
+            x_range_row = (
+                well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2) + 2
+            )  # adjusting with +2 to reflect timepoint of twitch on per twitch metrics sheet for the given well
+            y_range_row = (
+                well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2) + 4
+            )  # adjusting with +4 to reflect frequency of twitch on per twitch metrics sheet for the given well
+            col_range = xl_col_to_name(expected_attrs["num_twitches"])
+
             # x - range
             assert (
                 frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!{expected_attrs['x_range']}"
+                == f"'per-twitch-metrics'!$B${x_range_row}:${col_range}${x_range_row}"
             )
             # y - range
             assert (
                 frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!{expected_attrs['y_range']}"
+                == f"'per-twitch-metrics'!$B${y_range_row}:${col_range}${y_range_row}"
             )
 
         # testing formatting of charts on sheet

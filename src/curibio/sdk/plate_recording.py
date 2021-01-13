@@ -810,52 +810,50 @@ class PlateRecording(FileManagerPlateRecording):
         well_name: str,
         num_data_points: int,
     ) -> None:
-        force_frequency_relationship_sheet = self._workbook.get_worksheet_by_name(
+        force_frequency_sheet = self._workbook.get_worksheet_by_name(
             FORCE_FREQUENCY_RELATIONSHIP_SHEET
         )
 
         msg = f"Creating chart of force-frequency data of well {well_name}"
         logger.info(msg)
 
-        force_frequency_relationship_chart = self._workbook.add_chart(
-            {"type": "scatter"}
-        )
+        force_frequency_chart = self._workbook.add_chart({"type": "scatter"})
 
         well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
         last_column = xl_col_to_name(num_data_points)
 
-        force_frequency_relationship_chart.add_series(
+        force_frequency_chart.add_series(
             {
                 "categories": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
                 "values": f"='per-twitch-metrics'!$B${well_row + 5}:${last_column}${well_row + 5}",
             }
         )
 
-        force_frequency_relationship_chart.set_legend({"none": True})
+        force_frequency_chart.set_legend({"none": True})
 
         x_axis_label = "Twitch Frequency (Hz)"
 
-        force_frequency_relationship_chart.set_x_axis({"name": x_axis_label})
+        force_frequency_chart.set_x_axis({"name": x_axis_label})
 
         y_axis_label = "Twitch Amplitude"
 
-        force_frequency_relationship_chart.set_y_axis(
+        force_frequency_chart.set_y_axis(
             {"name": y_axis_label, "major_gridlines": {"visible": 0}}
         )
 
-        force_frequency_relationship_chart.set_size(
+        force_frequency_chart.set_size(
             {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
         )
-        force_frequency_relationship_chart.set_title({"name": f"Well {well_name}"})
+        force_frequency_chart.set_title({"name": f"Well {well_name}"})
 
         well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
             well_index
         )
 
-        force_frequency_relationship_sheet.insert_chart(
+        force_frequency_sheet.insert_chart(
             1 + well_row * (CHART_HEIGHT_CELLS + 1),
             1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
-            force_frequency_relationship_chart,
+            force_frequency_chart,
         )
 
     def _create_frequency_vs_time_charts(

@@ -17,6 +17,7 @@ from curibio.sdk import __version__
 from curibio.sdk import AGGREGATE_METRICS_SHEET_NAME
 from curibio.sdk import CALCULATED_METRIC_DISPLAY_NAMES
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
+from curibio.sdk import FORCE_FREQUENCY_RELATIONSHIP_SHEET
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import METADATA_EXCEL_SHEET_NAME
 from curibio.sdk import METADATA_INSTRUMENT_ROW_START
@@ -136,6 +137,17 @@ def test_write_xlsx__creates_frequency_vs_time_sheet(
     expected_file_name = "MA20223322__2020_09_02_173943.xlsx"
     actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
     assert actual_workbook.sheetnames[6] == TWITCH_FREQUENCIES_CHART_SHEET_NAME
+
+
+def test_write_xlsx__creates_force_frequency_relationship_sheet(
+    plate_recording_in_tmp_dir_for_generic_well_file_0_3_2,
+):
+    pr, tmp_dir = plate_recording_in_tmp_dir_for_generic_well_file_0_3_2
+
+    pr.write_xlsx(tmp_dir, create_waveform_charts=False)
+    expected_file_name = "MA20223322__2020_09_02_173943.xlsx"
+    actual_workbook = load_workbook(os.path.join(tmp_dir, expected_file_name))
+    assert actual_workbook.sheetnames[7] == FORCE_FREQUENCY_RELATIONSHIP_SHEET
 
 
 def test_write_xlsx__creates_per_twitch_metrics_sheet_labels(

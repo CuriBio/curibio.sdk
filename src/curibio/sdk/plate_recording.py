@@ -53,6 +53,7 @@ from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
+from .constants import FORCE_FREQUENCY_RELATIONSHIP_SHEET
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -732,6 +733,7 @@ class PlateRecording(FileManagerPlateRecording):
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
 
         self._workbook.add_worksheet(TWITCH_FREQUENCIES_CHART_SHEET_NAME)
+        self._workbook.add_worksheet(FORCE_FREQUENCY_RELATIONSHIP_SHEET)
 
         curr_row = 0
         well_indices = self.get_well_indices()

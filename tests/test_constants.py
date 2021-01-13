@@ -15,6 +15,7 @@ from curibio.sdk import CHART_WINDOW_NUM_SECONDS
 from curibio.sdk import CONTINUOUS_WAVEFORM_SHEET_NAME
 from curibio.sdk import DEFAULT_CELL_WIDTH
 from curibio.sdk import EXCEL_OPTICAL_METADATA_CELLS
+from curibio.sdk import FORCE_FREQUENCY_RELATIONSHIP_SHEET
 from curibio.sdk import FULL_CHART_SHEET_NAME
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_CMS
 from curibio.sdk import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -73,6 +74,7 @@ def test_excel_sheet_names():
     assert SNAPSHOT_CHART_SHEET_NAME == "continuous-waveform-snapshots"
     assert FULL_CHART_SHEET_NAME == "full-continuous-waveform-plots"
     assert TWITCH_FREQUENCIES_CHART_SHEET_NAME == "twitch-frequencies-plots"
+    assert FORCE_FREQUENCY_RELATIONSHIP_SHEET == "force-frequency-relationship"
 
 
 def test_excel_sheet_rows():

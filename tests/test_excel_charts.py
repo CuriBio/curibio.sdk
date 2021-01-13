@@ -7,7 +7,7 @@ import zipfile
 
 from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
 from curibio.sdk import PlateRecording
-from labware_domain_models import LabwareDefinition
+from curibio.sdk.constants import TWENTY_FOUR_WELL_PLATE
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 from xlsxwriter.utility import xl_col_to_name
@@ -193,8 +193,7 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                     frequency_series_node = node
                     break
 
-            twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
-            well_index = twenty_four_well.get_well_index_from_well_name(
+            well_index = TWENTY_FOUR_WELL_PLATE.get_well_index_from_well_name(
                 expected_attrs["well_name"]
             )
             x_range_row = (
@@ -227,8 +226,12 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             expected_attrs = (
                 expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
             )
+
             from_node = chart_node.find("xdr:from", NS)
-            assert (int(from_node.find("xdr:col", NS).text), chart_name) == (
+            left_col_of_chart = from_node.find("xdr:col", NS)
+            top_row_of_chart = from_node.find("xdr:row", NS)
+
+            assert (int(left_col_of_chart.text), chart_name) == (
                 expected_attrs["from_col"],
                 chart_name,
             )
@@ -236,18 +239,22 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                 chart_name,
                 0,
             )
-            assert int(from_node.find("xdr:row", NS).text) == expected_attrs["from_row"]
+            assert int(top_row_of_chart.text) == expected_attrs["from_row"]
             assert (chart_name, int(from_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,
             )
+
             to_node = chart_node.find("xdr:to", NS)
-            assert int(to_node.find("xdr:col", NS).text) == expected_attrs["to_col"]
+            right_col_of_chart = to_node.find("xdr:col", NS)
+            bottom_row_of_chart = to_node.find("xdr:row", NS)
+
+            assert int(right_col_of_chart.text) == expected_attrs["to_col"]
             assert (chart_name, int(to_node.find("xdr:colOff", NS).text)) == (
                 chart_name,
                 0,
             )
-            assert int(to_node.find("xdr:row", NS).text) == expected_attrs["to_row"]
+            assert int(bottom_row_of_chart.text) == expected_attrs["to_row"]
             assert (chart_name, int(to_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,

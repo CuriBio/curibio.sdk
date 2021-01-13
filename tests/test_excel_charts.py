@@ -192,18 +192,6 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                 if node.find("c:idx", NS).attrib["val"] == "0":
                     frequency_series_node = node
                     break
-            # name of series
-            assert (
-                frequency_series_node.find("c:tx/c:v", NS).text,
-                expected_well_name,
-            ) == ("Frequency Data", expected_well_name)
-            # line color
-            assert (
-                frequency_series_node.find(
-                    "c:spPr/a:ln/a:solidFill/a:srgbClr", NS
-                ).attrib["val"],
-                expected_well_name,
-            ) == ("1B9E77", expected_well_name)
 
             twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
             well_index = twenty_four_well.get_well_index_from_well_name(

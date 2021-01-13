@@ -69,6 +69,7 @@ from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWENTY_FOUR_WELL_PLATE
+from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
@@ -729,16 +730,22 @@ class PlateRecording(FileManagerPlateRecording):
     def _write_xlsx_per_twitch_metrics(self) -> None:
         logger.info("Creating per-twitch metrics sheet")
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
+
+        self._workbook.add_worksheet(TWITCH_FREQUENCIES_CHART_SHEET_NAME)
+
         curr_row = 0
         well_indices = self.get_well_indices()
 
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):
+            well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
+                iter_well_idx
+            )
             curr_sheet.write(
                 curr_row,
                 0,
-                TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
+                well_name,
             )
             if iter_well_idx in well_indices:
                 iter_pipeline = self._pipelines[iter_well_idx]
@@ -767,6 +774,15 @@ class PlateRecording(FileManagerPlateRecording):
                         curr_sheet, curr_row, per_twitch_dict, number_twitches
                     )
 
+                    twitch_timepoints = list(per_twitch_dict)
+
+                    self._create_frequency_vs_time_charts(
+                        iter_well_idx,
+                        well_name,
+                        number_twitches,
+                        twitch_timepoints,
+                    )
+
             curr_row += 1
             curr_sheet.write(
                 curr_row,
@@ -779,6 +795,59 @@ class PlateRecording(FileManagerPlateRecording):
             curr_row += (
                 NUMBER_OF_PER_TWITCH_METRICS + 1 - 6
             )  # include a single row gap in between the data for each well
+
+    def _create_frequency_vs_time_charts(
+        self,
+        well_index: int,
+        well_name: str,
+        num_data_points: int,
+        time_values: NDArray[(1, Any), int],
+    ) -> None:
+        frequency_chart_sheet = self._workbook.get_worksheet_by_name(
+            TWITCH_FREQUENCIES_CHART_SHEET_NAME
+        )
+
+        msg = f"Creating chart of frequency data of well {well_name}"
+        logger.info(msg)
+
+        frequency_chart = self._workbook.add_chart({"type": "scatter"})
+
+        well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
+        last_column = xl_col_to_name(num_data_points)
+
+        frequency_chart.add_series(
+            {
+                "categories": f"='per-twitch-metrics'!$B${well_row + 2}:${last_column}${well_row + 2}",
+                "values": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
+            }
+        )
+
+        frequency_chart.set_legend({"none": True})
+
+        x_axis_settings: Dict[str, Any] = {"name": "Time (seconds)"}
+        x_axis_settings["min"] = 0
+        x_axis_settings["max"] = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
+
+        frequency_chart.set_x_axis(x_axis_settings)
+
+        y_axis_label = "Twitch Frequency (Hz)"
+
+        frequency_chart.set_y_axis(
+            {"name": y_axis_label, "min": 0, "major_gridlines": {"visible": 0}}
+        )
+
+        frequency_chart.set_size({"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT})
+        frequency_chart.set_title({"name": f"Well {well_name}"})
+
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
+            well_index
+        )
+
+        frequency_chart_sheet.insert_chart(
+            1 + well_row * (CHART_HEIGHT_CELLS + 1),
+            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+            frequency_chart,
+        )
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")

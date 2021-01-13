@@ -33,6 +33,7 @@ from .constants import PER_TWITCH_METRICS_SHEET_NAME
 from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
+from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .constants import TWITCHES_POINT_UP_UUID
 from .excel_well_file import ExcelWellFile
 from .exceptions import MetadataNotFoundError
@@ -75,4 +76,5 @@ __all__ = [
     "SECONDS_PER_CELL",
     "PER_TWITCH_METRICS_SHEET_NAME",
     "NUMBER_OF_PER_TWITCH_METRICS",
+    "TWITCH_FREQUENCIES_CHART_SHEET_NAME",
 ]

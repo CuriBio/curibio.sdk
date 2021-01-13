@@ -171,11 +171,11 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
 
             for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
                 axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
-                if node.find("c:axId", NS).attrib["val"] == "50010001":
+                if node.find("c:axId", NS).attrib["val"] == "50030001":
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Time (seconds)"
                     )
-                elif node.find("c:axId", NS).attrib["val"] == "50010002":
+                elif node.find("c:axId", NS).attrib["val"] == "50030002":
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Twitch Frequency (Hz)"
                     )

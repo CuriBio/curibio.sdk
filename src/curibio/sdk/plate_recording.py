@@ -810,21 +810,19 @@ class PlateRecording(FileManagerPlateRecording):
         msg = f"Creating chart of frequency data of well {well_name}"
         logger.info(msg)
 
-        frequency_chart = self._workbook.add_chart(
-            {"type": "scatter", "subtype": "straight"}
-        )
+        frequency_chart = self._workbook.add_chart({"type": "scatter"})
 
         well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
         last_column = xl_col_to_name(num_data_points)
 
         frequency_chart.add_series(
             {
-                "name": "Frequency Data",
                 "categories": f"='per-twitch-metrics'!$B${well_row + 2}:${last_column}${well_row + 2}",
                 "values": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
-                "line": {"color": "#1B9E77"},
             }
         )
+
+        frequency_chart.set_legend({"none": True})
 
         x_axis_settings: Dict[str, Any] = {"name": "Time (seconds)"}
         x_axis_settings["min"] = 0

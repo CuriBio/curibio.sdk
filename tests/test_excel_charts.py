@@ -169,6 +169,8 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_well_name}"
 
+            root_elements = chart_root.findall("c:chart/c:plotArea/c:valAx", NS)
+            assert len(root_elements) == 2
             for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
                 axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
                 if node.find("c:axId", NS).attrib["val"] == "50030001":

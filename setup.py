@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="curibio.sdk",
-    version="0.9.0",
+    version="0.10.0",
     description="CREATE A DESCRIPTION",
     url="https://github.com/CuriBio/curibio.sdk",
     project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/"},

@@ -130,13 +130,19 @@ def test_write_xlsx__creates_two_force_frequency_relationship_charts_correctly(
 
             root_elements = chart_root.findall("c:chart/c:plotArea/c:valAx", NS)
             assert len(root_elements) == 2
-            for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+            for node in root_elements:
                 axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
-                if node.find("c:axId", NS).attrib["val"] == "50030001":
+                if (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0001"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Twitch Frequency (Hz)"
                     )
-                elif node.find("c:axId", NS).attrib["val"] == "50030002":
+                elif (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0002"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Twitch Amplitude"
                     )
@@ -330,13 +336,19 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
 
             root_elements = chart_root.findall("c:chart/c:plotArea/c:valAx", NS)
             assert len(root_elements) == 2
-            for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+            for node in root_elements:
                 axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
-                if node.find("c:axId", NS).attrib["val"] == "50030001":
+                if (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0001"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Time (seconds)"
                     )
-                elif node.find("c:axId", NS).attrib["val"] == "50030002":
+                elif (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0002"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Twitch Frequency (Hz)"
                     )

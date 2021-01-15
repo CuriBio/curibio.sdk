@@ -26,6 +26,7 @@ from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import TwoPeaksInARowError
 from mantarray_waveform_analysis import TwoValleysInARowError
@@ -53,6 +54,7 @@ from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
+from .constants import FORCE_FREQUENCY_RELATIONSHIP_SHEET
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -69,6 +71,7 @@ from .constants import SECONDS_PER_CELL
 from .constants import SNAPSHOT_CHART_SHEET_NAME
 from .constants import TSP_TO_DEFAULT_FILTER_UUID
 from .constants import TWENTY_FOUR_WELL_PLATE
+from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .excel_well_file import ExcelWellFile
 
 logger = logging.getLogger(__name__)
@@ -729,16 +732,23 @@ class PlateRecording(FileManagerPlateRecording):
     def _write_xlsx_per_twitch_metrics(self) -> None:
         logger.info("Creating per-twitch metrics sheet")
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
+
+        self._workbook.add_worksheet(TWITCH_FREQUENCIES_CHART_SHEET_NAME)
+        self._workbook.add_worksheet(FORCE_FREQUENCY_RELATIONSHIP_SHEET)
+
         curr_row = 0
         well_indices = self.get_well_indices()
 
         for iter_well_idx in range(
             TWENTY_FOUR_WELL_PLATE.row_count * TWENTY_FOUR_WELL_PLATE.column_count
         ):
+            well_name = TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(
+                iter_well_idx
+            )
             curr_sheet.write(
                 curr_row,
                 0,
-                TWENTY_FOUR_WELL_PLATE.get_well_name_from_well_index(iter_well_idx),
+                well_name,
             )
             if iter_well_idx in well_indices:
                 iter_pipeline = self._pipelines[iter_well_idx]
@@ -767,6 +777,21 @@ class PlateRecording(FileManagerPlateRecording):
                         curr_sheet, curr_row, per_twitch_dict, number_twitches
                     )
 
+                    twitch_timepoints = list(per_twitch_dict)
+
+                    self._create_frequency_vs_time_charts(
+                        iter_well_idx,
+                        well_name,
+                        number_twitches,
+                        twitch_timepoints,
+                    )
+
+                    self._create_force_frequency_relationship_charts(
+                        iter_well_idx,
+                        well_name,
+                        number_twitches,
+                    )
+
             curr_row += 1
             curr_sheet.write(
                 curr_row,
@@ -779,6 +804,111 @@ class PlateRecording(FileManagerPlateRecording):
             curr_row += (
                 NUMBER_OF_PER_TWITCH_METRICS + 1 - 6
             )  # include a single row gap in between the data for each well
+
+    def _create_force_frequency_relationship_charts(
+        self,
+        well_index: int,
+        well_name: str,
+        num_data_points: int,
+    ) -> None:
+        force_frequency_sheet = self._workbook.get_worksheet_by_name(
+            FORCE_FREQUENCY_RELATIONSHIP_SHEET
+        )
+
+        msg = f"Creating chart of force-frequency data of well {well_name}"
+        logger.info(msg)
+
+        force_frequency_chart = self._workbook.add_chart({"type": "scatter"})
+
+        well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
+        last_column = xl_col_to_name(num_data_points)
+
+        force_frequency_chart.add_series(
+            {
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 5}:${last_column}${well_row + 5}",
+            }
+        )
+
+        force_frequency_chart.set_legend({"none": True})
+
+        x_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
+
+        force_frequency_chart.set_x_axis({"name": x_axis_label})
+
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[AMPLITUDE_UUID]
+
+        force_frequency_chart.set_y_axis(
+            {"name": y_axis_label, "major_gridlines": {"visible": 0}}
+        )
+
+        force_frequency_chart.set_size(
+            {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
+        )
+        force_frequency_chart.set_title({"name": f"Well {well_name}"})
+
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
+            well_index
+        )
+
+        force_frequency_sheet.insert_chart(
+            1 + well_row * (CHART_HEIGHT_CELLS + 1),
+            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+            force_frequency_chart,
+        )
+
+    def _create_frequency_vs_time_charts(
+        self,
+        well_index: int,
+        well_name: str,
+        num_data_points: int,
+        time_values: NDArray[(1, Any), int],
+    ) -> None:
+        frequency_chart_sheet = self._workbook.get_worksheet_by_name(
+            TWITCH_FREQUENCIES_CHART_SHEET_NAME
+        )
+
+        msg = f"Creating chart of frequency data of well {well_name}"
+        logger.info(msg)
+
+        frequency_chart = self._workbook.add_chart({"type": "scatter"})
+
+        well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
+        last_column = xl_col_to_name(num_data_points)
+
+        frequency_chart.add_series(
+            {
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 2}:${last_column}${well_row + 2}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
+            }
+        )
+
+        frequency_chart.set_legend({"none": True})
+
+        x_axis_settings: Dict[str, Any] = {"name": "Time (seconds)"}
+        x_axis_settings["min"] = 0
+        x_axis_settings["max"] = time_values[-1] // CENTIMILLISECONDS_PER_SECOND
+
+        frequency_chart.set_x_axis(x_axis_settings)
+
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
+
+        frequency_chart.set_y_axis(
+            {"name": y_axis_label, "min": 0, "major_gridlines": {"visible": 0}}
+        )
+
+        frequency_chart.set_size({"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT})
+        frequency_chart.set_title({"name": f"Well {well_name}"})
+
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
+            well_index
+        )
+
+        frequency_chart_sheet.insert_chart(
+            1 + well_row * (CHART_HEIGHT_CELLS + 1),
+            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+            frequency_chart,
+        )
 
     def _write_xlsx_aggregate_metrics(self) -> None:
         logger.info("Creating aggregate metrics sheet")

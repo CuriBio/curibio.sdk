@@ -1,6 +1,12 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.10.0 (2021-01-15)
+-------------------
+- Added twitch frequencies chart excel sheet.
+- Added force frequency relationship chart excel sheet.
+
+
 0.9.0 (2021-01-06)
 ------------------
 - Added Area Under the Curve metric to per twitch metrics sheet and aggregate metrics sheet

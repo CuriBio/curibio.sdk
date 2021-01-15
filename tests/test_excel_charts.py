@@ -7,7 +7,11 @@ import zipfile
 
 from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
 from curibio.sdk import PlateRecording
+from curibio.sdk.constants import CALCULATED_METRIC_DISPLAY_NAMES
+from curibio.sdk.constants import PER_TWITCH_METRICS_SHEET_NAME
 from curibio.sdk.constants import TWENTY_FOUR_WELL_PLATE
+from mantarray_waveform_analysis import AMPLITUDE_UUID
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 from xlsxwriter.utility import xl_col_to_name
@@ -137,14 +141,16 @@ def test_write_xlsx__creates_two_force_frequency_relationship_charts_correctly(
                     == f"500{expected_attrs['chart_num']}0001"
                 ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
-                        axis_label.text == "Twitch Frequency (Hz)"
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
                     )
                 elif (
                     node.find("c:axId", NS).attrib["val"]
                     == f"500{expected_attrs['chart_num']}0002"
                 ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
-                        axis_label.text == "Twitch Amplitude"
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[AMPLITUDE_UUID]
                     )
             assert (expected_well_name == expected_attrs["well_name"]) and (
                 chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
@@ -152,10 +158,13 @@ def test_write_xlsx__creates_two_force_frequency_relationship_charts_correctly(
             )
 
             # testing frequency series
-            force_frequency_series_node = None
-            for node in chart_root.findall(
+            root_elements = chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
-            ):
+            )
+            assert len(root_elements) == 1
+
+            force_frequency_series_node = None
+            for node in root_elements:
                 if node.find("c:idx", NS).attrib["val"] == "0":
                     force_frequency_series_node = node
                     break
@@ -174,19 +183,23 @@ def test_write_xlsx__creates_two_force_frequency_relationship_charts_correctly(
             # x - range
             assert (
                 force_frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${x_range_row}:${col_range}${x_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${x_range_row}:${col_range}${x_range_row}"
             )
             # y - range
             assert (
                 force_frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${y_range_row}:${col_range}${y_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${y_range_row}:${col_range}${y_range_row}"
             )
 
         # testing formatting of charts on sheet
         drawing_root = ET.parse(
             os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
         ).getroot()
-        for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
+
+        drawing_root_elements = drawing_root.findall("xdr:twoCellAnchor", NS)
+        assert len(drawing_root_elements) == 2
+
+        for chart_node in drawing_root_elements:
             chart_name = chart_node.find(
                 "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
             ).attrib["name"]
@@ -350,7 +363,8 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                     == f"500{expected_attrs['chart_num']}0002"
                 ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
-                        axis_label.text == "Twitch Frequency (Hz)"
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
                     )
             assert (expected_well_name == expected_attrs["well_name"]) and (
                 chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
@@ -358,10 +372,14 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             )
 
             # testing frequency series
-            frequency_series_node = None
-            for node in chart_root.findall(
+
+            root_elements = chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
-            ):
+            )
+            assert len(root_elements) == 1
+
+            frequency_series_node = None
+            for node in root_elements:
                 if node.find("c:idx", NS).attrib["val"] == "0":
                     frequency_series_node = node
                     break
@@ -380,19 +398,22 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             # x - range
             assert (
                 frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${x_range_row}:${col_range}${x_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${x_range_row}:${col_range}${x_range_row}"
             )
             # y - range
             assert (
                 frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${y_range_row}:${col_range}${y_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${y_range_row}:${col_range}${y_range_row}"
             )
 
         # testing formatting of charts on sheet
         drawing_root = ET.parse(
             os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
         ).getroot()
-        for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
+        drawing_root_elements = drawing_root.findall("xdr:twoCellAnchor", NS)
+        assert len(drawing_root_elements) == 2
+
+        for chart_node in drawing_root_elements:
             chart_name = chart_node.find(
                 "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
             ).attrib["name"]

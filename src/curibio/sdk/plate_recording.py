@@ -26,6 +26,7 @@ from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import TwoPeaksInARowError
 from mantarray_waveform_analysis import TwoValleysInARowError
@@ -824,18 +825,18 @@ class PlateRecording(FileManagerPlateRecording):
 
         force_frequency_chart.add_series(
             {
-                "categories": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
-                "values": f"='per-twitch-metrics'!$B${well_row + 5}:${last_column}${well_row + 5}",
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 5}:${last_column}${well_row + 5}",
             }
         )
 
         force_frequency_chart.set_legend({"none": True})
 
-        x_axis_label = "Twitch Frequency (Hz)"
+        x_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
 
         force_frequency_chart.set_x_axis({"name": x_axis_label})
 
-        y_axis_label = "Twitch Amplitude"
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[AMPLITUDE_UUID]
 
         force_frequency_chart.set_y_axis(
             {"name": y_axis_label, "major_gridlines": {"visible": 0}}
@@ -877,8 +878,8 @@ class PlateRecording(FileManagerPlateRecording):
 
         frequency_chart.add_series(
             {
-                "categories": f"='per-twitch-metrics'!$B${well_row + 2}:${last_column}${well_row + 2}",
-                "values": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 2}:${last_column}${well_row + 2}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
             }
         )
 
@@ -890,7 +891,7 @@ class PlateRecording(FileManagerPlateRecording):
 
         frequency_chart.set_x_axis(x_axis_settings)
 
-        y_axis_label = "Twitch Frequency (Hz)"
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
 
         frequency_chart.set_y_axis(
             {"name": y_axis_label, "min": 0, "major_gridlines": {"visible": 0}}

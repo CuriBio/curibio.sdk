@@ -10,5 +10,5 @@ matplotlib==3.3.3
 mantarray-file-manager==0.4.5
 mantarray-waveform-analysis==0.5.10
 stdlib_utils==0.3.11
-openpyxl==3.0.5
+openpyxl==3.0.6
 labware-domain-models==0.3.1

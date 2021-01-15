@@ -45,6 +45,7 @@ NUMBER_OF_PER_TWITCH_METRICS = 18
 SNAPSHOT_CHART_SHEET_NAME = "continuous-waveform-snapshots"
 FULL_CHART_SHEET_NAME = "full-continuous-waveform-plots"
 TWITCH_FREQUENCIES_CHART_SHEET_NAME = "twitch-frequencies-plots"
+FORCE_FREQUENCY_RELATIONSHIP_SHEET = "force-frequency-relationship"
 
 INTERPOLATED_DATA_PERIOD_SECONDS = 1 / 100
 INTERPOLATED_DATA_PERIOD_CMS = (

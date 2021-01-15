@@ -26,6 +26,7 @@ from mantarray_waveform_analysis import CENTIMILLISECONDS_PER_SECOND
 from mantarray_waveform_analysis import Pipeline
 from mantarray_waveform_analysis import PipelineTemplate
 from mantarray_waveform_analysis import TooFewPeaksDetectedError
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 from mantarray_waveform_analysis import TWITCH_PERIOD_UUID
 from mantarray_waveform_analysis import TwoPeaksInARowError
 from mantarray_waveform_analysis import TwoValleysInARowError
@@ -53,6 +54,7 @@ from .constants import CHART_HEIGHT_CELLS
 from .constants import CHART_WINDOW_NUM_SECONDS
 from .constants import CONTINUOUS_WAVEFORM_SHEET_NAME
 from .constants import DEFAULT_CELL_WIDTH
+from .constants import FORCE_FREQUENCY_RELATIONSHIP_SHEET
 from .constants import FULL_CHART_SHEET_NAME
 from .constants import INTERPOLATED_DATA_PERIOD_CMS
 from .constants import INTERPOLATED_DATA_PERIOD_SECONDS
@@ -732,6 +734,7 @@ class PlateRecording(FileManagerPlateRecording):
         curr_sheet = self._workbook.add_worksheet(PER_TWITCH_METRICS_SHEET_NAME)
 
         self._workbook.add_worksheet(TWITCH_FREQUENCIES_CHART_SHEET_NAME)
+        self._workbook.add_worksheet(FORCE_FREQUENCY_RELATIONSHIP_SHEET)
 
         curr_row = 0
         well_indices = self.get_well_indices()
@@ -783,6 +786,12 @@ class PlateRecording(FileManagerPlateRecording):
                         twitch_timepoints,
                     )
 
+                    self._create_force_frequency_relationship_charts(
+                        iter_well_idx,
+                        well_name,
+                        number_twitches,
+                    )
+
             curr_row += 1
             curr_sheet.write(
                 curr_row,
@@ -795,6 +804,58 @@ class PlateRecording(FileManagerPlateRecording):
             curr_row += (
                 NUMBER_OF_PER_TWITCH_METRICS + 1 - 6
             )  # include a single row gap in between the data for each well
+
+    def _create_force_frequency_relationship_charts(
+        self,
+        well_index: int,
+        well_name: str,
+        num_data_points: int,
+    ) -> None:
+        force_frequency_sheet = self._workbook.get_worksheet_by_name(
+            FORCE_FREQUENCY_RELATIONSHIP_SHEET
+        )
+
+        msg = f"Creating chart of force-frequency data of well {well_name}"
+        logger.info(msg)
+
+        force_frequency_chart = self._workbook.add_chart({"type": "scatter"})
+
+        well_row = well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2)
+        last_column = xl_col_to_name(num_data_points)
+
+        force_frequency_chart.add_series(
+            {
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 5}:${last_column}${well_row + 5}",
+            }
+        )
+
+        force_frequency_chart.set_legend({"none": True})
+
+        x_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
+
+        force_frequency_chart.set_x_axis({"name": x_axis_label})
+
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[AMPLITUDE_UUID]
+
+        force_frequency_chart.set_y_axis(
+            {"name": y_axis_label, "major_gridlines": {"visible": 0}}
+        )
+
+        force_frequency_chart.set_size(
+            {"width": CHART_FIXED_WIDTH, "height": CHART_HEIGHT}
+        )
+        force_frequency_chart.set_title({"name": f"Well {well_name}"})
+
+        well_row, well_col = TWENTY_FOUR_WELL_PLATE.get_row_and_column_from_well_index(
+            well_index
+        )
+
+        force_frequency_sheet.insert_chart(
+            1 + well_row * (CHART_HEIGHT_CELLS + 1),
+            1 + well_col * (CHART_FIXED_WIDTH_CELLS + 1),
+            force_frequency_chart,
+        )
 
     def _create_frequency_vs_time_charts(
         self,
@@ -817,8 +878,8 @@ class PlateRecording(FileManagerPlateRecording):
 
         frequency_chart.add_series(
             {
-                "categories": f"='per-twitch-metrics'!$B${well_row + 2}:${last_column}${well_row + 2}",
-                "values": f"='per-twitch-metrics'!$B${well_row + 4}:${last_column}${well_row + 4}",
+                "categories": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 2}:${last_column}${well_row + 2}",
+                "values": f"='{PER_TWITCH_METRICS_SHEET_NAME}'!$B${well_row + 4}:${last_column}${well_row + 4}",
             }
         )
 
@@ -830,7 +891,7 @@ class PlateRecording(FileManagerPlateRecording):
 
         frequency_chart.set_x_axis(x_axis_settings)
 
-        y_axis_label = "Twitch Frequency (Hz)"
+        y_axis_label = CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
 
         frequency_chart.set_y_axis(
             {"name": y_axis_label, "min": 0, "major_gridlines": {"visible": 0}}

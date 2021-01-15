@@ -7,7 +7,11 @@ import zipfile
 
 from curibio.sdk import NUMBER_OF_PER_TWITCH_METRICS
 from curibio.sdk import PlateRecording
-from labware_domain_models import LabwareDefinition
+from curibio.sdk.constants import CALCULATED_METRIC_DISPLAY_NAMES
+from curibio.sdk.constants import PER_TWITCH_METRICS_SHEET_NAME
+from curibio.sdk.constants import TWENTY_FOUR_WELL_PLATE
+from mantarray_waveform_analysis import AMPLITUDE_UUID
+from mantarray_waveform_analysis import TWITCH_FREQUENCY_UUID
 import pytest
 from stdlib_utils import get_current_file_abs_directory
 from xlsxwriter.utility import xl_col_to_name
@@ -61,6 +65,180 @@ NS = {
 # "first_c_y":      first y value of contraction markers
 # "first_r_idx":    first XML 'idx' value of relaxation markers
 # "first_r_y":      first y value of relaxation markers
+
+
+# pylint: disable=too-many-locals
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "pr,expected_A1_attrs,expected_B2_attrs,test_description",
+    [
+        (
+            PlateRecording(
+                [
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__A1.h5",
+                    ),
+                    os.path.join(
+                        PATH_OF_CURRENT_FILE,
+                        "h5",
+                        "v0.3.1",
+                        "MA201110001__2020_09_03_213024",
+                        "MA201110001__2020_09_03_213024__B2.h5",
+                    ),
+                ]
+            ),
+            {
+                "chart_num": 7,
+                "well_name": "A1",
+                "from_col": 1,
+                "from_row": 1,
+                "to_col": 9,
+                "to_row": 16,
+                "num_twitches": 242,
+            },
+            {
+                "chart_num": 8,
+                "well_name": "B2",
+                "from_col": 10,
+                "from_row": 17,
+                "to_col": 18,
+                "to_row": 32,
+                "num_twitches": 429,
+            },
+            "creates chart correctly with given data",
+        ),
+    ],
+)
+def test_write_xlsx__creates_two_force_frequency_relationship_charts_correctly(
+    pr, expected_A1_attrs, expected_B2_attrs, test_description
+):
+    test_file_name = "test_chart.xlsx"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pr.write_xlsx(tmp_dir, file_name=test_file_name)
+        with zipfile.ZipFile(os.path.join(tmp_dir, test_file_name), "r") as zip_ref:
+            zip_ref.extractall(tmp_dir)
+
+        for expected_attrs in (expected_A1_attrs, expected_B2_attrs):
+            expected_well_name = expected_attrs["well_name"]
+            chart_root = ET.parse(
+                os.path.join(
+                    tmp_dir, "xl", "charts", f"chart{expected_attrs['chart_num']}.xml"
+                )
+            ).getroot()
+            chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+            assert chart_title.text == f"Well {expected_well_name}"
+
+            root_elements = chart_root.findall("c:chart/c:plotArea/c:valAx", NS)
+            assert len(root_elements) == 2
+            for node in root_elements:
+                axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
+                if (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0001"
+                ):
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
+                    )
+                elif (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0002"
+                ):
+                    assert (expected_well_name == expected_attrs["well_name"]) and (
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[AMPLITUDE_UUID]
+                    )
+            assert (expected_well_name == expected_attrs["well_name"]) and (
+                chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
+                is None
+            )
+
+            # testing frequency series
+            root_elements = chart_root.findall(
+                "c:chart/c:plotArea/c:scatterChart/c:ser", NS
+            )
+            assert len(root_elements) == 1
+
+            force_frequency_series_node = None
+            for node in root_elements:
+                if node.find("c:idx", NS).attrib["val"] == "0":
+                    force_frequency_series_node = node
+                    break
+
+            well_index = TWENTY_FOUR_WELL_PLATE.get_well_index_from_well_name(
+                expected_attrs["well_name"]
+            )
+            x_range_row = (
+                well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2) + 4
+            )  # adjusting with +2 to reflect timepoint of twitch on per twitch metrics sheet for the given well
+            y_range_row = (
+                well_index * (NUMBER_OF_PER_TWITCH_METRICS + 2) + 5
+            )  # adjusting with +4 to reflect frequency of twitch on per twitch metrics sheet for the given well
+            col_range = xl_col_to_name(expected_attrs["num_twitches"])
+
+            # x - range
+            assert (
+                force_frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${x_range_row}:${col_range}${x_range_row}"
+            )
+            # y - range
+            assert (
+                force_frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${y_range_row}:${col_range}${y_range_row}"
+            )
+
+        # testing formatting of charts on sheet
+        drawing_root = ET.parse(
+            os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
+        ).getroot()
+
+        drawing_root_elements = drawing_root.findall("xdr:twoCellAnchor", NS)
+        assert len(drawing_root_elements) == 2
+
+        for chart_node in drawing_root_elements:
+            chart_name = chart_node.find(
+                "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
+            ).attrib["name"]
+            expected_attrs = (
+                expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
+            )
+
+            from_node = chart_node.find("xdr:from", NS)
+            left_col_of_chart = from_node.find("xdr:col", NS)
+            top_row_of_chart = from_node.find("xdr:row", NS)
+
+            assert (int(left_col_of_chart.text), chart_name) == (
+                expected_attrs["from_col"],
+                chart_name,
+            )
+            assert (chart_name, int(from_node.find("xdr:colOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+            assert int(top_row_of_chart.text) == expected_attrs["from_row"]
+            assert (chart_name, int(from_node.find("xdr:rowOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+
+            to_node = chart_node.find("xdr:to", NS)
+            right_col_of_chart = to_node.find("xdr:col", NS)
+            bottom_row_of_chart = to_node.find("xdr:row", NS)
+
+            assert int(right_col_of_chart.text) == expected_attrs["to_col"]
+            assert (chart_name, int(to_node.find("xdr:colOff", NS).text)) == (
+                chart_name,
+                0,
+            )
+            assert int(bottom_row_of_chart.text) == expected_attrs["to_row"]
+            assert (chart_name, int(to_node.find("xdr:rowOff", NS).text)) == (
+                chart_name,
+                0,
+            )
 
 
 # pylint: disable=too-many-locals
@@ -169,15 +347,24 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             chart_title = chart_root.find("c:chart/c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
             assert chart_title.text == f"Well {expected_well_name}"
 
-            for node in chart_root.findall("c:chart/c:plotArea/c:valAx", NS):
+            root_elements = chart_root.findall("c:chart/c:plotArea/c:valAx", NS)
+            assert len(root_elements) == 2
+            for node in root_elements:
                 axis_label = node.find("c:title/c:tx/c:rich/a:p/a:r/a:t", NS)
-                if node.find("c:axId", NS).attrib["val"] == "50030001":
+                if (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0001"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
                         axis_label.text == "Time (seconds)"
                     )
-                elif node.find("c:axId", NS).attrib["val"] == "50030002":
+                elif (
+                    node.find("c:axId", NS).attrib["val"]
+                    == f"500{expected_attrs['chart_num']}0002"
+                ):
                     assert (expected_well_name == expected_attrs["well_name"]) and (
-                        axis_label.text == "Twitch Frequency (Hz)"
+                        axis_label.text
+                        == CALCULATED_METRIC_DISPLAY_NAMES[TWITCH_FREQUENCY_UUID]
                     )
             assert (expected_well_name == expected_attrs["well_name"]) and (
                 chart_root.find("c:chart/c:plotArea/c:valAx/c:majorGridlines", NS)
@@ -185,16 +372,19 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             )
 
             # testing frequency series
-            frequency_series_node = None
-            for node in chart_root.findall(
+
+            root_elements = chart_root.findall(
                 "c:chart/c:plotArea/c:scatterChart/c:ser", NS
-            ):
+            )
+            assert len(root_elements) == 1
+
+            frequency_series_node = None
+            for node in root_elements:
                 if node.find("c:idx", NS).attrib["val"] == "0":
                     frequency_series_node = node
                     break
 
-            twenty_four_well = LabwareDefinition(row_count=4, column_count=6)
-            well_index = twenty_four_well.get_well_index_from_well_name(
+            well_index = TWENTY_FOUR_WELL_PLATE.get_well_index_from_well_name(
                 expected_attrs["well_name"]
             )
             x_range_row = (
@@ -208,27 +398,34 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
             # x - range
             assert (
                 frequency_series_node.find("c:xVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${x_range_row}:${col_range}${x_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${x_range_row}:${col_range}${x_range_row}"
             )
             # y - range
             assert (
                 frequency_series_node.find("c:yVal/c:numRef/c:f", NS).text
-                == f"'per-twitch-metrics'!$B${y_range_row}:${col_range}${y_range_row}"
+                == f"'{PER_TWITCH_METRICS_SHEET_NAME}'!$B${y_range_row}:${col_range}${y_range_row}"
             )
 
         # testing formatting of charts on sheet
         drawing_root = ET.parse(
             os.path.join(tmp_dir, "xl", "drawings", "drawing1.xml")
         ).getroot()
-        for chart_node in drawing_root.findall("xdr:twoCellAnchor", NS):
+        drawing_root_elements = drawing_root.findall("xdr:twoCellAnchor", NS)
+        assert len(drawing_root_elements) == 2
+
+        for chart_node in drawing_root_elements:
             chart_name = chart_node.find(
                 "xdr:graphicFrame/xdr:nvGraphicFramePr/xdr:cNvPr", NS
             ).attrib["name"]
             expected_attrs = (
                 expected_A1_attrs if chart_name == "Chart 1" else expected_B2_attrs
             )
+
             from_node = chart_node.find("xdr:from", NS)
-            assert (int(from_node.find("xdr:col", NS).text), chart_name) == (
+            left_col_of_chart = from_node.find("xdr:col", NS)
+            top_row_of_chart = from_node.find("xdr:row", NS)
+
+            assert (int(left_col_of_chart.text), chart_name) == (
                 expected_attrs["from_col"],
                 chart_name,
             )
@@ -236,18 +433,22 @@ def test_write_xlsx__creates_two_frequency_vs_time_charts_correctly(
                 chart_name,
                 0,
             )
-            assert int(from_node.find("xdr:row", NS).text) == expected_attrs["from_row"]
+            assert int(top_row_of_chart.text) == expected_attrs["from_row"]
             assert (chart_name, int(from_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,
             )
+
             to_node = chart_node.find("xdr:to", NS)
-            assert int(to_node.find("xdr:col", NS).text) == expected_attrs["to_col"]
+            right_col_of_chart = to_node.find("xdr:col", NS)
+            bottom_row_of_chart = to_node.find("xdr:row", NS)
+
+            assert int(right_col_of_chart.text) == expected_attrs["to_col"]
             assert (chart_name, int(to_node.find("xdr:colOff", NS).text)) == (
                 chart_name,
                 0,
             )
-            assert int(to_node.find("xdr:row", NS).text) == expected_attrs["to_row"]
+            assert int(bottom_row_of_chart.text) == expected_attrs["to_row"]
             assert (chart_name, int(to_node.find("xdr:rowOff", NS).text)) == (
                 chart_name,
                 0,

@@ -53,5 +53,7 @@ pipeline_outputs/
 *.csv
 ./*.xlsx
 tests/*.xlsx
+tmp/
+
 
 secrets.json

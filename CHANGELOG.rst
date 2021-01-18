@@ -1,6 +1,11 @@
 Changelog for Curi Bio Software Development Kit
 ===============================================
 
+0.10.1 (2021-01-19)
+-------------------
+- Bumped Docker Container to 3.9.1-slim-buster
+- Added message in Jupyter Notebook if not running the latest version
+
 0.10.0 (2021-01-15)
 -------------------
 - Added twitch frequencies chart excel sheet.

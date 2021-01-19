@@ -3,6 +3,7 @@
 
 from mantarray_file_manager import WellFile
 
+from . import jupyter_helpers
 from .constants import AGGREGATE_METRICS_SHEET_NAME
 from .constants import ALL_FORMATS
 from .constants import CALCULATED_METRIC_DISPLAY_NAMES
@@ -38,13 +39,17 @@ from .constants import TWITCH_FREQUENCIES_CHART_SHEET_NAME
 from .constants import TWITCHES_POINT_UP_UUID
 from .excel_well_file import ExcelWellFile
 from .exceptions import MetadataNotFoundError
+from .jupyter_helpers import check_if_latest_version
+from .jupyter_helpers import get_latest_version_from_pypi
 from .plate_recording import PlateRecording
-
 
 __all__ = [
     "WellFile",
     "ExcelWellFile",
     "PlateRecording",
+    "check_if_latest_version",
+    "get_latest_version_from_pypi",
+    "jupyter_helpers",
     "METADATA_EXCEL_SHEET_NAME",
     "METADATA_RECORDING_ROW_START",
     "METADATA_INSTRUMENT_ROW_START",

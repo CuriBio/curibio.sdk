@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="curibio.sdk",
-    version="0.10.0",
+    version="0.10.1",
     description="CREATE A DESCRIPTION",
     url="https://github.com/CuriBio/curibio.sdk",
     project_urls={"Documentation": "https://curibiosdk.readthedocs.io/en/latest/"},
@@ -28,6 +28,7 @@ setup(
         "stdlib_utils>=0.3.1",
         "mantarray-waveform-analysis>=0.5.10",
         "labware-domain-models>=0.3.1",
+        "requests>=2.24.0",
         'importlib-metadata ~= 1.0 ; python_version < "3.8"',
     ],
     zip_safe=False,
